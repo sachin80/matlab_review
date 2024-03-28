@@ -1,0 +1,294 @@
+A = [1, 2, 3; 4, 5, 6; 7, 8, 9]
+
+A =
+
+     1     2     3
+     4     5     6
+     7     8     9
+
+A(2, 3)
+
+ans =
+
+     6
+
+B = A(2:3, 1:3)
+
+B =
+
+     4     5     6
+     7     8     9
+
+B = A(2:3, :)
+
+B =
+
+     4     5     6
+     7     8     9
+
+B(:, 2) = []
+
+B =
+
+     4     6
+     7     9
+
+x = A(1, :)
+
+x =
+
+     1     2     3
+
+x = A(1, :)'
+
+x =
+
+     1
+     2
+     3
+
+y = A(:, 1)
+
+y =
+
+     1
+     4
+     7
+
+x'*x
+
+ans =
+
+    14
+
+size(x)
+
+ans =
+
+     3     1
+
+x * x'
+
+ans =
+
+     1     2     3
+     2     4     6
+     3     6     9
+
+A * x 
+
+ans =
+
+    14
+    32
+    50
+
+A^2
+
+ans =
+
+    30    36    42
+    66    81    96
+   102   126   150
+
+A * A
+
+ans =
+
+    30    36    42
+    66    81    96
+   102   126   150
+
+A.^2
+
+ans =
+
+     1     4     9
+    16    25    36
+    49    64    81
+
+E = 5 * eye(3)
+
+E =
+
+     5     0     0
+     0     5     0
+     0     0     5
+
+A = [2, 6; 3, 9]
+
+A =
+
+     2     6
+     3     9
+
+help diag
+ <strong>diag</strong> Diagonal matrices and diagonals of a matrix.
+    <strong>diag</strong>(V,K) when V is a vector with N components is a square matrix
+    of order N+ABS(K) with the elements of V on the K-th diagonal. K = 0
+    is the main diagonal, K > 0 is above the main diagonal and K < 0
+    is below the main diagonal. 
+ 
+    <strong>diag</strong>(V) is the same as <strong>diag</strong>(V,0) and puts V on the main diagonal.
+ 
+    <strong>diag</strong>(X,K) when X is a matrix is a column vector formed from
+    the elements of the K-th diagonal of X.
+ 
+    <strong>diag</strong>(X) is the main diagonal of X. <strong>diag</strong>(<strong>diag</strong>(X)) is a diagonal matrix.
+ 
+    Example
+       m = 5;
+       diag(-m:m) + diag(ones(2*m,1),1) + diag(ones(2*m,1),-1)
+    produces a tridiagonal matrix of order 2*m+1.
+ 
+    See also <a href="matlab:help spdiags -displayBanner">spdiags</a>, <a href="matlab:help triu -displayBanner">triu</a>, <a href="matlab:help tril -displayBanner">tril</a>, <a href="matlab:help blkdiag -displayBanner">blkdiag</a>.
+
+    <a href="matlab:doc diag">Documentation for diag</a>
+    <a href="matlab:matlab.internal.language.introspective.overloads.displayOverloads('diag')">Other functions named diag</a>
+
+diag(-5:5)
+
+ans =
+
+    -5     0     0     0     0     0     0     0     0     0     0
+     0    -4     0     0     0     0     0     0     0     0     0
+     0     0    -3     0     0     0     0     0     0     0     0
+     0     0     0    -2     0     0     0     0     0     0     0
+     0     0     0     0    -1     0     0     0     0     0     0
+     0     0     0     0     0     0     0     0     0     0     0
+     0     0     0     0     0     0     1     0     0     0     0
+     0     0     0     0     0     0     0     2     0     0     0
+     0     0     0     0     0     0     0     0     3     0     0
+     0     0     0     0     0     0     0     0     0     4     0
+     0     0     0     0     0     0     0     0     0     0     5
+
+diag(A)
+
+ans =
+
+     2
+     9
+
+A
+
+A =
+
+     2     6
+     3     9
+
+G = [A, zeros(4)]
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('horzcat')" style="font-weight:bold">horzcat</a>
+Dimensions of arrays being concatenated are not consistent.
+} 
+G = [A, zeros(2)]
+
+G =
+
+     2     6     0     0
+     3     9     0     0
+
+G = [A, zeros(2), zeros(2)]
+
+G =
+
+     2     6     0     0     0     0
+     3     9     0     0     0     0
+
+B = [1, 2; 3, 4];
+G = [A, zeros(2), zeros(2); zeros(2), B, zeros(2)]
+
+G =
+
+     2     6     0     0     0     0
+     3     9     0     0     0     0
+     0     0     1     2     0     0
+     0     0     3     4     0     0
+
+C = [-5, 5; 5 3];
+G = [A, zeros(2), zeros(2); zeros(2), B, zeros(2); zeros(2), zeros(2), C]
+
+G =
+
+     2     6     0     0     0     0
+     3     9     0     0     0     0
+     0     0     1     2     0     0
+     0     0     3     4     0     0
+     0     0     0     0    -5     5
+     0     0     0     0     5     3
+
+size(G)
+
+ans =
+
+     6     6
+
+G(:, 6) = []
+
+G =
+
+     2     6     0     0     0
+     3     9     0     0     0
+     0     0     1     2     0
+     0     0     3     4     0
+     0     0     0     0    -5
+     0     0     0     0     5
+
+G(6, :) = []
+
+G =
+
+     2     6     0     0     0
+     3     9     0     0     0
+     0     0     1     2     0
+     0     0     3     4     0
+     0     0     0     0    -5
+
+size(G)
+
+ans =
+
+     5     5
+
+G_sub = G(1:4, 1:4)
+
+G_sub =
+
+     2     6     0     0
+     3     9     0     0
+     0     0     1     2
+     0     0     3     4
+
+G(5, 5) = 4
+
+G =
+
+     2     6     0     0     0
+     3     9     0     0     0
+     0     0     1     2     0
+     0     0     3     4     0
+     0     0     0     0     4
+
+G(13)
+
+ans =
+
+     1
+
+G(12, 1) = 1
+
+G =
+
+     2     6     0     0     0
+     3     9     0     0     0
+     0     0     1     2     0
+     0     0     3     4     0
+     0     0     0     0     4
+     0     0     0     0     0
+     0     0     0     0     0
+     0     0     0     0     0
+     0     0     0     0     0
+     0     0     0     0     0
+     0     0     0     0     0
+     1     0     0     0     0
+
+diary off 

@@ -1,0 +1,12 @@
+% CIRCLE - A script to draw a unit circle
+% File written by Sachin Agrawal. 
+% -------------------------------
+r = input('Enter the radius of the circle');
+theta = linspace(0, 2*pi, 100);
+x =r*  cos(theta);
+y = sin(theta);
+plot(x, y)
+axis('equal')
+hold on
+plot(0, 0, '+')
+title('Circle of unit radius')

@@ -1,0 +1,715 @@
+f = @(x)x^3 - 3*x^2 + x * log(x - 1) + 100
+
+f =
+
+  <a href="matlab:helpPopup function_handle" style="font-weight:bold">function_handle</a> with value:
+
+    @(x)x^3-3*x^2+x*log(x-1)+100
+
+f(0)
+
+ans =
+
+   100
+
+f(1)
+
+ans =
+
+  -Inf
+
+values = [f(0), f(1), f(2), f(10)]
+
+values =
+
+  100.0000      -Inf   96.0000  821.9722
+
+x = [0, 1, 2, 10]
+
+x =
+
+     0     1     2    10
+
+f(x)
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('mpower')" style="font-weight:bold"> ^ </a>
+Incorrect dimensions for raising a matrix to a power. Check that the matrix is square and the power is a scalar. To
+operate on each element of the matrix individually, use POWER (.^) for elementwise power.
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('@(x)x^3-3*x^2+x*log(x-1)+100')" style="font-weight:bold">@(x)x^3-3*x^2+x*log(x-1)+100</a>
+} 
+f = @(x)x.^3 - 3*x.^2 + x.*log(x - 1) + 100
+
+f =
+
+  <a href="matlab:helpPopup function_handle" style="font-weight:bold">function_handle</a> with value:
+
+    @(x)x.^3-3*x.^2+x.*log(x-1)+100
+
+f(x)
+
+ans =
+
+  100.0000      -Inf   96.0000  821.9722
+
+x = linspace(-10, 10);
+plot(x, f(x))
+[Warning: Imaginary parts of complex X and/or Y arguments ignored.] 
+f = @(mu, x) mu*x - x.^3l
+ f = @(mu, x) mu*x - x.^3l
+                         ↑
+{Invalid expression. Check for missing multiplication operator, missing or unbalanced delimiters, or other syntax
+error. To construct matrices, use brackets instead of parentheses.
+} 
+f = @(mu, x) mu*x - x.^3;
+x = linspace(-5, 5)'
+
+x =
+
+   -5.0000
+   -4.8990
+   -4.7980
+   -4.6970
+   -4.5960
+   -4.4949
+   -4.3939
+   -4.2929
+   -4.1919
+   -4.0909
+   -3.9899
+   -3.8889
+   -3.7879
+   -3.6869
+   -3.5859
+   -3.4848
+   -3.3838
+   -3.2828
+   -3.1818
+   -3.0808
+   -2.9798
+   -2.8788
+   -2.7778
+   -2.6768
+   -2.5758
+   -2.4747
+   -2.3737
+   -2.2727
+   -2.1717
+   -2.0707
+   -1.9697
+   -1.8687
+   -1.7677
+   -1.6667
+   -1.5657
+   -1.4646
+   -1.3636
+   -1.2626
+   -1.1616
+   -1.0606
+   -0.9596
+   -0.8586
+   -0.7576
+   -0.6566
+   -0.5556
+   -0.4545
+   -0.3535
+   -0.2525
+   -0.1515
+   -0.0505
+    0.0505
+    0.1515
+    0.2525
+    0.3535
+    0.4545
+    0.5556
+    0.6566
+    0.7576
+    0.8586
+    0.9596
+    1.0606
+    1.1616
+    1.2626
+    1.3636
+    1.4646
+    1.5657
+    1.6667
+    1.7677
+    1.8687
+    1.9697
+    2.0707
+    2.1717
+    2.2727
+    2.3737
+    2.4747
+    2.5758
+    2.6768
+    2.7778
+    2.8788
+    2.9798
+    3.0808
+    3.1818
+    3.2828
+    3.3838
+    3.4848
+    3.5859
+    3.6869
+    3.7879
+    3.8889
+    3.9899
+    4.0909
+    4.1919
+    4.2929
+    4.3939
+    4.4949
+    4.5960
+    4.6970
+    4.7980
+    4.8990
+    5.0000
+
+f_many = [f(-5, x), f(0, x), f(5, x), f(45, x)];
+plot(x, f_many), grid, xlabel('x')
+ylabel('f(\mu,x) = \mu x - x^3')
+g = @(a, x) a(4)*x^3 + a(3)*x^2 + a(2)*x + a(1);
+a = [1, 2, -1, 0];
+g(a, 5)
+
+ans =
+
+   -14
+
+g = @(a, x) a(4)*x.^3 + a(3)*x.^2 + a(2)*x + a(1);
+fplot(g, [-2, 2])
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('fplot')" style="font-weight:bold">fplot</a>
+Input must be a function or functions of a single variable.
+} 
+help fplot
+ <strong>fplot</strong>   Plot 2-D function
+    <strong>fplot</strong>(FUN) plots the function FUN between the limits of the current
+    axes, with a default of [-5 5].
+ 
+    <strong>fplot</strong>(FUN,LIMS) plots the function FUN between the x-axis limits
+    specified by LIMS = [XMIN XMAX]. 
+ 
+    <strong>fplot</strong>(...,'LineSpec') plots with the given line specification.
+ 
+    <strong>fplot</strong>(X,Y,LIMS) plots the parameterized curve with coordinates
+    X(T), Y(T) for T between the values specified by LIMS = [TMIN TMAX].
+ 
+    H = <strong>fplot</strong>(...) returns a handle to the function line object created by <strong>fplot</strong>.
+ 
+    <strong>fplot</strong>(AX,...) plots into the axes AX instead of the current axes.
+ 
+    Examples:
+        fplot(@sin)
+        fplot(@(x) x.^2.*sin(1./x),[-1,1])
+        fplot(@(x) sin(1./x), [0 0.1])
+ 
+    If your function cannot be evaluated for multiple x values at once,
+    you will get a warning and somewhat reduced speed:
+        f = @(x,n) abs(exp(-1j*x*(0:n-1))*ones(n,1));
+        fplot(@(x) f(x,10),[0 2*pi])
+ 
+    See also <a href="matlab:help fplot3 -displayBanner">fplot3</a>, <a href="matlab:help fsurf -displayBanner">fsurf</a>, <a href="matlab:help fcontour -displayBanner">fcontour</a>, <a href="matlab:help fimplicit -displayBanner">fimplicit</a>, <a href="matlab:help plot -displayBanner">plot</a>, <a href="matlab:help function_handle -displayBanner">function_handle</a>.
+
+    <a href="matlab:doc fplot">Documentation for fplot</a>
+
+whos
+  Name          Size            Bytes  Class              Attributes
+
+  a             1x4                32  double                       
+  ans           1x1                 8  double                       
+  f             1x1                32  function_handle              
+  f_many      100x4              3200  double                       
+  g             1x1                32  function_handle              
+  values        1x4                32  double                       
+  x           100x1               800  double                       
+
+a
+
+a =
+
+     1     2    -1     0
+
+fplot(g, [-2, 2])
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('fplot')" style="font-weight:bold">fplot</a>
+Input must be a function or functions of a single variable.
+} 
+g = @(x) a(4)*x.^3 + a(3)*x.^2 + a(2)*x + a(1);
+fplot(g, [-2, 2])
+g_integral = quad(g, 0, 1)
+
+g_integral =
+
+    1.6667
+
+g = @(x) x^2 - sin(x) + 1/x;
+g(0)
+
+ans =
+
+   Inf
+
+g(1)
+
+ans =
+
+    1.1585
+
+g(pi/2)
+
+ans =
+
+    2.1040
+
+g = @(x) x.^2 - sin(x) + 1./x;
+x = [0, 1, pi/2, pi];
+g(x)
+
+ans =
+
+       Inf    1.1585    2.1040   10.1879
+
+x = linspace(-1, 1)
+
+x =
+
+  Columns 1 through 11
+
+   -1.0000   -0.9798   -0.9596   -0.9394   -0.9192   -0.8990   -0.8788   -0.8586   -0.8384   -0.8182   -0.7980
+
+  Columns 12 through 22
+
+   -0.7778   -0.7576   -0.7374   -0.7172   -0.6970   -0.6768   -0.6566   -0.6364   -0.6162   -0.5960   -0.5758
+
+  Columns 23 through 33
+
+   -0.5556   -0.5354   -0.5152   -0.4949   -0.4747   -0.4545   -0.4343   -0.4141   -0.3939   -0.3737   -0.3535
+
+  Columns 34 through 44
+
+   -0.3333   -0.3131   -0.2929   -0.2727   -0.2525   -0.2323   -0.2121   -0.1919   -0.1717   -0.1515   -0.1313
+
+  Columns 45 through 55
+
+   -0.1111   -0.0909   -0.0707   -0.0505   -0.0303   -0.0101    0.0101    0.0303    0.0505    0.0707    0.0909
+
+  Columns 56 through 66
+
+    0.1111    0.1313    0.1515    0.1717    0.1919    0.2121    0.2323    0.2525    0.2727    0.2929    0.3131
+
+  Columns 67 through 77
+
+    0.3333    0.3535    0.3737    0.3939    0.4141    0.4343    0.4545    0.4747    0.4949    0.5152    0.5354
+
+  Columns 78 through 88
+
+    0.5556    0.5758    0.5960    0.6162    0.6364    0.6566    0.6768    0.6970    0.7172    0.7374    0.7576
+
+  Columns 89 through 99
+
+    0.7778    0.7980    0.8182    0.8384    0.8586    0.8788    0.8990    0.9192    0.9394    0.9596    0.9798
+
+  Column 100
+
+    1.0000
+
+f(x)
+{Not enough input arguments.
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('@(mu,x)mu*x-x.^3')" style="font-weight:bold">@(mu,x)mu*x-x.^3</a>
+} 
+g(x)
+
+ans =
+
+  Columns 1 through 11
+
+    0.8415    0.7698    0.6977    0.6251    0.5521    0.4785    0.4043    0.3294    0.2537    0.1771    0.0996
+
+  Columns 12 through 22
+
+    0.0209   -0.0589   -0.1401   -0.2228   -0.3071   -0.3933   -0.4816   -0.5722   -0.6654   -0.7615   -0.8609
+
+  Columns 23 through 33
+
+   -0.9639   -1.0712   -1.1831   -1.3004   -1.4239   -1.5543   -1.6929   -1.8407   -1.9994   -2.1709   -2.3574
+
+  Columns 34 through 44
+
+   -2.5617   -2.7875   -3.0392   -3.3229   -3.6464   -4.0201   -4.4588   -4.9830   -5.6232   -6.4261   -7.4672
+
+  Columns 45 through 55
+
+   -8.8768  -10.9010  -14.0672  -19.7470  -32.9688  -98.9898   98.9900   32.9706   19.7521   14.0772   10.9175
+
+  Columns 56 through 66
+
+    8.9015    7.5017    6.4720    5.6821    5.0566    4.5487    4.1281    3.7739    3.4717    3.2108    2.9836
+
+  Columns 67 through 77
+
+    2.7839    2.6073    2.4503    2.3098    2.1837    2.0702    1.9676    1.8747    1.7904    1.7139    1.6444
+
+  Columns 78 through 88
+
+    1.5812    1.5239    1.4718    1.4247    1.3821    1.3438    1.3094    1.2787    1.2514    1.2275    1.2068
+
+  Columns 89 through 99
+
+    1.1890    1.1740    1.1617    1.1521    1.1450    1.1402    1.1378    1.1377    1.1398    1.1440    1.1502
+
+  Column 100
+
+    1.1585
+
+plot(x, f(x))
+{Not enough input arguments.
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('@(mu,x)mu*x-x.^3')" style="font-weight:bold">@(mu,x)mu*x-x.^3</a>
+} 
+plot(x, g(x))
+fplot(g(x), [-pi, pi])
+f
+
+f =
+
+  <a href="matlab:helpPopup function_handle" style="font-weight:bold">function_handle</a> with value:
+
+    @(mu,x)mu*x-x.^3
+
+f = @(x) x.^4 - 8 * x.^3 + 17 * x.^2 - 4 * x - 20;
+fplot(f(x), [-100, 100])
+f
+
+f =
+
+  <a href="matlab:helpPopup function_handle" style="font-weight:bold">function_handle</a> with value:
+
+    @(x)x.^4-8*x.^3+17*x.^2-4*x-20
+
+f(-100:100)
+
+ans =
+
+  Columns 1 through 9
+
+   108170380   103988986    99929992    95990986    92169580    88463410    84870136    81387442    78013036
+
+  Columns 10 through 18
+
+    74744650    71580040    68516986    65553292    62686786    59915320    57236770    54649036    52150042
+
+  Columns 19 through 27
+
+    49737736    47410090    45165100    43000786    40915192    38906386    36972460    35111530    33321736
+
+  Columns 28 through 36
+
+    31601242    29948236    28360930    26837560    25376386    23975692    22633786    21349000    20119690
+
+  Columns 37 through 45
+
+    18944236    17821042    16748536    15725170    14749420    13819786    12934792    12092986    11292940
+
+  Columns 46 through 54
+
+    10533250     9812536     9129442     8482636     7870810     7292680     6746986     6232492     5747986
+
+  Columns 55 through 63
+
+     5292280     4864210     4462636     4086442     3734536     3405850     3099340     2813986     2548792
+
+  Columns 64 through 72
+
+     2302786     2075020     1864570     1670536     1492042     1328236     1178290     1041400      916786
+
+  Columns 73 through 81
+
+      803692      701386      609160      526330      452236      386242      327736      276130      230860
+
+  Columns 82 through 90
+
+      191386      157192      127786      102700       81490       63736       49042       37036       27370
+
+  Columns 91 through 99
+
+       19720       13786        9292        5986        3640        2050        1036         442         136
+
+  Columns 100 through 108
+
+          10         -20         -14          -8         -14         -20          10         136         442
+
+  Columns 109 through 117
+
+        1036        2050        3640        5986        9292       13786       19720       27370       37036
+
+  Columns 118 through 126
+
+       49042       63736       81490      102700      127786      157192      191386      230860      276130
+
+  Columns 127 through 135
+
+      327736      386242      452236      526330      609160      701386      803692      916786     1041400
+
+  Columns 136 through 144
+
+     1178290     1328236     1492042     1670536     1864570     2075020     2302786     2548792     2813986
+
+  Columns 145 through 153
+
+     3099340     3405850     3734536     4086442     4462636     4864210     5292280     5747986     6232492
+
+  Columns 154 through 162
+
+     6746986     7292680     7870810     8482636     9129442     9812536    10533250    11292940    12092986
+
+  Columns 163 through 171
+
+    12934792    13819786    14749420    15725170    16748536    17821042    18944236    20119690    21349000
+
+  Columns 172 through 180
+
+    22633786    23975692    25376386    26837560    28360930    29948236    31601242    33321736    35111530
+
+  Columns 181 through 189
+
+    36972460    38906386    40915192    43000786    45165100    47410090    49737736    52150042    54649036
+
+  Columns 190 through 198
+
+    57236770    59915320    62686786    65553292    68516986    71580040    74744650    78013036    81387442
+
+  Columns 199 through 201
+
+    84870136    88463410    92169580
+
+fplot(f, [-20, 20])
+fplot(f, [-100, 100])
+fplot(f, [-1000, 1000])
+fplot(f, [-10000, 10000])
+help fzero
+ <strong>fzero</strong>  Single-variable nonlinear zero finding. 
+    X = <strong>fzero</strong>(FUN,X0) tries to find a zero of the function FUN near X0, 
+    if X0 is a scalar.  It first finds an interval containing X0 where the 
+    function values of the interval endpoints differ in sign, then searches 
+    that interval for a zero.  FUN is a function handle.  FUN accepts real 
+    scalar input X and returns a real scalar function value F, evaluated 
+    at X. The value X returned by <strong>fzero</strong> is near a point where FUN changes 
+    sign (if FUN is continuous), or NaN if the search fails.  
+ 
+    X = <strong>fzero</strong>(FUN,X0), where X0 is a vector of length 2, assumes X0 is a 
+    finite interval where the sign of FUN(X0(1)) differs from the sign of 
+    FUN(X0(2)). An error occurs if this is not true.  Calling <strong>fzero</strong> with a
+    finite interval guarantees <strong>fzero</strong> will return a value near a point where
+    FUN changes sign.
+ 
+    X = <strong>fzero</strong>(FUN,X0), where X0 is a scalar value, uses X0 as a starting 
+    guess. <strong>fzero</strong> looks for an interval containing a sign change for FUN and 
+    containing X0.  If no such interval is found, NaN is returned.  
+    In this case, the search terminates when the search interval 
+    is expanded until an Inf, NaN, or complex value is found. Note: if
+    the option FunValCheck is 'on', then an error will occur if an NaN or 
+    complex value is found.
+ 
+    X = <strong>fzero</strong>(FUN,X0,OPTIONS) solves the equation with the default optimization
+    parameters replaced by values in the structure OPTIONS, an argument
+    created with the OPTIMSET function.  See OPTIMSET for details.  Used
+    options are Display, TolX, FunValCheck, OutputFcn, and PlotFcns. 
+ 
+    X = <strong>fzero</strong>(PROBLEM) finds the zero of a function defined in PROBLEM. 
+    PROBLEM is a structure with the function FUN in PROBLEM.objective, 
+    the start point in PROBLEM.x0, the options structure in PROBLEM.options,
+    and solver name 'fzero' in PROBLEM.solver. 
+ 
+    [X,FVAL]= <strong>fzero</strong>(FUN,...) returns the value of the function described 
+    in FUN, at X.
+ 
+    [X,FVAL,EXITFLAG] = <strong>fzero</strong>(...) returns an EXITFLAG that describes the
+    exit condition. Possible values of EXITFLAG and the corresponding exit
+    conditions are
+ 
+      1  <strong>fzero</strong> found a zero X.
+     -1  Algorithm terminated by output function.
+     -3  NaN or Inf function value encountered during search for an interval
+          containing a sign change.
+     -4  Complex function value encountered during search for an interval 
+          containing a sign change.
+     -5  <strong>fzero</strong> may have converged to a singular point.
+     -6  <strong>fzero</strong> can not detect a change in sign of the function.
+ 
+    [X,FVAL,EXITFLAG,OUTPUT] = <strong>fzero</strong>(...) returns a structure OUTPUT
+    with the number of function evaluations in OUTPUT.funcCount, the
+    algorithm name in OUTPUT.algorithm, the number of iterations to
+    find an interval (if needed) in OUTPUT.intervaliterations, the
+    number of zero-finding iterations in OUTPUT.iterations, and the
+    exit message in OUTPUT.message.
+ 
+    Examples
+      FUN can be specified using @:
+         X = fzero(@sin,3)
+      returns pi.
+         X = fzero(@sin,3,optimset('Display','iter')) 
+      returns pi, uses the default tolerance and displays iteration information.
+ 
+      FUN can be an anonymous function:
+         X = fzero(@(x) sin(3*x),2)
+ 
+      FUN can be a parameterized function.  Use an anonymous function to
+      capture the problem-dependent parameters:
+         myfun = @(x,c) cos(c*x);  % The parameterized function.
+         c = 2;                    % The parameter.
+         X = fzero(@(x) myfun(x,c),0.1)
+    
+    Limitations
+         X = fzero(@(x) abs(x)+1, 1) 
+      returns NaN since this function does not change sign anywhere on the 
+      real axis (and does not have a zero as well).
+         X = fzero(@tan,2)
+      returns X near 1.5708 because the discontinuity of this function near the 
+      point X gives the appearance (numerically) that the function changes sign at X.
+ 
+    See also <a href="matlab:help roots -displayBanner">roots</a>, <a href="matlab:help fminbnd -displayBanner">fminbnd</a>, <a href="matlab:help function_handle -displayBanner">function_handle</a>.
+
+    <a href="matlab:doc fzero">Documentation for fzero</a>
+
+fzero(f, 0)
+
+ans =
+
+   -0.8284
+
+help version
+ <strong>version</strong> Version information for MATLAB and libraries.
+    <strong>version</strong> returns a string containing MathWorks product family version 
+    information.
+ 
+    <strong>version</strong> returns the full MathWorks product family version string.
+ 
+    <strong>version</strong> -date returns the release date.
+ 
+    <strong>version</strong> -release returns the release number.
+ 
+    <strong>version</strong> -description returns the release description.
+ 
+    <strong>version</strong> -java returns Java version information.
+ 
+    VER = <strong>version</strong>( ... ) an alternative syntax for <strong>version</strong>.  Any of the
+    above flags can be used with this syntax.
+ 
+    [VER DATESTR] = <strong>version</strong>() returns the full MathWorks product family 
+    version string in the string VER and the release date in string
+    DATESTR.  No input arguments are allowed with this syntax.
+ 
+    See also <a href="matlab:help computer -displayBanner">computer</a>, <a href="matlab:help ver -displayBanner">ver</a>, <a href="matlab:help verLessThan -displayBanner">verLessThan</a>, <a href="matlab:help whatsnew -displayBanner">whatsnew</a>.
+
+    <a href="matlab:doc version">Documentation for version</a>
+    <a href="matlab:matlab.internal.language.introspective.overloads.displayOverloads('version')">Other functions named version</a>
+
+version
+
+ans =
+
+    '9.12.0.1956245 (R2022a) Update 2'
+
+ver
+-----------------------------------------------------------------------------------------------------
+MATLAB Version: 9.12.0.1956245 (R2022a) Update 2
+MATLAB License Number: 827417
+Operating System: macOS  Version: 13.2 Build: 22D49 
+Java Version: Java 1.8.0_202-b08 with Oracle Corporation Java HotSpot(TM) 64-Bit Server VM mixed mode
+-----------------------------------------------------------------------------------------------------
+MATLAB                                                Version 9.12        (R2022a)
+Simulink                                              Version 10.5        (R2022a)
+5G Toolbox                                            Version 2.4         (R2022a)
+AUTOSAR Blockset                                      Version 2.6         (R2022a)
+Aerospace Blockset                                    Version 5.2         (R2022a)
+Aerospace Toolbox                                     Version 4.2         (R2022a)
+Antenna Toolbox                                       Version 5.2         (R2022a)
+Audio Toolbox                                         Version 3.2         (R2022a)
+Automated Driving Toolbox                             Version 3.5         (R2022a)
+Bioinformatics Toolbox                                Version 4.16        (R2022a)
+Bluetooth Toolbox                                     Version 1.0         (R2022a)
+Communications Toolbox                                Version 7.7         (R2022a)
+Computer Vision Toolbox                               Version 10.2        (R2022a)
+Control System Toolbox                                Version 10.11.1     (R2022a)
+Curve Fitting Toolbox                                 Version 3.7         (R2022a)
+DDS Blockset                                          Version 1.2         (R2022a)
+DSP HDL Toolbox                                       Version 1.0         (R2022a)
+DSP System Toolbox                                    Version 9.14        (R2022a)
+Database Toolbox                                      Version 10.3        (R2022a)
+Datafeed Toolbox                                      Version 6.2         (R2022a)
+Deep Learning Toolbox                                 Version 14.4        (R2022a)
+Econometrics Toolbox                                  Version 6.0         (R2022a)
+Embedded Coder                                        Version 7.8         (R2022a)
+Filter Design HDL Coder                               Version 3.1.11      (R2022a)
+Financial Instruments Toolbox                         Version 3.4         (R2022a)
+Financial Toolbox                                     Version 6.3         (R2022a)
+Fixed-Point Designer                                  Version 7.4         (R2022a)
+Fuzzy Logic Toolbox                                   Version 2.9         (R2022a)
+Global Optimization Toolbox                           Version 4.7         (R2022a)
+HDL Coder                                             Version 3.20        (R2022a)
+Image Acquisition Toolbox                             Version 6.6         (R2022a)
+Image Processing Toolbox                              Version 11.5        (R2022a)
+Industrial Communication Toolbox                      Version 6.0         (R2022a)
+Instrument Control Toolbox                            Version 4.6         (R2022a)
+LTE Toolbox                                           Version 3.7         (R2022a)
+Lidar Toolbox                                         Version 2.1         (R2022a)
+MATLAB Coder                                          Version 5.4         (R2022a)
+MATLAB Compiler                                       Version 8.4         (R2022a)
+MATLAB Compiler SDK                                   Version 7.0         (R2022a)
+MATLAB Report Generator                               Version 5.12        (R2022a)
+Mapping Toolbox                                       Version 5.3         (R2022a)
+Mixed-Signal Blockset                                 Version 2.2         (R2022a)
+Model Predictive Control Toolbox                      Version 7.3         (R2022a)
+Motor Control Blockset                                Version 1.4         (R2022a)
+Navigation Toolbox                                    Version 2.2         (R2022a)
+Optimization Toolbox                                  Version 9.3         (R2022a)
+Parallel Computing Toolbox                            Version 7.6         (R2022a)
+Partial Differential Equation Toolbox                 Version 3.8         (R2022a)
+Phased Array System Toolbox                           Version 4.7         (R2022a)
+Powertrain Blockset                                   Version 1.11        (R2022a)
+Predictive Maintenance Toolbox                        Version 2.5         (R2022a)
+RF Blockset                                           Version 8.3         (R2022a)
+RF PCB Toolbox                                        Version 1.1         (R2022a)
+RF Toolbox                                            Version 4.3         (R2022a)
+ROS Toolbox                                           Version 1.5         (R2022a)
+Radar Toolbox                                         Version 1.2         (R2022a)
+Reinforcement Learning Toolbox                        Version 2.2         (R2022a)
+Requirements Toolbox                                  Version 2.0         (R2022a)
+Risk Management Toolbox                               Version 2.0         (R2022a)
+Robotics System Toolbox                               Version 4.0         (R2022a)
+Robust Control Toolbox                                Version 6.11.1      (R2022a)
+Satellite Communications Toolbox                      Version 1.2         (R2022a)
+Sensor Fusion and Tracking Toolbox                    Version 2.3         (R2022a)
+SerDes Toolbox                                        Version 2.3         (R2022a)
+Signal Processing Toolbox                             Version 9.0         (R2022a)
+SimBiology                                            Version 6.3         (R2022a)
+SimEvents                                             Version 5.11        (R2022a)
+Simscape                                              Version 5.3         (R2022a)
+Simscape Driveline                                    Version 3.5         (R2022a)
+Simscape Electrical                                   Version 7.7         (R2022a)
+Simscape Fluids                                       Version 3.4         (R2022a)
+Simscape Multibody                                    Version 7.5         (R2022a)
+Simulink 3D Animation                                 Version 9.4         (R2022a)
+Simulink Check                                        Version 6.0         (R2022a)
+Simulink Coder                                        Version 9.7         (R2022a)
+Simulink Compiler                                     Version 1.4         (R2022a)
+Simulink Control Design                               Version 6.1         (R2022a)
+Simulink Coverage                                     Version 5.4         (R2022a)
+Simulink Design Optimization                          Version 3.11        (R2022a)
+Simulink Design Verifier                              Version 4.7         (R2022a)
+Simulink Desktop Real-Time                            Version 5.14        (R2022a)
+Simulink PLC Coder                                    Version 3.6         (R2022a)
+Simulink Report Generator                             Version 5.12        (R2022a)
+Simulink Test                                         Version 3.6         (R2022a)
+Stateflow                                             Version 10.6        (R2022a)
+Statistics and Machine Learning Toolbox               Version 12.3        (R2022a)
+Symbolic Math Toolbox                                 Version 9.1         (R2022a)
+System Composer                                       Version 2.2         (R2022a)
+System Identification Toolbox                         Version 9.16        (R2022a)
+Text Analytics Toolbox                                Version 1.8.1       (R2022a)
+UAV Toolbox                                           Version 1.3         (R2022a)
+Vehicle Dynamics Blockset                             Version 1.8         (R2022a)
+WLAN Toolbox                                          Version 3.4         (R2022a)
+Wavelet Toolbox                                       Version 6.1         (R2022a)
+Wireless HDL Toolbox                                  Version 2.4         (R2022a)

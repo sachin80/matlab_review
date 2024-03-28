@@ -1,0 +1,27 @@
+pwd
+
+ans =
+
+    '/Users/aocoe/working/review/matlab_review/getting_started_with_matlab/chp2/lesson10'
+
+dir
+
+.         ..        lesson10  
+
+ls
+lesson10
+
+x = 1:100; 
+y = log10(x);
+save xydatafile x y
+ls
+lesson10	xydatafile.mat
+
+what 
+
+MAT-files in the current folder /Users/aocoe/working/review/matlab_review/getting_started_with_matlab/chp2/lesson10
+
+xydatafile  
+
+
+diary off

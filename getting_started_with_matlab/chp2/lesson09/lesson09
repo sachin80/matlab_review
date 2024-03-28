@@ -1,0 +1,233 @@
+edit TempData.m
+theta = linspace(0, 2*pi, 201);
+r = sqrt(abs(2*sin(4*theta)));
+x = r.*cos(theta);
+y = r.*sin(theta); 
+f = char('sqrt(abs(2*sin(4*theta)))');
+save xydata x y f
+whos
+  Name       Size             Bytes  Class     Attributes
+
+  f          1x25                50  char                
+  r          1x201             1608  double              
+  theta      1x201             1608  double              
+  x          1x201             1608  double              
+  y          1x201             1608  double              
+
+clear all
+whos
+xydata
+{Undefined function or variable 'xydata'.
+} 
+load xydata
+f
+
+f =
+
+    'sqrt(abs(2*sin(4*theta)))'
+
+plot(x, y), axis('square')
+f
+
+f =
+
+    'sqrt(abs(2*sin(4*theta)))'
+
+clear all
+load xydata x y
+clear all
+load('xydata.mat')
+size(x)
+
+ans =
+
+     1   201
+
+clear all
+TempData
+month
+
+month =
+
+  12×9 <a href="matlab:helpPopup char" style="font-weight:bold">char</a> array
+
+    'January  '
+    'February '
+    'March    '
+    'April    '
+    'May      '
+    'June     '
+    'July     '
+    'August   '
+    'September'
+    'October  '
+    'November '
+    'December '
+
+whos
+  Name           Size            Bytes  Class     Attributes
+
+  avg_tmax      12x1                96  double              
+  month         12x9               216  char                
+  s1_no         12x1                96  double              
+
+bar(s1_no, avg_tmax)
+x = linspace(0, 2*pi, 101)';
+A = [x, -x.^3/6, x.^5/120, -x.^7/factorial(7)];
+clear all
+x = linspace(0, 2*pi, 101)';
+A = [x, -x.^3/6, x.^5/120, -x.^7/factorial(7)];
+save A x
+clear all
+x = linspace(0, 2*pi, 101)';
+A = [x, -x.^3/6, x.^5/120, -x.^7/factorial(7)];
+save data A x
+clear all
+load data
+plot(x, sin(x)), grid, hold on
+plot(x, A(:, 1), hold on
+ plot(x, A(:, 1), hold on
+                       
+{Error: Invalid expression. Check for missing multiplication operator, missing or unbalanced delimiters, or other syntax error. To construct matrices, use brackets instead of
+parentheses.
+} 
+plot(x, A(:, 1)
+ plot(x, A(:, 1)
+                
+{Error: Invalid expression. When calling a function or indexing a variable, use parentheses. Otherwise, check for mismatched delimiters.
+} 
+plot(x, A(:, 1))
+plot(x, A(:, 1) + A(:, 2)
+ plot(x, A(:, 1) + A(:, 2)
+                          
+{Error: Invalid expression. When calling a function or indexing a variable, use parentheses. Otherwise, check for mismatched delimiters.
+} 
+plot(x, A(:, 1) + A(:, 2))
+plot(x, A(:, 1) + A(:, 2) + A(:, 3))
+plot(x, A(:, 1) + A(:, 2) + A(:, 3) + A(:, 4))
+sum(A, 2)
+
+ans =
+
+         0
+    0.0628
+    0.1253
+    0.1874
+    0.2487
+    0.3090
+    0.3681
+    0.4258
+    0.4818
+    0.5358
+    0.5878
+    0.6374
+    0.6845
+    0.7290
+    0.7705
+    0.8090
+    0.8443
+    0.8763
+    0.9048
+    0.9298
+    0.9510
+    0.9686
+    0.9822
+    0.9920
+    0.9979
+    0.9998
+    0.9978
+    0.9918
+    0.9819
+    0.9680
+    0.9503
+    0.9287
+    0.9034
+    0.8744
+    0.8419
+    0.8058
+    0.7664
+    0.7238
+    0.6779
+    0.6291
+    0.5774
+    0.5229
+    0.4657
+    0.4060
+    0.3438
+    0.2794
+    0.2127
+    0.1438
+    0.0729
+   -0.0001
+   -0.0752
+   -0.1524
+   -0.2316
+   -0.3131
+   -0.3969
+   -0.4832
+   -0.5722
+   -0.6642
+   -0.7595
+   -0.8584
+   -0.9615
+   -1.0694
+   -1.1825
+   -1.3016
+   -1.4275
+   -1.5611
+   -1.7034
+   -1.8555
+   -2.0187
+   -2.1942
+   -2.3836
+   -2.5886
+   -2.8109
+   -3.0525
+   -3.3156
+   -3.6023
+   -3.9153
+   -4.2572
+   -4.6309
+   -5.0395
+   -5.4864
+   -5.9751
+   -6.5096
+   -7.0939
+   -7.7324
+   -8.4297
+   -9.1909
+  -10.0212
+  -10.9261
+  -11.9118
+  -12.9843
+  -14.1505
+  -15.4173
+  -16.7923
+  -18.2832
+  -19.8983
+  -21.6464
+  -23.5366
+  -25.5786
+  -27.7826
+  -30.1591
+
+axis([0, 2*pi, -2, 2])
+-djpeg sinseriesplot.jpeg
+ -djpeg sinseriesplot.jpeg
+        
+{Error: Invalid expression. Check for missing multiplication operator, missing or unbalanced delimiters, or other syntax error. To construct matrices, use brackets instead of
+parentheses.
+} 
+save -djpeg sinseriesplot.jpeg
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('save')" style="font-weight:bold">save</a>
+Unknown command option.
+} 
+help djpeg
+
+djpeg not found.
+
+Use the Help browser search field to <a href="matlab:docsearch djpeg">search the documentation</a>, or
+type "<a href="matlab:help help">help help</a>" for help command options, such as help for methods.
+
+print -djpeg sinseriesplot.jpeg
+diary off

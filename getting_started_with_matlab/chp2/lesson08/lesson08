@@ -1,0 +1,393 @@
+syms x y 
+f = (x + y)^3
+ 
+f =
+ 
+(x + y)^3
+ 
+expand(f)
+ 
+ans =
+ 
+x^3 + 3*x^2*y + 3*x*y^2 + y^3
+ 
+factor(ans)
+ 
+ans =
+ 
+[ x + y, x + y, x + y]
+ 
+z = sin(x + y)
+ 
+z =
+ 
+sin(x + y)
+ 
+expand(z)
+ 
+ans =
+ 
+cos(x)*sin(y) + cos(y)*sin(x)
+ 
+subs(z, y, pi -x)
+ 
+ans =
+ 
+0
+ 
+diff(z, x)
+ 
+ans =
+ 
+cos(x + y)
+ 
+z_xx = diff(z, x, 2)
+ 
+z_xx =
+ 
+-sin(x + y)
+ 
+int(z, x, 0, pi/2)
+ 
+ans =
+ 
+cos(y) + sin(y)
+ 
+v = [x; y];
+inner_product = v'*v
+ 
+inner_product =
+ 
+x*conj(x) + y*conj(y)
+ 
+syms x y real
+inner_product
+ 
+inner_product =
+ 
+x*conj(x) + y*conj(y)
+ 
+inner_product = v'*v
+ 
+inner_product =
+ 
+x^2 + y^2
+ 
+syms a b
+exp1 = 'a*x + b*y - 3';
+exp2 = '-x + 2*a*y - 5';
+[x, y] = solve(exp1, exp2)
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('solve>getEqns', '/Applications/MATLAB_R2018a.app/toolbox/symbolic/symbolic/solve.m', 418)" style="font-weight:bold">solve>getEqns</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2018a.app/toolbox/symbolic/symbolic/solve.m',418,0)">line 418</a>)
+List of equations must not be empty.
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('solve', '/Applications/MATLAB_R2018a.app/toolbox/symbolic/symbolic/solve.m', 226)" style="font-weight:bold">solve</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2018a.app/toolbox/symbolic/symbolic/solve.m',226,0)">line 226</a>)
+[eqns,vars,options] = getEqns(varargin{:});
+} 
+opentoline('/Applications/MATLAB_R2018a.app/toolbox/symbolic/symbolic/solve.m',418,0)
+exp2 = -x + 2*a*y - 5;
+exp1 = a*x + b*y - 3;
+[x, y] = solve(exp1, exp2)
+[Warning: Solutions are valid under the following conditions: in((6*a - 5*b)/(b + 2*a^2), 'real') & in((5*a + 3)/(b + 2*a^2), 'real'). To include parameters and conditions in
+the solution, specify the 'ReturnConditions' value as 'true'.] 
+[> In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('solve>warnIfParams', '/Applications/MATLAB_R2018a.app/toolbox/symbolic/symbolic/solve.m', 482)" style="font-weight:bold">solve>warnIfParams</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2018a.app/toolbox/symbolic/symbolic/solve.m',482,0)">line 482</a>)
+  In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('solve', '/Applications/MATLAB_R2018a.app/toolbox/symbolic/symbolic/solve.m', 364)" style="font-weight:bold">solve</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2018a.app/toolbox/symbolic/symbolic/solve.m',364,0)">line 364</a>)] 
+ 
+x =
+ 
+(6*a - 5*b)/(2*a^2 + b)
+ 
+ 
+y =
+ 
+(5*a + 3)/(2*a^2 + b)
+ 
+subs(exp1)
+ 
+ans =
+ 
+(b*(5*a + 3))/(2*a^2 + b) + (a*(6*a - 5*b))/(2*a^2 + b) - 3
+ 
+simplify(ans)
+ 
+ans =
+ 
+0
+ 
+pretty(subs(exp2))
+a (5 a + 3) 2   6 a - 5 b
+------------- - --------- - 5
+      2             2
+   2 a  + b      2 a  + b
+
+subs(exp2)
+ 
+ans =
+ 
+(2*a*(5*a + 3))/(2*a^2 + b) - (6*a - 5*b)/(2*a^2 + b) - 5
+ 
+syms x
+f = (x^2 - 4*x)*(x^2 0 4*x + 1) - 20
+ f = (x^2 - 4*x)*(x^2 0 4*x + 1) - 20
+                      
+{Error: Invalid expression. Check for missing multiplication operator, missing or unbalanced delimiters, or other syntax error. To construct matrices, use brackets instead of
+parentheses.
+} 
+f = (x^2 - 4*x)*(x^2 - 4*x + 1) - 20
+ 
+f =
+ 
+- (- x^2 + 4*x)*(x^2 - 4*x + 1) - 20
+ 
+expand(f)
+ 
+ans =
+ 
+x^4 - 8*x^3 + 17*x^2 - 4*x - 20
+ 
+ans/(x^2 - 4*x + 4)
+ 
+ans =
+ 
+-(- x^4 + 8*x^3 - 17*x^2 + 4*x + 20)/(x^2 - 4*x + 4)
+ 
+f/(x^2 - 4*x + 4)
+ 
+ans =
+ 
+-((- x^2 + 4*x)*(x^2 - 4*x + 1) + 20)/(x^2 - 4*x + 4)
+ 
+simplify(ans)
+ 
+ans =
+ 
+-(- x^4 + 8*x^3 - 17*x^2 + 4*x + 20)/(x - 2)^2
+ 
+f = (x^2 - 4*x)*(x^2 - 4*x + 1) - 20
+ 
+f =
+ 
+- (- x^2 + 4*x)*(x^2 - 4*x + 1) - 20
+ 
+simplify(f)
+ 
+ans =
+ 
+- (- x^2 + 4*x)*(x^2 - 4*x + 1) - 20
+ 
+expand(f)
+ 
+ans =
+ 
+x^4 - 8*x^3 + 17*x^2 - 4*x - 20
+ 
+simplify(expand(f)/(x^2 - 4*x + 4))
+ 
+ans =
+ 
+-(- x^4 + 8*x^3 - 17*x^2 + 4*x + 20)/(x - 2)^2
+ 
+expr1 = x^2 - 4
+ 
+expr1 =
+ 
+x^2 - 4
+ 
+[x1, x2] = solve(expr1)
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('solve', '/Applications/MATLAB_R2018a.app/toolbox/symbolic/symbolic/solve.m', 269)" style="font-weight:bold">solve</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2018a.app/toolbox/symbolic/symbolic/solve.m',269,0)">line 269</a>)
+Inconsistent output with 2 variables for input argument with 1 variables.
+} 
+x1 = solve(expr1)
+ 
+x1 =
+ 
+ -2
+  2
+ 
+expr2 = x^2 - 4 * x + 1
+ 
+expr2 =
+ 
+x^2 - 4*x + 1
+ 
+x2 = solve(expr2)
+ 
+x2 =
+ 
+ 2 - 3^(1/2)
+ 3^(1/2) + 2
+ 
+x1
+ 
+x1 =
+ 
+ -2
+  2
+ 
+size(x1)
+
+ans =
+
+     2     1
+
+syms x y real
+r = [x; y];
+r' * r
+ 
+ans =
+ 
+x^2 + y^2
+ 
+r * r'
+ 
+ans =
+ 
+[ x^2, x*y]
+[ x*y, y^2]
+ 
+help dsolve
+ <strong>dsolve</strong> Symbolic solution of ordinary differential equations.
+    <strong>dsolve</strong>(eqn1,eqn2, ...) accepts symbolic equations representing
+    ordinary differential equations and initial conditions. The
+    equations may be strings or symbolic expressions. 
+ 
+    By default, the independent variable is 't'. The independent variable
+    may be changed from 't' to some other symbolic variable by including
+    that variable as the last input argument.
+ 
+    Equations specified as symbolic expressions use '==' for equality. The
+    DIFF function constructs derivatives of symbolic functions (see sym/symfun).
+    Initial conditions involving derivatives must use an intermediate
+    variable. For example,
+      syms x(t)
+      Dx = diff(x);
+      dsolve(diff(Dx) == -x, Dx(0) == 1)
+ 
+    <strong>dsolve</strong> will not accept equations as strings in a future release. Use
+    expressions instead.
+    Equations specified as strings may use '==' or '=' for equality.
+    The letter 'D' denotes differentiation with respect to the independent
+    variable, i.e. usually d/dt.  A "D" followed by a digit denotes
+    repeated differentiation; e.g., D2 is d^2/dt^2.  Any characters
+    immediately following these differentiation operators are taken to be
+    the dependent variables; e.g., D3y denotes the third derivative
+    of y(t). Note that the names of symbolic variables should not contain
+    the letter "D".
+    If expressed as strings several equations or initial conditions may 
+    be grouped together, separated by commas, in a single input argument.
+    Initial conditions are specified by equations like 'y(a)=b' or
+    'Dy(a) = b' where y is one of the dependent variables and a and b are
+    constants.  If the number of initial conditions given is less than the
+    number of dependent variables, the resulting solutions will obtain
+    arbitrary constants, C1, C2, etc.
+    
+    Three different types of output are possible.  For one equation and one
+    output, the resulting solution is returned, with multiple solutions to
+    a nonlinear equation in a symbolic vector.  For several equations and
+    an equal number of outputs, the results are sorted in lexicographic
+    order and assigned to the outputs.  For several equations and a single
+    output, a structure containing the solutions is returned.
+ 
+    If no closed-form (explicit) solution is found, an implicit solution is
+    attempted.  When an implicit solution is returned, a warning is given.
+    If neither an explicit nor implicit solution can be computed, then a
+    warning is given and the empty sym is returned.  In some cases involving
+    nonlinear equations, the output will be an equivalent lower order
+    differential equation or an integral.
+ 
+    <strong>dsolve</strong>(...,'IgnoreAnalyticConstraints',VAL) controls the level of 
+    mathematical rigor to use on the analytical constraints of the solution 
+    (branch cuts, division by zero, etc). The options for VAL are TRUE or 
+    FALSE. Specify FALSE to use the highest level of mathematical rigor
+    in finding any solutions. The default is TRUE.
+ 
+    <strong>dsolve</strong>(...,'MaxDegree',n) controls the maximum degree of polynomials
+    for which explicit formulas will be used in SOLVE calls during the
+    computation. n must be a positive integer smaller than 5. 
+    The default is 2.
+ 
+    Examples:
+ 
+       % Example 1
+       syms x(t) a
+       dsolve(diff(x) == -a*x) returns
+ 
+         ans = C1/exp(a*t)
+ 
+       % Example 2: changing the independent variable 
+       x = dsolve(diff(x) == -a*x, x(0) == 1, 's') returns
+ 
+         x = 1/exp(a*s)
+ 
+       syms x(s) a
+       x = dsolve(diff(x) == -a*x, x(0) == 1) returns
+ 
+         x = 1/exp(a*s)
+ 
+       % Example 3: solving systems of ODEs
+       syms f(t) g(t)
+       S = dsolve(diff(f) == f + g, diff(g) == -f + g,f(0) == 1,g(0) == 2)
+       returns a structure S with fields
+ 
+         S.f = (i + 1/2)/exp(t*(i - 1)) - exp(t*(i + 1))*(i - 1/2)
+         S.g = exp(t*(i + 1))*(i/2 + 1) - (i/2 - 1)/exp(t*(i - 1))
+ 
+       syms f(t) g(t)
+       v = [f;g];
+       A = [1 1; -1 1];
+       S = dsolve(diff(v) == A*v, v(0) == [1;2])
+       returns a structure S with fields
+ 
+         S.f = exp(t)*cos(t) + 2*exp(t)*sin(t)
+         S.g = 2*exp(t)*cos(t) - exp(t)*sin(t)
+ 
+       % Example 3: using options
+       syms y(t)
+       dsolve(sqrt(diff(y))==y) returns
+       
+         ans = 0
+       
+       syms y(t)
+       dsolve(sqrt(diff(y))==y, 'IgnoreAnalyticConstraints', false) warns
+         Warning: The solutions are subject to the following conditions:
+         (C67 + t)*(1/(C67 + t)^2)^(1/2) = -1 
+       
+       and returns
+        
+         ans = -1/(C67 + t)
+ 
+       % Example 4: Higher order systems
+       syms y(t) a
+       Dy = diff(y);
+       D2y = diff(y,2);
+       dsolve(D2y == -a^2*y, y(0) == 1, Dy(pi/a) == 0)
+       syms w(t)
+       Dw = diff(w); 
+       D2w = diff(w,2);
+       w = dsolve(diff(D2w) == -w, w(0)==1, Dw(0)==0, D2w(0)==0)
+ 
+    See also <a href="matlab:help solve">solve</a>, <a href="matlab:help subs">subs</a>, <a href="matlab:help sym/diff">sym/diff</a>, <a href="matlab:help odeToVectorField">odeToVectorField</a>.
+
+    <a href="matlab:doc dsolve">Reference page for dsolve</a>
+
+syms x(t)
+dsolve(diff(x) == -x^2, x(0) == x0)
+{Undefined function or variable 'x0'.
+} 
+dsolve(Dx + x^2=0, x(0) == x0)
+ dsolve(Dx + x^2=0, x(0) == x0)
+                
+{Error: Incorrect use of '=' operator. To assign a value to a variable, use '='. To compare values for equality, use '=='.
+} 
+dsolve(Dx + x^2==0, x(0) == x0)
+{Undefined function or variable 'Dx'.
+} 
+dsolve('Dx + x^2==0', x(0) == x0)
+{Undefined function or variable 'x0'.
+} 
+dsolve('Dx + x^2==0', 'x(0) == x0')
+ 
+ans =
+ 
+1/(t + 1/x0)
+ 
+diary off

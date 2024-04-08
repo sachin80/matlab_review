@@ -1528,3 +1528,164 @@ C =
     0.3284    0.0478    0.1642    0.2936    0.6656
     0.0660    0.1920    0.2492    0.5218    0.2424
 
+% vectorization is faster than serial computation 
+x = 1; k = [1:10];
+e = sum(x.^(k-1)./factorial(k-1));
+% we can also inline function in matlab 
+F = inline('x^2 * sin(x)')
+
+F =
+
+     Inline function:
+     F(x) = x^2 * sin(x)
+
+% our inline function can take only scalar as an input, we can modify the function to accept array 
+F = inline('x.^2.*sin(x)')
+
+F =
+
+     Inline function:
+     F(x) = x.^2.*sin(x)
+
+F(5)
+
+ans =
+
+  -23.9731
+
+F([1, 2, 3])
+
+ans =
+
+    0.8415    3.6372    1.2701
+
+% anonymous function in matlab f = @(input list) math expression
+% f is the function handle 
+fx = @(x) x^2 -sin(x);
+fx(5)
+
+ans =
+
+   25.9589
+
+fxy = @(x, y) x^2 + y^2 
+
+fxy =
+
+  <a href="matlab:helpPopup function_handle" style="font-weight:bold">function_handle</a> with value:
+
+    @(x,y)x^2+y^2
+
+fxy(2, 3)
+
+ans =
+
+    13
+
+fx = @(x) x.^2 + sin(x)
+
+fx =
+
+  <a href="matlab:helpPopup function_handle" style="font-weight:bold">function_handle</a> with value:
+
+    @(x)x.^2+sin(x)
+
+x = [0:.1:pi/2]
+
+x =
+
+  Columns 1 through 11
+
+         0    0.1000    0.2000    0.3000    0.4000    0.5000    0.6000    0.7000    0.8000    0.9000    1.0000
+
+  Columns 12 through 16
+
+    1.1000    1.2000    1.3000    1.4000    1.5000
+
+plot(x, fx(x))
+% can use help and lookfor for getting help for a specific functon and looking up a keyword 
+help svd
+ <strong>svd</strong>    Singular value decomposition.
+    [U,S,V] = <strong>svd</strong>(X) produces a diagonal matrix S, of the same 
+    dimension as X and with nonnegative diagonal elements in
+    decreasing order, and unitary matrices U and V so that
+    X = U*S*V'.
+ 
+    S = <strong>svd</strong>(X) returns a vector containing the singular values.
+ 
+    [U,S,V] = <strong>svd</strong>(X,0) produces the "economy size"
+    decomposition. If X is m-by-n with m > n, then only the
+    first n columns of U are computed and S is n-by-n.
+    For m <= n, <strong>svd</strong>(X,0) is equivalent to <strong>svd</strong>(X).
+ 
+    [U,S,V] = <strong>svd</strong>(X,'econ') also produces the "economy size"
+    decomposition. If X is m-by-n with m >= n, then it is
+    equivalent to <strong>svd</strong>(X,0). For m < n, only the first m columns 
+    of V are computed and S is m-by-m.
+ 
+    [...] = svd(...,sigmaForm) returns singular values in the form
+    specified by sigmaForm using any of the previous input or output
+    argument combinations. sigmaForm can be 'vector' to return the singular
+    values in a vector, or 'matrix' to return them in a diagonal matrix.
+ 
+    See also <a href="matlab:help svds -displayBanner">svds</a>, <a href="matlab:help gsvd -displayBanner">gsvd</a>, <a href="matlab:help pagesvd -displayBanner">pagesvd</a>.
+
+    <a href="matlab:doc svd">Documentation for svd</a>
+    <a href="matlab:matlab.internal.language.introspective.overloads.displayOverloads('svd')">Other functions named svd</a>
+
+lookfor singular value decomposition
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('lookfor')" style="font-weight:bold">lookfor</a>
+Too many input arguments.
+} 
+lookfor 'singular value decomposition'
+<a href="matlab:help svd">svd</a>                            - Singular value decomposition.
+<a href="matlab:help gsvd">gsvd</a>                           - Generalized Singular Value Decomposition.
+<a href="matlab:help pagesvd">pagesvd</a>                        - Page-wise singular value decomposition.
+<a href="matlab:help svd">svd</a>                            - Singular value decomposition.
+<a href="matlab:help pagesvd">pagesvd</a>                        - Page-wise singular value decomposition for gpuArray.
+<a href="matlab:help svd">svd</a>                            - Singular value decomposition of gpuArray
+<a href="matlab:help pagesvd">pagesvd</a>                        - Page-wise singular value decomposition for codistributed array.
+<a href="matlab:help svd">svd</a>                            - Singular value decomposition of codistributed array
+<a href="matlab:help scalaSvd">scalaSvd</a>                       - ScaLAPACK singular value decomposition
+<a href="matlab:help svd">svd</a>                            - Singular value decomposition, for FRD models
+<a href="matlab:help svd">svd</a>                            - Symbolic singular value decomposition.
+% let's find the determinant of a matrix 
+A = rand(10)
+
+A =
+
+    0.2417    0.8212    0.7447    0.4868    0.8116    0.4709    0.4302    0.6028    0.8010    0.5211
+    0.4039    0.0154    0.1890    0.4359    0.5328    0.2305    0.1848    0.7112    0.0292    0.2316
+    0.0965    0.0430    0.6868    0.4468    0.3507    0.8443    0.9049    0.2217    0.9289    0.4889
+    0.1320    0.1690    0.1835    0.3063    0.9390    0.1948    0.9797    0.1174    0.7303    0.6241
+    0.9421    0.6491    0.3685    0.5085    0.8759    0.2259    0.4389    0.2967    0.4886    0.6791
+    0.9561    0.7317    0.6256    0.5108    0.5502    0.1707    0.1111    0.3188    0.5785    0.3955
+    0.5752    0.6477    0.7802    0.8176    0.6225    0.2277    0.2581    0.4242    0.2373    0.3674
+    0.0598    0.4509    0.0811    0.7948    0.5870    0.4357    0.4087    0.5079    0.4588    0.9880
+    0.2348    0.5470    0.9294    0.6443    0.2077    0.3111    0.5949    0.0855    0.9631    0.0377
+    0.3532    0.2963    0.7757    0.3786    0.3012    0.9234    0.2622    0.2625    0.5468    0.8852
+
+lookfor determinant
+<a href="matlab:help dramadah">dramadah</a>                       - Matrix of zeros and ones with large determinant or inverse.
+<a href="matlab:help det">det</a>                            - Determinant.
+<a href="matlab:help det">det</a>                            - Determinant for gpuArrays
+<a href="matlab:help det">det</a>                            - Symbolic matrix determinant.
+<a href="matlab:help det">det</a>                            - Laurent matrix determinant.
+det(A)
+
+ans =
+
+  -4.9107e-04
+
+x = 0:.1:20; 
+y = exp(0.1*x).*sin(x);
+plot(x, y)
+xlabel('Time (t) in seconds')
+title('A simple 2D plot')
+r = inline('1 + 2*(sin(2*t)).^2')
+
+r =
+
+     Inline function:
+     r(t) = 1 + 2*(sin(2*t)).^2
+

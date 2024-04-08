@@ -147,3 +147,1384 @@ ans =
      1     9     8
 
 diary off
+type chp3_040424
+
+B = [2*x, log(x) + sin(y); 5i, 3+2i];
+{Undefined function or variable 'x'.
+} 
+x= 1; y=2;
+B = [2*x, log(x) + sin(y); 5i, 3+2i];
+B
+
+B =
+
+   2.0000 + 0.0000i   0.9093 + 0.0000i
+   0.0000 + 5.0000i   3.0000 + 2.0000i
+
+% This is a null matrix
+X = []
+
+X =
+
+     []
+
+% Can use ellipsis for continuation
+A = [1/3 5.5*sin(x) 9.35 0.097;...
+        3/(x+2*log(x) 3 0 6.555]
+         3/(x+2*log(x) 3 0 6.555]
+                       
+{Error: Invalid expression. Check for missing multiplication operator, missing or unbalanced delimiters, or other syntax error. To construct matrices, use brackets instead of
+parentheses.
+} 
+A = [1/3 5.5*sin(x) 9.35 0.097;...
+        1.3 3 0 6.555]
+
+A =
+
+    0.3333    4.6281    9.3500    0.0970
+    1.3000    3.0000         0    6.5550
+
+% Can find the dimension of a matrix or size using size(A)
+C(3, 1:3) = [1, 2, 3];
+C
+
+C =
+
+     0     0     0
+     0     0     0
+     1     2     3
+
+A = rand(4, 3)
+
+A =
+
+    0.8147    0.6324    0.9575
+    0.9058    0.0975    0.9649
+    0.1270    0.2785    0.1576
+    0.9134    0.5469    0.9706
+
+A(3:4, 2:3)
+
+ans =
+
+    0.2785    0.1576
+    0.5469    0.9706
+
+A(:, 4) = A(:, 1)
+
+A =
+
+    0.8147    0.6324    0.9575    0.8147
+    0.9058    0.0975    0.9649    0.9058
+    0.1270    0.2785    0.1576    0.1270
+    0.9134    0.5469    0.9706    0.9134
+
+A(2:4, 2:4) = eye(3)
+
+A =
+
+    0.8147    0.6324    0.9575    0.8147
+    0.9058    1.0000         0         0
+    0.1270         0    1.0000         0
+    0.9134         0         0    1.0000
+
+% Delete the first and third rows of A
+A([1, 3], :) = []
+
+A =
+
+    0.9058    1.0000         0         0
+    0.9134         0         0    1.0000
+
+A = round(A)
+
+A =
+
+     1     1     0     0
+     1     0     0     1
+
+A(:)
+
+ans =
+
+     1
+     1
+     1
+     0
+     0
+     0
+     0
+     1
+
+A(:)'
+
+ans =
+
+     1     1     1     0     0     0     0     1
+
+% We can pick a set of non-contiguous columns or rows 
+Q = [2, 3, 6, 0, 5; 0, 0, 20, -4, 3; 1, 2, 3, 9, 8]
+
+Q =
+
+     2     3     6     0     5
+     0     0    20    -4     3
+     1     2     3     9     8
+
+Q(:, [1, 3, 5])
+
+ans =
+
+     2     6     5
+     0    20     3
+     1     3     8
+
+% Can also use logical array for this; if we want to pick out the 1, 3, 5 columns 
+v = [1, 0, 0, 1, 1];
+v = logical(v)
+
+v =
+
+  1×5 <a href="matlab:helpPopup logical" style="font-weight:bold">logical</a> array
+
+   1   0   0   1   1
+
+Q(:, v)
+
+ans =
+
+     2     0     5
+     0    -4     3
+     1     9     8
+
+diary off
+% Reshaping matrices to an approiate size
+
+A = rand(6, 6)
+
+A =
+
+    0.8147    0.2785    0.9572    0.7922    0.6787    0.7060
+    0.9058    0.5469    0.4854    0.9595    0.7577    0.0318
+    0.1270    0.9575    0.8003    0.6557    0.7431    0.2769
+    0.9134    0.9649    0.1419    0.0357    0.3922    0.0462
+    0.6324    0.1576    0.4218    0.8491    0.6555    0.0971
+    0.0975    0.9706    0.9157    0.9340    0.1712    0.8235
+
+repmat(A, 9, 4)
+
+ans =
+
+  Columns 1 through 11
+
+    0.8147    0.2785    0.9572    0.7922    0.6787    0.7060    0.8147    0.2785    0.9572    0.7922    0.6787
+    0.9058    0.5469    0.4854    0.9595    0.7577    0.0318    0.9058    0.5469    0.4854    0.9595    0.7577
+    0.1270    0.9575    0.8003    0.6557    0.7431    0.2769    0.1270    0.9575    0.8003    0.6557    0.7431
+    0.9134    0.9649    0.1419    0.0357    0.3922    0.0462    0.9134    0.9649    0.1419    0.0357    0.3922
+    0.6324    0.1576    0.4218    0.8491    0.6555    0.0971    0.6324    0.1576    0.4218    0.8491    0.6555
+    0.0975    0.9706    0.9157    0.9340    0.1712    0.8235    0.0975    0.9706    0.9157    0.9340    0.1712
+    0.8147    0.2785    0.9572    0.7922    0.6787    0.7060    0.8147    0.2785    0.9572    0.7922    0.6787
+    0.9058    0.5469    0.4854    0.9595    0.7577    0.0318    0.9058    0.5469    0.4854    0.9595    0.7577
+    0.1270    0.9575    0.8003    0.6557    0.7431    0.2769    0.1270    0.9575    0.8003    0.6557    0.7431
+    0.9134    0.9649    0.1419    0.0357    0.3922    0.0462    0.9134    0.9649    0.1419    0.0357    0.3922
+    0.6324    0.1576    0.4218    0.8491    0.6555    0.0971    0.6324    0.1576    0.4218    0.8491    0.6555
+    0.0975    0.9706    0.9157    0.9340    0.1712    0.8235    0.0975    0.9706    0.9157    0.9340    0.1712
+    0.8147    0.2785    0.9572    0.7922    0.6787    0.7060    0.8147    0.2785    0.9572    0.7922    0.6787
+    0.9058    0.5469    0.4854    0.9595    0.7577    0.0318    0.9058    0.5469    0.4854    0.9595    0.7577
+    0.1270    0.9575    0.8003    0.6557    0.7431    0.2769    0.1270    0.9575    0.8003    0.6557    0.7431
+    0.9134    0.9649    0.1419    0.0357    0.3922    0.0462    0.9134    0.9649    0.1419    0.0357    0.3922
+    0.6324    0.1576    0.4218    0.8491    0.6555    0.0971    0.6324    0.1576    0.4218    0.8491    0.6555
+    0.0975    0.9706    0.9157    0.9340    0.1712    0.8235    0.0975    0.9706    0.9157    0.9340    0.1712
+    0.8147    0.2785    0.9572    0.7922    0.6787    0.7060    0.8147    0.2785    0.9572    0.7922    0.6787
+    0.9058    0.5469    0.4854    0.9595    0.7577    0.0318    0.9058    0.5469    0.4854    0.9595    0.7577
+    0.1270    0.9575    0.8003    0.6557    0.7431    0.2769    0.1270    0.9575    0.8003    0.6557    0.7431
+    0.9134    0.9649    0.1419    0.0357    0.3922    0.0462    0.9134    0.9649    0.1419    0.0357    0.3922
+    0.6324    0.1576    0.4218    0.8491    0.6555    0.0971    0.6324    0.1576    0.4218    0.8491    0.6555
+    0.0975    0.9706    0.9157    0.9340    0.1712    0.8235    0.0975    0.9706    0.9157    0.9340    0.1712
+    0.8147    0.2785    0.9572    0.7922    0.6787    0.7060    0.8147    0.2785    0.9572    0.7922    0.6787
+    0.9058    0.5469    0.4854    0.9595    0.7577    0.0318    0.9058    0.5469    0.4854    0.9595    0.7577
+    0.1270    0.9575    0.8003    0.6557    0.7431    0.2769    0.1270    0.9575    0.8003    0.6557    0.7431
+    0.9134    0.9649    0.1419    0.0357    0.3922    0.0462    0.9134    0.9649    0.1419    0.0357    0.3922
+    0.6324    0.1576    0.4218    0.8491    0.6555    0.0971    0.6324    0.1576    0.4218    0.8491    0.6555
+    0.0975    0.9706    0.9157    0.9340    0.1712    0.8235    0.0975    0.9706    0.9157    0.9340    0.1712
+    0.8147    0.2785    0.9572    0.7922    0.6787    0.7060    0.8147    0.2785    0.9572    0.7922    0.6787
+    0.9058    0.5469    0.4854    0.9595    0.7577    0.0318    0.9058    0.5469    0.4854    0.9595    0.7577
+    0.1270    0.9575    0.8003    0.6557    0.7431    0.2769    0.1270    0.9575    0.8003    0.6557    0.7431
+    0.9134    0.9649    0.1419    0.0357    0.3922    0.0462    0.9134    0.9649    0.1419    0.0357    0.3922
+    0.6324    0.1576    0.4218    0.8491    0.6555    0.0971    0.6324    0.1576    0.4218    0.8491    0.6555
+    0.0975    0.9706    0.9157    0.9340    0.1712    0.8235    0.0975    0.9706    0.9157    0.9340    0.1712
+    0.8147    0.2785    0.9572    0.7922    0.6787    0.7060    0.8147    0.2785    0.9572    0.7922    0.6787
+    0.9058    0.5469    0.4854    0.9595    0.7577    0.0318    0.9058    0.5469    0.4854    0.9595    0.7577
+    0.1270    0.9575    0.8003    0.6557    0.7431    0.2769    0.1270    0.9575    0.8003    0.6557    0.7431
+    0.9134    0.9649    0.1419    0.0357    0.3922    0.0462    0.9134    0.9649    0.1419    0.0357    0.3922
+    0.6324    0.1576    0.4218    0.8491    0.6555    0.0971    0.6324    0.1576    0.4218    0.8491    0.6555
+    0.0975    0.9706    0.9157    0.9340    0.1712    0.8235    0.0975    0.9706    0.9157    0.9340    0.1712
+    0.8147    0.2785    0.9572    0.7922    0.6787    0.7060    0.8147    0.2785    0.9572    0.7922    0.6787
+    0.9058    0.5469    0.4854    0.9595    0.7577    0.0318    0.9058    0.5469    0.4854    0.9595    0.7577
+    0.1270    0.9575    0.8003    0.6557    0.7431    0.2769    0.1270    0.9575    0.8003    0.6557    0.7431
+    0.9134    0.9649    0.1419    0.0357    0.3922    0.0462    0.9134    0.9649    0.1419    0.0357    0.3922
+    0.6324    0.1576    0.4218    0.8491    0.6555    0.0971    0.6324    0.1576    0.4218    0.8491    0.6555
+    0.0975    0.9706    0.9157    0.9340    0.1712    0.8235    0.0975    0.9706    0.9157    0.9340    0.1712
+    0.8147    0.2785    0.9572    0.7922    0.6787    0.7060    0.8147    0.2785    0.9572    0.7922    0.6787
+    0.9058    0.5469    0.4854    0.9595    0.7577    0.0318    0.9058    0.5469    0.4854    0.9595    0.7577
+    0.1270    0.9575    0.8003    0.6557    0.7431    0.2769    0.1270    0.9575    0.8003    0.6557    0.7431
+    0.9134    0.9649    0.1419    0.0357    0.3922    0.0462    0.9134    0.9649    0.1419    0.0357    0.3922
+    0.6324    0.1576    0.4218    0.8491    0.6555    0.0971    0.6324    0.1576    0.4218    0.8491    0.6555
+    0.0975    0.9706    0.9157    0.9340    0.1712    0.8235    0.0975    0.9706    0.9157    0.9340    0.1712
+
+  Columns 12 through 22
+
+    0.7060    0.8147    0.2785    0.9572    0.7922    0.6787    0.7060    0.8147    0.2785    0.9572    0.7922
+    0.0318    0.9058    0.5469    0.4854    0.9595    0.7577    0.0318    0.9058    0.5469    0.4854    0.9595
+    0.2769    0.1270    0.9575    0.8003    0.6557    0.7431    0.2769    0.1270    0.9575    0.8003    0.6557
+    0.0462    0.9134    0.9649    0.1419    0.0357    0.3922    0.0462    0.9134    0.9649    0.1419    0.0357
+    0.0971    0.6324    0.1576    0.4218    0.8491    0.6555    0.0971    0.6324    0.1576    0.4218    0.8491
+    0.8235    0.0975    0.9706    0.9157    0.9340    0.1712    0.8235    0.0975    0.9706    0.9157    0.9340
+    0.7060    0.8147    0.2785    0.9572    0.7922    0.6787    0.7060    0.8147    0.2785    0.9572    0.7922
+    0.0318    0.9058    0.5469    0.4854    0.9595    0.7577    0.0318    0.9058    0.5469    0.4854    0.9595
+    0.2769    0.1270    0.9575    0.8003    0.6557    0.7431    0.2769    0.1270    0.9575    0.8003    0.6557
+    0.0462    0.9134    0.9649    0.1419    0.0357    0.3922    0.0462    0.9134    0.9649    0.1419    0.0357
+    0.0971    0.6324    0.1576    0.4218    0.8491    0.6555    0.0971    0.6324    0.1576    0.4218    0.8491
+    0.8235    0.0975    0.9706    0.9157    0.9340    0.1712    0.8235    0.0975    0.9706    0.9157    0.9340
+    0.7060    0.8147    0.2785    0.9572    0.7922    0.6787    0.7060    0.8147    0.2785    0.9572    0.7922
+    0.0318    0.9058    0.5469    0.4854    0.9595    0.7577    0.0318    0.9058    0.5469    0.4854    0.9595
+    0.2769    0.1270    0.9575    0.8003    0.6557    0.7431    0.2769    0.1270    0.9575    0.8003    0.6557
+    0.0462    0.9134    0.9649    0.1419    0.0357    0.3922    0.0462    0.9134    0.9649    0.1419    0.0357
+    0.0971    0.6324    0.1576    0.4218    0.8491    0.6555    0.0971    0.6324    0.1576    0.4218    0.8491
+    0.8235    0.0975    0.9706    0.9157    0.9340    0.1712    0.8235    0.0975    0.9706    0.9157    0.9340
+    0.7060    0.8147    0.2785    0.9572    0.7922    0.6787    0.7060    0.8147    0.2785    0.9572    0.7922
+    0.0318    0.9058    0.5469    0.4854    0.9595    0.7577    0.0318    0.9058    0.5469    0.4854    0.9595
+    0.2769    0.1270    0.9575    0.8003    0.6557    0.7431    0.2769    0.1270    0.9575    0.8003    0.6557
+    0.0462    0.9134    0.9649    0.1419    0.0357    0.3922    0.0462    0.9134    0.9649    0.1419    0.0357
+    0.0971    0.6324    0.1576    0.4218    0.8491    0.6555    0.0971    0.6324    0.1576    0.4218    0.8491
+    0.8235    0.0975    0.9706    0.9157    0.9340    0.1712    0.8235    0.0975    0.9706    0.9157    0.9340
+    0.7060    0.8147    0.2785    0.9572    0.7922    0.6787    0.7060    0.8147    0.2785    0.9572    0.7922
+    0.0318    0.9058    0.5469    0.4854    0.9595    0.7577    0.0318    0.9058    0.5469    0.4854    0.9595
+    0.2769    0.1270    0.9575    0.8003    0.6557    0.7431    0.2769    0.1270    0.9575    0.8003    0.6557
+    0.0462    0.9134    0.9649    0.1419    0.0357    0.3922    0.0462    0.9134    0.9649    0.1419    0.0357
+    0.0971    0.6324    0.1576    0.4218    0.8491    0.6555    0.0971    0.6324    0.1576    0.4218    0.8491
+    0.8235    0.0975    0.9706    0.9157    0.9340    0.1712    0.8235    0.0975    0.9706    0.9157    0.9340
+    0.7060    0.8147    0.2785    0.9572    0.7922    0.6787    0.7060    0.8147    0.2785    0.9572    0.7922
+    0.0318    0.9058    0.5469    0.4854    0.9595    0.7577    0.0318    0.9058    0.5469    0.4854    0.9595
+    0.2769    0.1270    0.9575    0.8003    0.6557    0.7431    0.2769    0.1270    0.9575    0.8003    0.6557
+    0.0462    0.9134    0.9649    0.1419    0.0357    0.3922    0.0462    0.9134    0.9649    0.1419    0.0357
+    0.0971    0.6324    0.1576    0.4218    0.8491    0.6555    0.0971    0.6324    0.1576    0.4218    0.8491
+    0.8235    0.0975    0.9706    0.9157    0.9340    0.1712    0.8235    0.0975    0.9706    0.9157    0.9340
+    0.7060    0.8147    0.2785    0.9572    0.7922    0.6787    0.7060    0.8147    0.2785    0.9572    0.7922
+    0.0318    0.9058    0.5469    0.4854    0.9595    0.7577    0.0318    0.9058    0.5469    0.4854    0.9595
+    0.2769    0.1270    0.9575    0.8003    0.6557    0.7431    0.2769    0.1270    0.9575    0.8003    0.6557
+    0.0462    0.9134    0.9649    0.1419    0.0357    0.3922    0.0462    0.9134    0.9649    0.1419    0.0357
+    0.0971    0.6324    0.1576    0.4218    0.8491    0.6555    0.0971    0.6324    0.1576    0.4218    0.8491
+    0.8235    0.0975    0.9706    0.9157    0.9340    0.1712    0.8235    0.0975    0.9706    0.9157    0.9340
+    0.7060    0.8147    0.2785    0.9572    0.7922    0.6787    0.7060    0.8147    0.2785    0.9572    0.7922
+    0.0318    0.9058    0.5469    0.4854    0.9595    0.7577    0.0318    0.9058    0.5469    0.4854    0.9595
+    0.2769    0.1270    0.9575    0.8003    0.6557    0.7431    0.2769    0.1270    0.9575    0.8003    0.6557
+    0.0462    0.9134    0.9649    0.1419    0.0357    0.3922    0.0462    0.9134    0.9649    0.1419    0.0357
+    0.0971    0.6324    0.1576    0.4218    0.8491    0.6555    0.0971    0.6324    0.1576    0.4218    0.8491
+    0.8235    0.0975    0.9706    0.9157    0.9340    0.1712    0.8235    0.0975    0.9706    0.9157    0.9340
+    0.7060    0.8147    0.2785    0.9572    0.7922    0.6787    0.7060    0.8147    0.2785    0.9572    0.7922
+    0.0318    0.9058    0.5469    0.4854    0.9595    0.7577    0.0318    0.9058    0.5469    0.4854    0.9595
+    0.2769    0.1270    0.9575    0.8003    0.6557    0.7431    0.2769    0.1270    0.9575    0.8003    0.6557
+    0.0462    0.9134    0.9649    0.1419    0.0357    0.3922    0.0462    0.9134    0.9649    0.1419    0.0357
+    0.0971    0.6324    0.1576    0.4218    0.8491    0.6555    0.0971    0.6324    0.1576    0.4218    0.8491
+    0.8235    0.0975    0.9706    0.9157    0.9340    0.1712    0.8235    0.0975    0.9706    0.9157    0.9340
+
+  Columns 23 through 24
+
+    0.6787    0.7060
+    0.7577    0.0318
+    0.7431    0.2769
+    0.3922    0.0462
+    0.6555    0.0971
+    0.1712    0.8235
+    0.6787    0.7060
+    0.7577    0.0318
+    0.7431    0.2769
+    0.3922    0.0462
+    0.6555    0.0971
+    0.1712    0.8235
+    0.6787    0.7060
+    0.7577    0.0318
+    0.7431    0.2769
+    0.3922    0.0462
+    0.6555    0.0971
+    0.1712    0.8235
+    0.6787    0.7060
+    0.7577    0.0318
+    0.7431    0.2769
+    0.3922    0.0462
+    0.6555    0.0971
+    0.1712    0.8235
+    0.6787    0.7060
+    0.7577    0.0318
+    0.7431    0.2769
+    0.3922    0.0462
+    0.6555    0.0971
+    0.1712    0.8235
+    0.6787    0.7060
+    0.7577    0.0318
+    0.7431    0.2769
+    0.3922    0.0462
+    0.6555    0.0971
+    0.1712    0.8235
+    0.6787    0.7060
+    0.7577    0.0318
+    0.7431    0.2769
+    0.3922    0.0462
+    0.6555    0.0971
+    0.1712    0.8235
+    0.6787    0.7060
+    0.7577    0.0318
+    0.7431    0.2769
+    0.3922    0.0462
+    0.6555    0.0971
+    0.1712    0.8235
+    0.6787    0.7060
+    0.7577    0.0318
+    0.7431    0.2769
+    0.3922    0.0462
+    0.6555    0.0971
+    0.1712    0.8235
+
+% oops, use reshape not repmat 
+reshape(A, 9, 4)
+
+ans =
+
+    0.8147    0.9649    0.7922    0.3922
+    0.9058    0.1576    0.9595    0.6555
+    0.1270    0.9706    0.6557    0.1712
+    0.9134    0.9572    0.0357    0.7060
+    0.6324    0.4854    0.8491    0.0318
+    0.0975    0.8003    0.9340    0.2769
+    0.2785    0.1419    0.6787    0.0462
+    0.5469    0.4218    0.7577    0.0971
+    0.9575    0.9157    0.7431    0.8235
+
+reshape(A, 3, 12)
+
+ans =
+
+  Columns 1 through 11
+
+    0.8147    0.9134    0.2785    0.9649    0.9572    0.1419    0.7922    0.0357    0.6787    0.3922    0.7060
+    0.9058    0.6324    0.5469    0.1576    0.4854    0.4218    0.9595    0.8491    0.7577    0.6555    0.0318
+    0.1270    0.0975    0.9575    0.9706    0.8003    0.9157    0.6557    0.9340    0.7431    0.1712    0.2769
+
+  Column 12
+
+    0.0462
+    0.0971
+    0.8235
+
+A = [2, 3; 6, 7]
+
+A =
+
+     2     3
+     6     7
+
+B = A'
+
+B =
+
+     2     6
+     3     7
+
+% if we have imaginary numbers as entries then transpose will be the conjugate transpose
+C = [2, 3 + 1i; 6i, 7i]
+
+C =
+
+   2.0000 + 0.0000i   3.0000 + 1.0000i
+   0.0000 + 6.0000i   0.0000 + 7.0000i
+
+C'
+
+ans =
+
+   2.0000 + 0.0000i   0.0000 - 6.0000i
+   3.0000 - 1.0000i   0.0000 - 7.0000i
+
+% It's advisable to preallocate for large matrices with zero matrices, it will reserve a contiuous block of memory
+A = zeros(4, 3)
+
+A =
+
+     0     0     0
+     0     0     0
+     0     0     0
+     0     0     0
+
+% For dynamically resized matrices using loops you might want intialize with a null matrix and then append
+A = eye(3)
+
+A =
+
+     1     0     0
+     0     1     0
+     0     0     1
+
+u = [5, 6, 7]
+
+u =
+
+     5     6     7
+
+v = [2; 3; 4]
+
+v =
+
+     2
+     3
+     4
+
+% Lets append by rows 
+[A; u]
+
+ans =
+
+     1     0     0
+     0     1     0
+     0     0     1
+     5     6     7
+
+% Let's append by columns 
+[A, v]
+
+ans =
+
+     1     0     0     2
+     0     1     0     3
+     0     0     1     4
+
+[A, u']
+
+ans =
+
+     1     0     0     5
+     0     1     0     6
+     0     0     1     7
+
+B = []
+
+B =
+
+     []
+
+B = [B; 1, 2, 3]
+
+B =
+
+     1     2     3
+
+B = []; 
+for k = 1:3 
+       B = [B; k, k+1, k+2]
+
+end
+
+B =
+
+     1     2     3
+
+
+B =
+
+     1     2     3
+     2     3     4
+
+
+B =
+
+     1     2     3
+     2     3     4
+     3     4     5
+
+% also can use 'cat'
+help(cat)
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('cat')" style="font-weight:bold">cat</a>
+Not enough input arguments.
+} 
+help cat
+ <strong>cat</strong> Concatenate arrays.
+    <strong>cat</strong>(DIM,A,B) concatenates the arrays A and B along
+    the dimension DIM.  
+    <strong>cat</strong>(2,A,B) is the same as [A,B].
+    <strong>cat</strong>(1,A,B) is the same as [A;B].
+ 
+    B = <strong>cat</strong>(DIM,A1,A2,A3,A4,...) concatenates the input
+    arrays A1, A2, etc. along the dimension DIM.
+ 
+    When used with comma separated list syntax, <strong>cat</strong>(DIM,C{:}) or 
+    <strong>cat</strong>(DIM,C.FIELD) is a convenient way to concatenate a cell or
+    structure array containing numeric matrices into a single matrix.
+ 
+    Examples:
+      a = magic(3); b = pascal(3); 
+      c = cat(4,a,b)
+    produces a 3-by-3-by-1-by-2 result and
+      s = {a b};
+      for i=1:length(s), 
+        siz{i} = size(s{i});
+      end
+      sizes = cat(1,siz{:})
+    produces a 2-by-2 array of size vectors.
+      
+    See also <a href="matlab:help num2cell -displayBanner">num2cell</a>.
+
+    <a href="matlab:doc cat">Documentation for cat</a>
+    <a href="matlab:matlab.internal.language.introspective.overloads.displayOverloads('cat')">Other functions named cat</a>
+
+A = rand(6)
+
+A =
+
+    0.6948    0.7655    0.7094    0.1190    0.7513    0.5472
+    0.3171    0.7952    0.7547    0.4984    0.2551    0.1386
+    0.9502    0.1869    0.2760    0.9597    0.5060    0.1493
+    0.0344    0.4898    0.6797    0.3404    0.6991    0.2575
+    0.4387    0.4456    0.6551    0.5853    0.8909    0.8407
+    0.3816    0.6463    0.1626    0.2238    0.9593    0.2543
+
+u = rand(10, 1)
+
+u =
+
+    0.8143
+    0.2435
+    0.9293
+    0.3500
+    0.1966
+    0.2511
+    0.6160
+    0.4733
+    0.3517
+    0.8308
+
+% we can delete rows and columns by setting them to null 
+A([1, 3], :) =[]
+
+A =
+
+    0.3171    0.7952    0.7547    0.4984    0.2551    0.1386
+    0.0344    0.4898    0.6797    0.3404    0.6991    0.2575
+    0.4387    0.4456    0.6551    0.5853    0.8909    0.8407
+    0.3816    0.6463    0.1626    0.2238    0.9593    0.2543
+
+size(A)
+
+ans =
+
+     4     6
+
+% we can also create a diagonal matrix with u on diagonal 
+diag(u)
+
+ans =
+
+    0.8143         0         0         0         0         0         0         0         0         0
+         0    0.2435         0         0         0         0         0         0         0         0
+         0         0    0.9293         0         0         0         0         0         0         0
+         0         0         0    0.3500         0         0         0         0         0         0
+         0         0         0         0    0.1966         0         0         0         0         0
+         0         0         0         0         0    0.2511         0         0         0         0
+         0         0         0         0         0         0    0.6160         0         0         0
+         0         0         0         0         0         0         0    0.4733         0         0
+         0         0         0         0         0         0         0         0    0.3517         0
+         0         0         0         0         0         0         0         0         0    0.8308
+
+% this will place u in the first upper diagonal 
+diag(u, 1)
+
+ans =
+
+         0    0.8143         0         0         0         0         0         0         0         0         0
+         0         0    0.2435         0         0         0         0         0         0         0         0
+         0         0         0    0.9293         0         0         0         0         0         0         0
+         0         0         0         0    0.3500         0         0         0         0         0         0
+         0         0         0         0         0    0.1966         0         0         0         0         0
+         0         0         0         0         0         0    0.2511         0         0         0         0
+         0         0         0         0         0         0         0    0.6160         0         0         0
+         0         0         0         0         0         0         0         0    0.4733         0         0
+         0         0         0         0         0         0         0         0         0    0.3517         0
+         0         0         0         0         0         0         0         0         0         0    0.8308
+         0         0         0         0         0         0         0         0         0         0         0
+
+% let's make a matrix made up of submatrices
+B = [ones(3), zeros(3, 2); zeros(2, 3), 4*eye(2)]
+
+B =
+
+     1     1     1     0     0
+     1     1     1     0     0
+     1     1     1     0     0
+     0     0     0     4     0
+     0     0     0     0     4
+
+diag(B)
+
+ans =
+
+     1
+     1
+     1
+     4
+     4
+
+diag(B)'
+
+ans =
+
+     1     1     1     4     4
+
+diab(B, 1)
+{Unrecognized function or variable 'diab'.
+} 
+diag(B, 1)
+
+ans =
+
+     1
+     1
+     0
+     0
+
+% The above gives the first upper diagonal as a vector 
+d = [2, 4, 6, 8]
+
+d =
+
+     2     4     6     8
+
+d1 = [-3, -3, -3]
+
+d1 =
+
+    -3    -3    -3
+
+d2 = [-1, -1]
+
+d2 =
+
+    -1    -1
+
+D = diag(d) + diag(d1, 1) + diag(d2, -2)
+
+D =
+
+     2    -3     0     0
+     0     4    -3     0
+    -1     0     6    -3
+     0    -1     0     8
+
+fliplr(D)
+
+ans =
+
+     0     0    -3     2
+     0    -3     4     0
+    -3     6     0    -1
+     8     0    -1     0
+
+% Above flipped left to right 
+flipud(D)
+
+ans =
+
+     0    -1     0     8
+    -1     0     6    -3
+     0     4    -3     0
+     2    -3     0     0
+
+% Above flipped up and down 
+help hankel
+ <strong>hankel</strong> Hankel matrix.
+    <strong>hankel</strong>(C) is a square Hankel matrix whose first column is C and
+    whose elements are zero below the first anti-diagonal.
+ 
+    <strong>hankel</strong>(C,R) is a Hankel matrix whose first column is C and whose
+    last row is R.
+ 
+    Hankel matrices are symmetric, constant across the anti-diagonals,
+    and have elements H(i,j) = P(i+j-1) where P = [C R(2:END)]
+    completely determines the Hankel matrix.
+ 
+    Class support for inputs C,R:
+       float: double, single
+       integer: int8, int16, int32, int64, uint8, uint16, uint32, uint64
+ 
+    See also <a href="matlab:help toeplitz -displayBanner">toeplitz</a>.
+
+    <a href="matlab:doc hankel">Documentation for hankel</a>
+    <a href="matlab:matlab.internal.language.introspective.overloads.displayOverloads('hankel')">Other functions named hankel</a>
+
+hankel(d)
+
+ans =
+
+     2     4     6     8
+     4     6     8     0
+     6     8     0     0
+     8     0     0     0
+
+% can create vectors in matlab over a specific range
+a = 0:1:10
+
+a =
+
+     0     1     2     3     4     5     6     7     8     9    10
+
+a = 0:10
+
+a =
+
+     0     1     2     3     4     5     6     7     8     9    10
+
+b = 0:2:10
+
+b =
+
+     0     2     4     6     8    10
+
+c = 0:.2:10
+
+c =
+
+  Columns 1 through 11
+
+         0    0.2000    0.4000    0.6000    0.8000    1.0000    1.2000    1.4000    1.6000    1.8000    2.0000
+
+  Columns 12 through 22
+
+    2.2000    2.4000    2.6000    2.8000    3.0000    3.2000    3.4000    3.6000    3.8000    4.0000    4.2000
+
+  Columns 23 through 33
+
+    4.4000    4.6000    4.8000    5.0000    5.2000    5.4000    5.6000    5.8000    6.0000    6.2000    6.4000
+
+  Columns 34 through 44
+
+    6.6000    6.8000    7.0000    7.2000    7.4000    7.6000    7.8000    8.0000    8.2000    8.4000    8.6000
+
+  Columns 45 through 51
+
+    8.8000    9.0000    9.2000    9.4000    9.6000    9.8000   10.0000
+
+% these are two frequently used functions to generate vectors 
+linspace(0, 10, 2)
+
+ans =
+
+     0    10
+
+linspace(0, 10, 5)
+
+ans =
+
+         0    2.5000    5.0000    7.5000   10.0000
+
+linspace(0, 10, 10)
+
+ans =
+
+         0    1.1111    2.2222    3.3333    4.4444    5.5556    6.6667    7.7778    8.8889   10.0000
+
+linspace(0, 10, 11)
+
+ans =
+
+     0     1     2     3     4     5     6     7     8     9    10
+
+% logpspace generates logarithmically spaced vector from 10^a to 10^b for n points
+logspace(0, 3, 100)
+
+ans =
+
+   1.0e+03 *
+
+  Columns 1 through 11
+
+    0.0010    0.0011    0.0011    0.0012    0.0013    0.0014    0.0015    0.0016    0.0017    0.0019    0.0020
+
+  Columns 12 through 22
+
+    0.0022    0.0023    0.0025    0.0027    0.0028    0.0031    0.0033    0.0035    0.0038    0.0040    0.0043
+
+  Columns 23 through 33
+
+    0.0046    0.0050    0.0053    0.0057    0.0061    0.0066    0.0071    0.0076    0.0081    0.0087    0.0093
+
+  Columns 34 through 44
+
+    0.0100    0.0107    0.0115    0.0123    0.0132    0.0142    0.0152    0.0163    0.0175    0.0187    0.0201
+
+  Columns 45 through 55
+
+    0.0215    0.0231    0.0248    0.0266    0.0285    0.0305    0.0327    0.0351    0.0376    0.0404    0.0433
+
+  Columns 56 through 66
+
+    0.0464    0.0498    0.0534    0.0572    0.0614    0.0658    0.0705    0.0756    0.0811    0.0870    0.0933
+
+  Columns 67 through 77
+
+    0.1000    0.1072    0.1150    0.1233    0.1322    0.1417    0.1520    0.1630    0.1748    0.1874    0.2009
+
+  Columns 78 through 88
+
+    0.2154    0.2310    0.2477    0.2656    0.2848    0.3054    0.3275    0.3511    0.3765    0.4037    0.4329
+
+  Columns 89 through 99
+
+    0.4642    0.4977    0.5337    0.5722    0.6136    0.6579    0.7055    0.7565    0.8111    0.8697    0.9326
+
+  Column 100
+
+    1.0000
+
+logspace(0, 2, 101)
+
+ans =
+
+  Columns 1 through 11
+
+    1.0000    1.0471    1.0965    1.1482    1.2023    1.2589    1.3183    1.3804    1.4454    1.5136    1.5849
+
+  Columns 12 through 22
+
+    1.6596    1.7378    1.8197    1.9055    1.9953    2.0893    2.1878    2.2909    2.3988    2.5119    2.6303
+
+  Columns 23 through 33
+
+    2.7542    2.8840    3.0200    3.1623    3.3113    3.4674    3.6308    3.8019    3.9811    4.1687    4.3652
+
+  Columns 34 through 44
+
+    4.5709    4.7863    5.0119    5.2481    5.4954    5.7544    6.0256    6.3096    6.6069    6.9183    7.2444
+
+  Columns 45 through 55
+
+    7.5858    7.9433    8.3176    8.7096    9.1201    9.5499   10.0000   10.4713   10.9648   11.4815   12.0226
+
+  Columns 56 through 66
+
+   12.5893   13.1826   13.8038   14.4544   15.1356   15.8489   16.5959   17.3780   18.1970   19.0546   19.9526
+
+  Columns 67 through 77
+
+   20.8930   21.8776   22.9087   23.9883   25.1189   26.3027   27.5423   28.8403   30.1995   31.6228   33.1131
+
+  Columns 78 through 88
+
+   34.6737   36.3078   38.0189   39.8107   41.6869   43.6516   45.7088   47.8630   50.1187   52.4807   54.9541
+
+  Columns 89 through 99
+
+   57.5440   60.2560   63.0957   66.0693   69.1831   72.4436   75.8578   79.4328   83.1764   87.0964   91.2011
+
+  Columns 100 through 101
+
+   95.4993  100.0000
+
+logspace(0, 2, 10)
+
+ans =
+
+    1.0000    1.6681    2.7826    4.6416    7.7426   12.9155   21.5443   35.9381   59.9484  100.0000
+
+logspace(0, 2, 11)
+
+ans =
+
+    1.0000    1.5849    2.5119    3.9811    6.3096   10.0000   15.8489   25.1189   39.8107   63.0957  100.0000
+
+logspace(0, 3, 4)
+
+ans =
+
+           1          10         100        1000
+
+logspace(0, 4, 4)
+
+ans =
+
+   1.0e+04 *
+
+    0.0001    0.0022    0.0464    1.0000
+
+logspace(0, 4, 5)
+
+ans =
+
+           1          10         100        1000       10000
+
+logspace(0, 3, 4)
+
+ans =
+
+           1          10         100        1000
+
+10.^(linspace(0, 3, 4))
+
+ans =
+
+           1          10         100        1000
+
+% A/B is valid and is A * B^-1 for same size square matrices 
+A = rand(2)
+
+A =
+
+    0.5853    0.9172
+    0.5497    0.2858
+
+B = rand(2)
+
+B =
+
+    0.7572    0.3804
+    0.7537    0.5678
+
+A/B
+
+ans =
+
+   -2.5069    3.2949
+    0.6753    0.0510
+
+% left division operator solves Ax = b, x= A\b. Is almost like the  inv(A)*b but is faster and more numerically stable
+% can do array operations a couple ways, here's how we do it for multiplication 
+a = [1, 2, 3], b = [4, 5, 6]
+
+a =
+
+     1     2     3
+
+
+b =
+
+     4     5     6
+
+a.*b
+
+ans =
+
+     4    10    18
+
+a'* b
+
+ans =
+
+     4     5     6
+     8    10    12
+    12    15    18
+
+a
+
+a =
+
+     1     2     3
+
+a * b'
+
+ans =
+
+    32
+
+% above are the outer and inner product of vectors 
+x = [1, 5, 3, 7], y = [0, 2, 8, 7]
+
+x =
+
+     1     5     3     7
+
+
+y =
+
+     0     2     8     7
+
+% relational operators 
+k = x < y
+
+k =
+
+  1×4 <a href="matlab:helpPopup logical" style="font-weight:bold">logical</a> array
+
+   0   0   1   0
+
+k = x <= y
+
+k =
+
+  1×4 <a href="matlab:helpPopup logical" style="font-weight:bold">logical</a> array
+
+   0   0   1   1
+
+x == y
+
+ans =
+
+  1×4 <a href="matlab:helpPopup logical" style="font-weight:bold">logical</a> array
+
+   0   0   0   1
+
+x ~= y
+
+ans =
+
+  1×4 <a href="matlab:helpPopup logical" style="font-weight:bold">logical</a> array
+
+   1   1   1   0
+
+u 
+
+u =
+
+    0.8143
+    0.2435
+    0.9293
+    0.3500
+    0.1966
+    0.2511
+    0.6160
+    0.4733
+    0.3517
+    0.8308
+
+u = v(v >= sin(pi/3))
+
+u =
+
+     2
+     3
+     4
+
+% that will give you back the indices where the elements are bigger than sin(pi/3)
+x = [0, 5, 3, 7]
+
+x =
+
+     0     5     3     7
+
+y = [0, 2, 8, 7]
+
+y =
+
+     0     2     8     7
+
+m = (x > y) & (x > 4)
+
+m =
+
+  1×4 <a href="matlab:helpPopup logical" style="font-weight:bold">logical</a> array
+
+   0   1   0   0
+
+% The outpput of  a logical operation can be used to as a index of a matrix to extract elements 
+all(eye(3))
+
+ans =
+
+  1×3 <a href="matlab:helpPopup logical" style="font-weight:bold">logical</a> array
+
+   0   0   0
+
+all([1, 0, 1, 1])
+
+ans =
+
+  <a href="matlab:helpPopup logical" style="font-weight:bold">logical</a>
+
+   0
+
+all([1, 1, 1])
+
+ans =
+
+  <a href="matlab:helpPopup logical" style="font-weight:bold">logical</a>
+
+   1
+
+% we can find incidence of non-zero elements of a matrix 
+x = [0, 2, 5, 7]
+
+x =
+
+     0     2     5     7
+
+find(x)
+
+ans =
+
+     2     3     4
+
+A
+
+A =
+
+    0.5853    0.9172
+    0.5497    0.2858
+
+[r, c] = find(A>0.5)
+
+r =
+
+     1
+     2
+     1
+
+
+c =
+
+     1
+     1
+     2
+
+% Note, for all the trig funcitons we must give them in radians 
+q = [0, pi/2, pi]
+
+q =
+
+         0    1.5708    3.1416
+
+sin(q)
+
+ans =
+
+         0    1.0000    0.0000
+
+x = [1, -1, -1, 1], y = [1, 1, -1, -1]
+
+x =
+
+     1    -1    -1     1
+
+
+y =
+
+     1     1    -1    -1
+
+atan(y./x)
+
+ans =
+
+    0.7854   -0.7854    0.7854   -0.7854
+
+% atan2 takes two inputs but produces four quadrant inverse tan such that -pi <= atan(y/x) <= pi
+% mod(a, b) is same as a - floor(a./b)*b 
+% Matlab treats every character string as a row vector with one element per character 
+message = 'Leave me alone'
+
+message =
+
+    'Leave me alone'
+
+size(message)
+
+ans =
+
+     1    14
+
+message'
+
+ans =
+
+  14×1 <a href="matlab:helpPopup char" style="font-weight:bold">char</a> array
+
+    'L'
+    'e'
+    'a'
+    'v'
+    'e'
+    ' '
+    'm'
+    'e'
+    ' '
+    'a'
+    'l'
+    'o'
+    'n'
+    'e'
+
+% to create a column vector of text object they must have the same mnumber of characters
+names = ['John'; 'Ravi']
+
+names =
+
+  2×4 <a href="matlab:helpPopup char" style="font-weight:bold">char</a> array
+
+    'John'
+    'Ravi'
+
+% what if the number of chars are different? 
+howdy = ['hi   '; 'hello']
+
+howdy =
+
+  2×5 <a href="matlab:helpPopup char" style="font-weight:bold">char</a> array
+
+    'hi   '
+    'hello'
+
+% or can use char, which will convert strings to a matrix 
+howdy = char('hi', 'hello')
+
+howdy =
+
+  2×5 <a href="matlab:helpPopup char" style="font-weight:bold">char</a> array
+
+    'hi   '
+    'hello'
+
+%num2str can be useful if we need to generate plots with say different sample sizes 
+title(
+ title(
+       ↑
+{Invalid expression. When calling a function or indexing a variable, use parentheses. Otherwise, check for mismatched
+delimiters.
+} 
+title(['Variance study with sample size n = ', int2str(n)]
+ title(['Variance study with sample size n = ', int2str(n)]
+                                                           ↑
+{Invalid expression. When calling a function or indexing a variable, use parentheses. Otherwise, check for mismatched
+delimiters.
+} 
+title(['Variance study with sample size n = ', int2str(n)])
+{Unrecognized function or variable 'n'.
+} 
+% eval function used to evaluate text strings and execute them if they are valid Matlab commands 
+eval('x=5*sin(pi/3)')
+
+x =
+
+    4.3301
+
+% can use eval to create or load sequentially numbered data files, the following runs a set of command 10 times 
+edit eval_example.m
+run eval_example.m
+% please see eval_example.m
+% now let's write the product of two matrices A, B the traditional way 
+A = rand(4); B = rand(4); 
+size(A)
+
+ans =
+
+     4     4
+
+size(A)[0]
+ size(A)[0]
+        ↑
+{Invalid expression. When calling a function or indexing a variable, use parentheses. Otherwise, check for mismatched
+delimiters.
+} 
+size(A)(1)
+{Error:  Invalid array indexing.
+} 
+size(A)(0)
+{Error:  Invalid array indexing.
+} 
+[r, c] = size(A)
+
+r =
+
+     4
+
+
+c =
+
+     4
+
+length(A, 0)
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('length')" style="font-weight:bold">length</a>
+Too many input arguments.
+} 
+help size
+ <strong>size</strong>   Size of array.  
+    D = <strong>size</strong>(X), for M-by-N matrix X, returns the two-element row vector
+    D = [M,N] containing the number of rows and columns in the matrix.
+    For N-D arrays, <strong>size</strong>(X) returns a 1-by-N vector of dimension lengths.
+    Trailing singleton dimensions are ignored.
+ 
+    [M,N] = <strong>size</strong>(X) for matrix X, returns the number of rows and columns in
+    X as separate output variables. 
+    
+    [M1,M2,M3,...,MN] = <strong>size</strong>(X) for N>1 returns the sizes of the first N 
+    dimensions of the array X.  If the number of output arguments N does
+    not equal NDIMS(X), then for:
+ 
+    N > NDIMS(X), <strong>size</strong> returns ones in the "extra" variables, i.e., outputs
+                  NDIMS(X)+1 through N.
+    N < NDIMS(X), MN contains the product of the sizes of dimensions N
+                  through NDIMS(X).
+ 
+    M = <strong>size</strong>(X,DIM) returns the lengths of the specified dimensions in a 
+    row vector. DIM can be a scalar or vector of dimensions. For example, 
+    <strong>size</strong>(X,1) returns the number of rows of X and <strong>size</strong>(X,[1 2]) returns a 
+    row vector containing the number of rows and columns.
+ 
+    M = <strong>size</strong>(X,DIM1,DIM2,...,DIMN) returns the lengths of the dimensions
+    DIM1,...,DIMN as a row vector.
+ 
+    [M1,M2,...,MN] = <strong>size</strong>(X,DIM) OR [M1,M2,...,MN] = <strong>size</strong>(X,DIM1,...,DIMN)
+    returns the lengths of the specified dimensions as separate outputs.
+    The number of outputs must equal the number of dimensions provided.
+ 
+    When <strong>size</strong> is applied to a Java array, the number of rows
+    returned is the length of the Java array and the number of columns
+    is always 1.  When <strong>size</strong> is applied to a Java array of arrays, the
+    result describes only the top level array in the array of arrays.
+ 
+    Example:
+    If
+       X = rand(2,3,4);
+    then
+       d = size(X)              returns  d = [2 3 4]
+       [m1,m2,m3,m4] = size(X)  returns  m1 = 2, m2 = 3, m3 = 4, m4 = 1
+       [m,n] = size(X)          returns  m = 2, n = 12
+       m2 = size(X,2)           returns  m2 = 3
+ 
+    See also <a href="matlab:help length -displayBanner">length</a>, <a href="matlab:help ndims -displayBanner">ndims</a>, <a href="matlab:help numel -displayBanner">numel</a>.
+
+    <a href="matlab:doc size">Documentation for size</a>
+    <a href="matlab:matlab.internal.language.introspective.overloads.displayOverloads('size')">Other functions named size</a>
+
+A = rand(4, 5); B = rand(4, 5);
+size(A, 1)
+
+ans =
+
+     4
+
+size(A, 2)
+
+ans =
+
+     5
+
+[m, n] = size(A); 
+for i = 1:m
+      for j = 1:n
+          C(i, j) = A(i, j) * B(i, j);
+      end
+   end 
+
+C
+
+C =
+
+    0.0016    0.0203    0.1800    0.0714    0.2030
+    0.3977    0.0493    0.0452    0.0666    0.0161
+    0.3284    0.0478    0.1642    0.2936    0.6656
+    0.0660    0.1920    0.2492    0.5218    0.2424
+
+% much easier to just do the following in matlab 
+C = A.*B
+
+C =
+
+    0.0016    0.0203    0.1800    0.0714    0.2030
+    0.3977    0.0493    0.0452    0.0666    0.0161
+    0.3284    0.0478    0.1642    0.2936    0.6656
+    0.0660    0.1920    0.2492    0.5218    0.2424
+

@@ -1,0 +1,639 @@
+%Matlab supports multdimensional matrices 
+A = zeros(4, 4, 3)
+
+A(:,:,1) =
+
+     0     0     0     0
+     0     0     0     0
+     0     0     0     0
+     0     0     0     0
+
+
+A(:,:,2) =
+
+     0     0     0     0
+     0     0     0     0
+     0     0     0     0
+     0     0     0     0
+
+
+A(:,:,3) =
+
+     0     0     0     0
+     0     0     0     0
+     0     0     0     0
+     0     0     0     0
+
+% Can think about the above multdim matrix as a 4x4 matrix occupying 3 pages of a notebook
+% To change the entry in the 4th row, 4th column, and on page 2 to number 6 we do the following 
+A(4, 4, 2) = 6
+
+A(:,:,1) =
+
+     0     0     0     0
+     0     0     0     0
+     0     0     0     0
+     0     0     0     0
+
+
+A(:,:,2) =
+
+     0     0     0     0
+     0     0     0     0
+     0     0     0     0
+     0     0     0     6
+
+
+A(:,:,3) =
+
+     0     0     0     0
+     0     0     0     0
+     0     0     0     0
+     0     0     0     0
+
+% The fourth dimension will be different stacks of notebooks, then the 5th dimension as several bookcases full of those notebooks...
+% Then the sixth dimension will be several rooms full of bookcases and so forth. 
+% Note: the regular matrix rules only apply to 2 dimensional matrices 
+% Element by element mutliplication can be performed with multid arrays 
+B = rand(4, 4, 4)
+
+B(:,:,1) =
+
+    0.8147    0.6324    0.9575    0.9572
+    0.9058    0.0975    0.9649    0.4854
+    0.1270    0.2785    0.1576    0.8003
+    0.9134    0.5469    0.9706    0.1419
+
+
+B(:,:,2) =
+
+    0.4218    0.6557    0.6787    0.6555
+    0.9157    0.0357    0.7577    0.1712
+    0.7922    0.8491    0.7431    0.7060
+    0.9595    0.9340    0.3922    0.0318
+
+
+B(:,:,3) =
+
+    0.2769    0.6948    0.4387    0.1869
+    0.0462    0.3171    0.3816    0.4898
+    0.0971    0.9502    0.7655    0.4456
+    0.8235    0.0344    0.7952    0.6463
+
+
+B(:,:,4) =
+
+    0.7094    0.6551    0.9597    0.7513
+    0.7547    0.1626    0.3404    0.2551
+    0.2760    0.1190    0.5853    0.5060
+    0.6797    0.4984    0.2238    0.6991
+
+A.*B
+{Arrays have incompatible sizes for this operation.
+
+<a href="matlab:helpview('matlab','error_sizeDimensionsMustMatch')" style="font-weight:bold">Related documentation</a>
+} 
+size(A)
+
+ans =
+
+     4     4     3
+
+size(B)
+
+ans =
+
+     4     4     4
+
+B(:,:,4) = []
+
+B(:,:,1) =
+
+    0.8147    0.6324    0.9575    0.9572
+    0.9058    0.0975    0.9649    0.4854
+    0.1270    0.2785    0.1576    0.8003
+    0.9134    0.5469    0.9706    0.1419
+
+
+B(:,:,2) =
+
+    0.4218    0.6557    0.6787    0.6555
+    0.9157    0.0357    0.7577    0.1712
+    0.7922    0.8491    0.7431    0.7060
+    0.9595    0.9340    0.3922    0.0318
+
+
+B(:,:,3) =
+
+    0.2769    0.6948    0.4387    0.1869
+    0.0462    0.3171    0.3816    0.4898
+    0.0971    0.9502    0.7655    0.4456
+    0.8235    0.0344    0.7952    0.6463
+
+size(B)
+
+ans =
+
+     4     4     3
+
+A.*B
+
+ans(:,:,1) =
+
+     0     0     0     0
+     0     0     0     0
+     0     0     0     0
+     0     0     0     0
+
+
+ans(:,:,2) =
+
+         0         0         0         0
+         0         0         0         0
+         0         0         0         0
+         0         0         0    0.1910
+
+
+ans(:,:,3) =
+
+     0     0     0     0
+     0     0     0     0
+     0     0     0     0
+     0     0     0     0
+
+diary off
+% We can also perform the following operations with multd arrays: 5*A, sin(A), log(A)
+% Also, if A and B are of the same dimesion then we can perform A + B, B - A, etc. 
+% Structure is a data structure with several named fields 
+% Different fields can access different data types but same field must access the same type of data 
+% Struturce is like a bunch of records
+FallsSem.course = 'cs101'
+
+FallsSem = 
+
+  <a href="matlab:helpPopup struct" style="font-weight:bold">struct</a> with fields:
+
+    course: 'cs101'
+
+FallsSem.prof = 'Turing' 
+
+FallsSem = 
+
+  <a href="matlab:helpPopup struct" style="font-weight:bold">struct</a> with fields:
+
+    course: 'cs101'
+      prof: 'Turing'
+
+FallSem.score = [80, 75, 95]
+
+FallSem = 
+
+  <a href="matlab:helpPopup struct" style="font-weight:bold">struct</a> with fields:
+
+    score: [80 75 95]
+
+FallSem
+
+FallSem = 
+
+  <a href="matlab:helpPopup struct" style="font-weight:bold">struct</a> with fields:
+
+    score: [80 75 95]
+
+delete FallSem
+[Warning: File 'FallSem' not found.] 
+whos
+  Name          Size            Bytes  Class     Attributes
+
+  FallSem       1x1               192  struct              
+  FallsSem      1x1               358  struct              
+
+FallSem = []
+
+FallSem =
+
+     []
+
+FallSems.score = FallSem.score
+{Dot indexing is not supported for variables of this type.
+} 
+FallSems.score = [80, 75, 95]
+
+FallSems = 
+
+  <a href="matlab:helpPopup struct" style="font-weight:bold">struct</a> with fields:
+
+    score: [80 75 95]
+
+FallSem.score = FallsSem.score
+{Unrecognized field name "score".
+} 
+FallSem
+
+FallSem =
+
+     []
+
+clear FallSem
+ls
+Temperature.table	chp4_040924		matlab.mat		solvexf.m
+chp4_040824		funr.m			solvex.m		temp_table.m
+
+whos
+  Name          Size            Bytes  Class     Attributes
+
+  FallSems      1x1               192  struct              
+  FallsSem      1x1               358  struct              
+
+FallSems
+
+FallSems = 
+
+  <a href="matlab:helpPopup struct" style="font-weight:bold">struct</a> with fields:
+
+    score: [80 75 95]
+
+FallsSem
+
+FallsSem = 
+
+  <a href="matlab:helpPopup struct" style="font-weight:bold">struct</a> with fields:
+
+    course: 'cs101'
+      prof: 'Turing'
+
+clear FallSems
+whos
+  Name          Size            Bytes  Class     Attributes
+
+  FallsSem      1x1               358  struct              
+
+FallsSem.score = [80, 75, 95]
+
+FallsSem = 
+
+  <a href="matlab:helpPopup struct" style="font-weight:bold">struct</a> with fields:
+
+    course: 'cs101'
+      prof: 'Turing'
+     score: [80 75 95]
+
+FallsSem
+
+FallsSem = 
+
+  <a href="matlab:helpPopup struct" style="font-weight:bold">struct</a> with fields:
+
+    course: 'cs101'
+      prof: 'Turing'
+     score: [80 75 95]
+
+FallsSem(2).course = 'phy200'
+
+FallsSem = 
+
+  1×2 <a href="matlab:helpPopup struct" style="font-weight:bold">struct</a> array with fields:
+
+    course
+    prof
+    score
+
+FallseSem(2).prof = 'Fiegenbem'
+
+FallseSem = 
+
+  1×2 <a href="matlab:helpPopup struct" style="font-weight:bold">struct</a> array with fields:
+
+    prof
+
+FallsSem(2).prof = 'Fiegenbaum'
+
+FallsSem = 
+
+  1×2 <a href="matlab:helpPopup struct" style="font-weight:bold">struct</a> array with fields:
+
+    course
+    prof
+    score
+
+FallsSem(3).score = [72, 75, 78]
+
+FallsSem = 
+
+  1×3 <a href="matlab:helpPopup struct" style="font-weight:bold">struct</a> array with fields:
+
+    course
+    prof
+    score
+
+FallsSem
+
+FallsSem = 
+
+  1×3 <a href="matlab:helpPopup struct" style="font-weight:bold">struct</a> array with fields:
+
+    course
+    prof
+    score
+
+FallsSem.course
+
+ans =
+
+    'cs101'
+
+
+ans =
+
+    'phy200'
+
+
+ans =
+
+     []
+
+FallsSem(1).course
+
+ans =
+
+    'cs101'
+
+FallsSem(1).score(3)
+
+ans =
+
+    95
+
+% In a structure array, each element must have the same number of fields but each field can have different sizes 
+% i.e. FallsSem(1).score can be 3 element row vector and FallsSem(2).score can be 5 element
+% We can also loop to assign values from a field of several records 
+for k = 1:2
+    all_scores(k, :) = FallsSem(k).score; 
+end
+{Unable to perform assignment because the size of the left side is 1-by-3 and the size of the right side is 0-by-0.
+} 
+FallsSems(1).score
+{Unrecognized function or variable 'FallsSems'.
+} 
+FallsSem(1).score
+
+ans =
+
+    80    75    95
+
+FallsSem(2).score
+
+ans =
+
+     []
+
+FallsSems
+{Unrecognized function or variable 'FallsSems'.
+} 
+FallsSem
+
+FallsSem = 
+
+  1×3 <a href="matlab:helpPopup struct" style="font-weight:bold">struct</a> array with fields:
+
+    course
+    prof
+    score
+
+FallsSem.score
+
+ans =
+
+    80    75    95
+
+
+ans =
+
+     []
+
+
+ans =
+
+    72    75    78
+
+FallsSem(3).score
+
+ans =
+
+    72    75    78
+
+FallsSem(2).score = [100 100 100]
+
+FallsSem = 
+
+  1×3 <a href="matlab:helpPopup struct" style="font-weight:bold">struct</a> array with fields:
+
+    course
+    prof
+    score
+
+for k = 1:3
+      all_scores(k, :) = FallsSem(k).score
+end
+
+all_scores =
+
+    80    75    95
+
+
+all_scores =
+
+    80    75    95
+   100   100   100
+
+
+all_scores =
+
+    80    75    95
+   100   100   100
+    72    75    78
+
+% We can also create multiple records per fieldname
+% This will create a 1x1 structure 
+FallSem.course = char('cs101', 'phy200', 'math211'); 
+FallSem.prof = char('Turing', 'Fiegenbaum', 'Ramanujan');
+FallSem.score = [80 75 95; 72 75 76; 85 36 66];
+FallSem
+
+FallSem = 
+
+  <a href="matlab:helpPopup struct" style="font-weight:bold">struct</a> with fields:
+
+    course: [3×7 char]
+      prof: [3×10 char]
+     score: [3×3 double]
+
+size(FallSem)
+
+ans =
+
+     1     1
+
+FallSem.course
+
+ans =
+
+  3×7 <a href="matlab:helpPopup char" style="font-weight:bold">char</a> array
+
+    'cs101  '
+    'phy200 '
+    'math211'
+
+FallSem.course(1)
+
+ans =
+
+    'c'
+
+FallSem(1).course
+
+ans =
+
+  3×7 <a href="matlab:helpPopup char" style="font-weight:bold">char</a> array
+
+    'cs101  '
+    'phy200 '
+    'math211'
+
+FallSem.course(1, :)
+
+ans =
+
+    'cs101  '
+
+% can also create a structure using the keyword 'struct'
+Fall_Sem = [struct('course', 'cs101', 'prof', 'Turing',...
+                      
+                       
+                       ↑
+{Invalid expression. When calling a function or indexing a variable, use parentheses. Otherwise, check for mismatched
+delimiters.
+} 
+Fall_Sem = [struct('course', 'cs101', 'prof', 'Turing',...
+                      'score', [80, 75, 95]); 
+               struct('course', 'phy200', 'prof', 'Ramanujan',...
+                      'score', [72, 75, 66])];
+Fall_Sem
+
+Fall_Sem = 
+
+  2×1 <a href="matlab:helpPopup struct" style="font-weight:bold">struct</a> array with fields:
+
+    course
+    prof
+    score
+
+Fall_Sem(2, :)
+
+ans = 
+
+  <a href="matlab:helpPopup struct" style="font-weight:bold">struct</a> with fields:
+
+    course: 'phy200'
+      prof: 'Ramanujan'
+     score: [72 75 66]
+
+Fall_Sem(2, 1)
+
+ans = 
+
+  <a href="matlab:helpPopup struct" style="font-weight:bold">struct</a> with fields:
+
+    course: 'phy200'
+      prof: 'Ramanujan'
+     score: [72 75 66]
+
+Fall_Sem(2)
+
+ans = 
+
+  <a href="matlab:helpPopup struct" style="font-weight:bold">struct</a> with fields:
+
+    course: 'phy200'
+      prof: 'Ramanujan'
+     score: [72 75 66]
+
+Fall_Sem(2).course
+
+ans =
+
+    'phy200'
+
+% Manipulation of structures is similar to general array but cannot assign all values of field across structure to variable with colon specifier
+Fall_Sem(1).score(:)
+
+ans =
+
+    80
+    75
+    95
+
+a = Fall_Sem(:).score
+
+a =
+
+    80    75    95
+
+% Nevermind, looks like you can do this in the newer version of Matlab
+a
+
+a =
+
+    80    75    95
+
+Fall_Sem(:)
+
+ans = 
+
+  2×1 <a href="matlab:helpPopup struct" style="font-weight:bold">struct</a> array with fields:
+
+    course
+    prof
+    score
+
+Fall_Sem(:).score
+
+ans =
+
+    80    75    95
+
+
+ans =
+
+    72    75    66
+
+a = Fall_Sem(:).score
+
+a =
+
+    80    75    95
+
+% Actually it will only assign the last record for the fieldname to the variable 
+% Let's instead use loops 
+for k = 1:2
+     all_scores(k, :) = Fall_Sem(k).score; 
+   end
+all_scores
+
+all_scores =
+
+    80    75    95
+    72    75    66
+    72    75    78
+
+clear all_scores
+for k = 1:2
+all_scores(k, :) = Fall_Sem(k).score;
+end
+all_scores
+
+all_scores =
+
+    80    75    95
+    72    75    66
+

@@ -1,0 +1,936 @@
+diary off
+% Let's create script file called 'solvex.m'
+edit solvex.m
+r = 1; 
+solvex
+
+det_A =
+
+    64
+
+
+x =
+
+   -0.0312
+    0.2344
+    1.6875
+
+who
+
+Your variables are:
+
+A      b      det_A  r      x      
+
+% Here we defined r outside the m file since all variables in the workspace are available to mfile 
+% If  you want to do a big set of computations with many output variables it's better to use a function file rather than a script
+% Function files begin with the definition which is of form: function [output variables] = function_name(input variables);
+% The function_name is the same name as the m-file. 
+% Function can be written to accept partial list of input with default values 
+% This can be done if the other unspecified inputs are defined inside the function 
+% Can also manipulate the input list  with the built-in nargin and also the output with nargout 
+edit solvexf.m
+% Once we define the solvexf.m file, we an use any other variables names in their place in function call 
+[detA, y] = solvexf(1); 
+detA
+
+detA =
+
+    64
+
+y
+
+y =
+
+   -0.0312
+    0.2344
+    1.6875
+
+who
+
+Your variables are:
+
+A      b      detA   det_A  r      x      y      
+
+clear all
+% If a function needs to passed into a input list then there are a few ways to do it 
+% fzero finds the zeros of a user-defined function such fzero(f, x), where f is the function handles and x initial guess
+fr = inline('r^3 - 32*r^2 + (r-22)*r + 100');
+r0 = fzero(fr, 5);
+% Use a function file 
+edit funr.m
+r0 = fzero('funr', 5)
+
+r0 =
+
+    1.5058
+
+% finally, we can use a function handle, let's use funr 
+f1 = @funr
+
+f1 =
+
+  <a href="matlab:helpPopup function_handle" style="font-weight:bold">function_handle</a> with value:
+
+    @funr
+
+r1 = fzero(f1, 5)
+
+r1 =
+
+    1.5058
+
+% can also do 
+r1 = fzero(@funr, 5)
+
+r1 =
+
+    1.5058
+
+% we can also use feval to evaluate functionw where you want to use evaluate functions with different names but the same
+% input list 
+% i.e. value = feval('funxy', 0, 0); evalues funxy at (0, 0) but say we want to evaluate harry's function then 
+% we need to change it to value = feval('harryxy', 0, 0). This allows us to  dynamically take in filenames 
+% The same can be acheived through function handles where we set fh = @harryxy, then value = fh(0, 0). 
+% Let's use the profiler to evaluate the perfomance of our functions 
+profile on 
+[d, x] = solvexf(3)
+
+d =
+
+  100.0000
+
+
+x =
+
+    0.0400
+    0.0300
+    0.5400
+
+profile viewer
+if usejava('jvm'), com.mathworks.mde.profiler.ProfilerRunner.initInstance(); end
+profile off
+% The comment lines at the beginning (before any executable statement) of a script or function file are used by 
+% Matlab for online help for that file. 
+% If we want to make variables available between two files, then we would have to declare them 'global' in both files.
+% Need to declare global before any execution. 
+% for loops 
+for m = 1:100
+        num = 1/(m+1)
+   end
+
+num =
+
+    0.5000
+
+
+num =
+
+    0.3333
+
+
+num =
+
+    0.2500
+
+
+num =
+
+    0.2000
+
+
+num =
+
+    0.1667
+
+
+num =
+
+    0.1429
+
+
+num =
+
+    0.1250
+
+
+num =
+
+    0.1111
+
+
+num =
+
+    0.1000
+
+
+num =
+
+    0.0909
+
+
+num =
+
+    0.0833
+
+
+num =
+
+    0.0769
+
+
+num =
+
+    0.0714
+
+
+num =
+
+    0.0667
+
+
+num =
+
+    0.0625
+
+
+num =
+
+    0.0588
+
+
+num =
+
+    0.0556
+
+
+num =
+
+    0.0526
+
+
+num =
+
+    0.0500
+
+
+num =
+
+    0.0476
+
+
+num =
+
+    0.0455
+
+
+num =
+
+    0.0435
+
+
+num =
+
+    0.0417
+
+
+num =
+
+    0.0400
+
+
+num =
+
+    0.0385
+
+
+num =
+
+    0.0370
+
+
+num =
+
+    0.0357
+
+
+num =
+
+    0.0345
+
+
+num =
+
+    0.0333
+
+
+num =
+
+    0.0323
+
+
+num =
+
+    0.0312
+
+
+num =
+
+    0.0303
+
+
+num =
+
+    0.0294
+
+
+num =
+
+    0.0286
+
+
+num =
+
+    0.0278
+
+
+num =
+
+    0.0270
+
+
+num =
+
+    0.0263
+
+
+num =
+
+    0.0256
+
+
+num =
+
+    0.0250
+
+
+num =
+
+    0.0244
+
+
+num =
+
+    0.0238
+
+
+num =
+
+    0.0233
+
+
+num =
+
+    0.0227
+
+
+num =
+
+    0.0222
+
+
+num =
+
+    0.0217
+
+
+num =
+
+    0.0213
+
+
+num =
+
+    0.0208
+
+
+num =
+
+    0.0204
+
+
+num =
+
+    0.0200
+
+
+num =
+
+    0.0196
+
+
+num =
+
+    0.0192
+
+
+num =
+
+    0.0189
+
+
+num =
+
+    0.0185
+
+
+num =
+
+    0.0182
+
+
+num =
+
+    0.0179
+
+
+num =
+
+    0.0175
+
+
+num =
+
+    0.0172
+
+
+num =
+
+    0.0169
+
+
+num =
+
+    0.0167
+
+
+num =
+
+    0.0164
+
+
+num =
+
+    0.0161
+
+
+num =
+
+    0.0159
+
+
+num =
+
+    0.0156
+
+
+num =
+
+    0.0154
+
+
+num =
+
+    0.0152
+
+
+num =
+
+    0.0149
+
+
+num =
+
+    0.0147
+
+
+num =
+
+    0.0145
+
+
+num =
+
+    0.0143
+
+
+num =
+
+    0.0141
+
+
+num =
+
+    0.0139
+
+
+num =
+
+    0.0137
+
+
+num =
+
+    0.0135
+
+
+num =
+
+    0.0133
+
+
+num =
+
+    0.0132
+
+
+num =
+
+    0.0130
+
+
+num =
+
+    0.0128
+
+
+num =
+
+    0.0127
+
+
+num =
+
+    0.0125
+
+
+num =
+
+    0.0123
+
+
+num =
+
+    0.0122
+
+
+num =
+
+    0.0120
+
+
+num =
+
+    0.0119
+
+
+num =
+
+    0.0118
+
+
+num =
+
+    0.0116
+
+
+num =
+
+    0.0115
+
+
+num =
+
+    0.0114
+
+
+num =
+
+    0.0112
+
+
+num =
+
+    0.0111
+
+
+num =
+
+    0.0110
+
+
+num =
+
+    0.0109
+
+
+num =
+
+    0.0108
+
+
+num =
+
+    0.0106
+
+
+num =
+
+    0.0105
+
+
+num =
+
+    0.0104
+
+
+num =
+
+    0.0103
+
+
+num =
+
+    0.0102
+
+
+num =
+
+    0.0101
+
+
+num =
+
+    0.0100
+
+
+num =
+
+    0.0099
+
+for n = 100:-2:0, k=1/(exp(n)), end
+
+k =
+
+   3.7201e-44
+
+
+k =
+
+   2.7488e-43
+
+
+k =
+
+   2.0311e-42
+
+
+k =
+
+   1.5008e-41
+
+
+k =
+
+   1.1089e-40
+
+
+k =
+
+   8.1940e-40
+
+
+k =
+
+   6.0546e-39
+
+
+k =
+
+   4.4738e-38
+
+
+k =
+
+   3.3057e-37
+
+
+k =
+
+   2.4426e-36
+
+
+k =
+
+   1.8049e-35
+
+
+k =
+
+   1.3336e-34
+
+
+k =
+
+   9.8542e-34
+
+
+k =
+
+   7.2813e-33
+
+
+k =
+
+   5.3802e-32
+
+
+k =
+
+   3.9754e-31
+
+
+k =
+
+   2.9375e-30
+
+
+k =
+
+   2.1705e-29
+
+
+k =
+
+   1.6038e-28
+
+
+k =
+
+   1.1851e-27
+
+
+k =
+
+   8.7565e-27
+
+
+k =
+
+   6.4702e-26
+
+
+k =
+
+   4.7809e-25
+
+
+k =
+
+   3.5326e-24
+
+
+k =
+
+   2.6103e-23
+
+
+k =
+
+   1.9287e-22
+
+
+k =
+
+   1.4252e-21
+
+
+k =
+
+   1.0531e-20
+
+
+k =
+
+   7.7811e-20
+
+
+k =
+
+   5.7495e-19
+
+
+k =
+
+   4.2484e-18
+
+
+k =
+
+   3.1391e-17
+
+
+k =
+
+   2.3195e-16
+
+
+k =
+
+   1.7139e-15
+
+
+k =
+
+   1.2664e-14
+
+
+k =
+
+   9.3576e-14
+
+
+k =
+
+   6.9144e-13
+
+
+k =
+
+   5.1091e-12
+
+
+k =
+
+   3.7751e-11
+
+
+k =
+
+   2.7895e-10
+
+
+k =
+
+   2.0612e-09
+
+
+k =
+
+   1.5230e-08
+
+
+k =
+
+   1.1254e-07
+
+
+k =
+
+   8.3153e-07
+
+
+k =
+
+   6.1442e-06
+
+
+k =
+
+   4.5400e-05
+
+
+k =
+
+   3.3546e-04
+
+
+k =
+
+    0.0025
+
+
+k =
+
+    0.0183
+
+
+k =
+
+    0.1353
+
+
+k =
+
+     1
+
+% while loop
+v = 1; num = 1; i = 1; 
+while num < 10000
+        v = [v; num]'
+
+
+while num < 10000
+        v = [v; num];
+        i = i + 1; 
+        num = 2^i; 
+   end 
+v
+
+v =
+
+           1
+           1
+           4
+           8
+          16
+          32
+          64
+         128
+         256
+         512
+        1024
+        2048
+        4096
+        8192
+
+%if-elseif-else statements
+i = 6; j = 21; 
+if i > 5
+    k = i; 
+   elseif (i >1) & (j == 20)
+    k = 5*i + j; 
+   end
+
+k
+
+k =
+
+     6
+
+% switch case
+color = input('color= ', 's');
+color= red
+% can use a 'break' to stop execution 
+% error('message') inside a function or script aborts execution and displays the error message. 
+% 'return' simply returns control to the invoking function 
+% input('string') displays the text on screen and waits for user input i.e. 
+% n = input('Largest square matrix size '); 
+% more = input('More simulations? (Y/N)', 's'); prompts user to type Y for yes and N for no. The second arg 
+% directs Matlab to save the user input as a string. 
+% Matlab supports recursion 
+edit fibonacci.
+edit fibonacci.m
+% The most important file i/o functions in Matlab are fopen, fprintf, fclose
+edit temp_table.m
+temp_table
+diary off

@@ -637,3 +637,181 @@ all_scores =
     80    75    95
     72    75    66
 
+% Cell is the most versatile data object in Matlab; like a data container 
+C = cell(2,2)
+
+C =
+
+  2×2 <a href="matlab:helpPopup cell" style="font-weight:bold">cell</a> array
+
+    {0×0 double}    {0×0 double}
+    {0×0 double}    {0×0 double}
+
+C{1, 1} = rand(3)
+
+C =
+
+  2×2 <a href="matlab:helpPopup cell" style="font-weight:bold">cell</a> array
+
+    {3×3 double}    {0×0 double}
+    {0×0 double}    {0×0 double}
+
+C{1, 2} = char('john', 'raj')
+
+C =
+
+  2×2 <a href="matlab:helpPopup cell" style="font-weight:bold">cell</a> array
+
+    {3×3 double}    {2×4 char  }
+    {0×0 double}    {0×0 double}
+
+C{2, 1} = Fall_Sem;
+C{2, 2} = cell(3, 3)
+
+C =
+
+  2×2 <a href="matlab:helpPopup cell" style="font-weight:bold">cell</a> array
+
+    {3×3 double}    {2×4 char}
+    {2×1 struct}    {3×3 cell}
+
+C{1, 1}
+
+ans =
+
+    0.8147    0.9134    0.2785
+    0.9058    0.6324    0.5469
+    0.1270    0.0975    0.9575
+
+C{1, 2}
+
+ans =
+
+  2×4 <a href="matlab:helpPopup char" style="font-weight:bold">char</a> array
+
+    'john'
+    'raj '
+
+C(1, 2)
+
+ans =
+
+  1×1 <a href="matlab:helpPopup cell" style="font-weight:bold">cell</a> array
+
+    {2×4 char}
+
+C{1, 2}(1, :)
+
+ans =
+
+    'john'
+
+C{2, 1}(3)
+{Index exceeds the number of array elements. Index must not exceed 2.
+} 
+C{2, 1}(3).prof
+{Index exceeds the number of array elements. Index must not exceed 2.
+} 
+C{2, 1}
+
+ans = 
+
+  2×1 <a href="matlab:helpPopup struct" style="font-weight:bold">struct</a> array with fields:
+
+    course
+    prof
+    score
+
+C
+
+C =
+
+  2×2 <a href="matlab:helpPopup cell" style="font-weight:bold">cell</a> array
+
+    {3×3 double}    {2×4 char}
+    {2×1 struct}    {3×3 cell}
+
+C{2, 1}.score
+
+ans =
+
+    80    75    95
+
+
+ans =
+
+    72    75    66
+
+C{2, 1}.score(1)
+{Intermediate dot '.' indexing produced a comma-separated list with 2 values, but it must produce a single value when
+followed by subsequent indexing operations.
+
+<a href="matlab:helpview('matlab','error_index_expected_one_output_from_intermediate_indexing')" style="font-weight:bold">Related documentation</a>
+} 
+C{2, 1}(1).score
+
+ans =
+
+    80    75    95
+
+C(1, 1) = {[1, 2; 3, 4]}
+
+C =
+
+  2×2 <a href="matlab:helpPopup cell" style="font-weight:bold">cell</a> array
+
+    {2×2 double}    {2×4 char}
+    {2×1 struct}    {3×3 cell}
+
+C{1, 2}(1, :)
+
+ans =
+
+    'john'
+
+C{2, 1}(2).prof
+
+ans =
+
+    'Ramanujan'
+
+C{2, 2}{1, 1} = eye(2)
+
+C =
+
+  2×2 <a href="matlab:helpPopup cell" style="font-weight:bold">cell</a> array
+
+    {2×2 double}    {2×4 char}
+    {2×1 struct}    {3×3 cell}
+
+C{2, 2}{1, 1}(1, 1) = 5;
+C
+
+C =
+
+  2×2 <a href="matlab:helpPopup cell" style="font-weight:bold">cell</a> array
+
+    {2×2 double}    {2×4 char}
+    {2×1 struct}    {3×3 cell}
+
+C{2, 2}
+
+ans =
+
+  3×3 <a href="matlab:helpPopup cell" style="font-weight:bold">cell</a> array
+
+    {2×2 double}    {0×0 double}    {0×0 double}
+    {0×0 double}    {0×0 double}    {0×0 double}
+    {0×0 double}    {0×0 double}    {0×0 double}
+
+C{2, 2}{1, 1}
+
+ans =
+
+     5     0
+     0     1
+
+cellplot(C)
+% can use cellplot to view the contents of the cell array; the nonempty arrays are shaded
+% Publishing reports 
+diary off

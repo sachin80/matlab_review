@@ -1,0 +1,4 @@
+%SINESERIES: computes sin(x) from series expansion.
+function y = sineseries(x, n)
+index = linspace(1, n, n); 
+y = (-1).^ine

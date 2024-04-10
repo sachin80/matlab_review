@@ -8,7 +8,7 @@ for i = 1:length(n)
     k = linspace(1, i, i); 
     y(i) = sum((-1).^(k-1).* (x.^(2*k -1))./(factorial(2*k -1)));
 end
-y_true = sin(pi/6); 
+y_true = sin(x); 
 if nargout > 1
     err = abs(y_true - y);
 end

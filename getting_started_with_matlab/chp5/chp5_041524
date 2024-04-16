@@ -1,0 +1,2823 @@
+% We can use polyfit to fit a polynomial of order n through our data but what if we want to fit a non-polynomial function?
+% Given data vectors we can do a linear fit using polyfit to find coefficients a0 and a1 then we can plot the curve
+% See the script for time versus pressure variation of a vacuum pump 
+edit exp_fit.m
+exp_fit
+help figure
+ <strong>figure</strong> Create figure window.
+    <strong>figure</strong>, by itself, creates a new figure window, and returns
+    its handle.
+  
+    <strong>figure</strong>(H) makes H the current figure, forces it to become visible,
+    and raises it above all other figures on the screen.  If Figure H
+    does not exist, and H is an integer, a new figure is created with
+    handle H.
+ 
+    GCF returns the handle to the current figure.
+ 
+    Execute GET(H) to see a list of figure properties and
+    their current values. Execute SET(H) to see a list of figure
+    properties and their possible values.
+ 
+    See also <a href="matlab:help subplot">subplot</a>, <a href="matlab:help axes">axes</a>, <a href="matlab:help gcf">gcf</a>, <a href="matlab:help clf">clf</a>.
+
+    <a href="matlab:doc figure">Reference page for figure</a>
+
+help figure
+ <strong>figure</strong> Create figure window.
+    <strong>figure</strong>, by itself, creates a new figure window, and returns
+    its handle.
+  
+    <strong>figure</strong>(H) makes H the current figure, forces it to become visible,
+    and raises it above all other figures on the screen.  If Figure H
+    does not exist, and H is an integer, a new figure is created with
+    handle H.
+ 
+    GCF returns the handle to the current figure.
+ 
+    Execute GET(H) to see a list of figure properties and
+    their current values. Execute SET(H) to see a list of figure
+    properties and their possible values.
+ 
+    See also <a href="matlab:help subplot">subplot</a>, <a href="matlab:help axes">axes</a>, <a href="matlab:help gcf">gcf</a>, <a href="matlab:help clf">clf</a>.
+
+    <a href="matlab:doc figure">Reference page for figure</a>
+
+exp_fit
+% If we need to do curve fitting for a function like y(x) = C1*(exp(lambda1))*x + C2*(exp(lambda2))*x can use fminsearch, minimizes error in finding C1, C2
+% Interpolation is finding a function between variables and given set of data points of variables that satisfy the relationship. 
+% We we want to pass a smooth curve through these points or find intermediate points we use interpolation. 
+% Interpolation is NOT curve fitting since the interpolated curve must pass through all the data points. 
+% We can specify the method of interpolation as nearest, linear, cubic, and spline where the choice dictates the smoothness of the interpolated data
+% Spline interpolation uses cubic splines to find yj at desired xj given yi and xi. Cubic splines fit cubic polynomials between successive data points by matching slopes
+% as well as the curvature of each segment at the given data points 
+x = [0, 0.785, 1.570, 2.356, 3.141, 3.927, 4.712, 5.497, 6.283];
+y = [0, 0.707, 1.000, 0.707, 0.000, -0.707, -1.000, -0.707, -0.000];
+% generate the desired points for interpolation 
+xi = linspace(0, 2*pi, 50);
+% generate yi at xi
+yi = interp1(x, y, xi, 'cubic');
+[Warning: INTERP1(...,'CUBIC') will change in a future release. Use INTERP1(...,'PCHIP') instead.] 
+[> In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('interp1>sanitycheckmethod', '/Applications/MATLAB_R2018a.app/toolbox/matlab/polyfun/interp1.p', 241)" style="font-weight:bold">interp1>sanitycheckmethod</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2018a.app/toolbox/matlab/polyfun/interp1.p',241,0)">line 241</a>)
+  In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('interp1>parseinputs', '/Applications/MATLAB_R2018a.app/toolbox/matlab/polyfun/interp1.p', 376)" style="font-weight:bold">interp1>parseinputs</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2018a.app/toolbox/matlab/polyfun/interp1.p',376,0)">line 376</a>)
+  In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('interp1', '/Applications/MATLAB_R2018a.app/toolbox/matlab/polyfun/interp1.p', 78)" style="font-weight:bold">interp1</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2018a.app/toolbox/matlab/polyfun/interp1.p',78,0)">line 78</a>)] 
+help interp1
+ <strong>interp1</strong> 1-D interpolation (table lookup)
+ 
+    Vq = <strong>interp1</strong>(X,V,Xq) interpolates to find Vq, the values of the
+    underlying function V=F(X) at the query points Xq. 
+ 
+    X must be a vector. The length of X is equal to N.
+    If V is a vector, V must have length N, and Vq is the same size as Xq.
+    If V is an array of size [N,D1,D2,...,Dk], then the interpolation is
+    performed for each D1-by-D2-by-...-Dk value in V(i,:,:,...,:). If Xq
+    is a vector of length M, then Vq has size [M,D1,D2,...,Dk]. If Xq is 
+    an array of size [M1,M2,...,Mj], then Vq is of size
+    [M1,M2,...,Mj,D1,D2,...,Dk].
+ 
+    Vq = <strong>interp1</strong>(V,Xq) assumes X = 1:N, where N is LENGTH(V)
+    for vector V or SIZE(V,1) for array V.
+ 
+    Interpolation is the same operation as "table lookup".  Described in
+    "table lookup" terms, the "table" is [X,V] and <strong>interp1</strong> "looks-up"
+    the elements of Xq in X, and, based upon their location, returns
+    values Vq interpolated within the elements of V.
+ 
+    Vq = <strong>interp1</strong>(X,V,Xq,METHOD) specifies the interpolation method.
+    The available methods are:
+ 
+      'linear'   - (default) linear interpolation
+      'nearest'  - nearest neighbor interpolation
+      'next'     - next neighbor interpolation
+      'previous' - previous neighbor interpolation
+      'spline'   - piecewise cubic spline interpolation (SPLINE)
+      'pchip'    - shape-preserving piecewise cubic interpolation
+      'cubic'    - same as 'pchip'
+      'v5cubic'  - the cubic interpolation from MATLAB 5, which does not
+                   extrapolate and uses 'spline' if X is not equally
+                   spaced.
+      'makima'   - modified Akima cubic interpolation
+ 
+    Vq = <strong>interp1</strong>(X,V,Xq,METHOD,'extrap') uses the interpolation algorithm
+    specified by METHOD to perform extrapolation for elements of Xq outside
+    the interval spanned by X.
+ 
+    Vq = <strong>interp1</strong>(X,V,Xq,METHOD,EXTRAPVAL) replaces the values outside of
+    the interval spanned by X with EXTRAPVAL.  NaN and 0 are often used for
+    EXTRAPVAL.  The default extrapolation behavior with four input
+    arguments is 'extrap' for 'spline', 'pchip' and 'makima', and
+    EXTRAPVAL = NaN (NaN+NaN*1i for complex values) for the other methods.
+ 
+    PP = <strong>interp1</strong>(X,V,METHOD,'pp') is not recommended. Use
+    griddedInterpolant instead.
+    PP = <strong>interp1</strong>(X,V,METHOD,'pp') uses the interpolation algorithm
+    specified by METHOD to generate the ppform (piecewise polynomial form)
+    of V. The method may be any of the above METHOD except for 'v5cubic'
+    and 'makima'. PP may then be evaluated via PPVAL. PPVAL(PP,Xq) is the
+    same as <strong>interp1</strong>(X,V,Xq,METHOD,'extrap').
+ 
+    For example, generate a coarse sine curve and interpolate over a
+    finer abscissa:
+        X = 0:10; V = sin(X); Xq = 0:.25:10;
+        Vq = <strong>interp1</strong>(X,V,Xq); plot(X,V,'o',Xq,Vq,':.')
+ 
+    For a multi-dimensional example, we construct a table of functional
+    values:
+        X = [1:10]'; V = [ X.^2, X.^3, X.^4 ];
+        Xq = [ 1.5, 1.75; 7.5, 7.75]; Vq = <strong>interp1</strong>(X,V,Xq);
+ 
+    creates 2-by-2 matrices of interpolated function values, one matrix for
+    each of the 3 functions. Vq will be of size 2-by-2-by-3.
+ 
+    Class support for inputs X, V, Xq, EXTRAPVAL:
+       float: double, single
+ 
+    See also <a href="matlab:help interpft">interpft</a>, <a href="matlab:help spline">spline</a>, <a href="matlab:help pchip">pchip</a>, <a href="matlab:help interp2">interp2</a>, <a href="matlab:help interp3">interp3</a>, <a href="matlab:help interpn">interpn</a>, <a href="matlab:help ppval">ppval</a>,
+             <a href="matlab:help griddedInterpolant">griddedInterpolant</a>, <a href="matlab:help scatteredInterpolant">scatteredInterpolant</a>.
+
+    <a href="matlab:doc interp1">Reference page for interp1</a>
+    <a href="matlab:matlab.internal.language.introspective.overloads.displayOverloads('interp1')">Other functions named interp1</a>
+
+% Matlab has many built-in functions for data analysis and statistics 
+% Note: if a matrix is given as argument to function then the function will operate column-wise
+x = [1, 2, 3, 4, 5];
+A = [6, 5, -2; 7, 4, -1; 8, 3, 0; 9, 2, 1; 10, 2, 2];
+mean(x)
+
+ans =
+
+     3
+
+mean(A)
+
+ans =
+
+    8.0000    3.2000         0
+
+std(x)
+
+ans =
+
+    1.5811
+
+std(A)
+
+ans =
+
+    1.5811    1.3038    1.5811
+
+sum(x)
+
+ans =
+
+    15
+
+cumsum(x)
+
+ans =
+
+     1     3     6    10    15
+
+prod(x)
+
+ans =
+
+   120
+
+prod(A)
+
+ans =
+
+       30240         240           0
+
+cumprod(x)
+
+ans =
+
+     1     2     6    24   120
+
+% we can also sort 
+z = [22, 18, 35, 44, 9];
+[y, j] = sort(z)
+
+y =
+
+     9    18    22    35    44
+
+
+j =
+
+     5     2     1     3     4
+
+A
+
+A =
+
+     6     5    -2
+     7     4    -1
+     8     3     0
+     9     2     1
+    10     2     2
+
+% Index vector is useful in a situation where you want to sort a few vectors or entire matrix based on the sorting order of one vector or column
+% Let's sort matrix A according to the sorting order of the second column
+[z, j] = sort(A(:, 2));
+Anew = A(j, :)
+
+Anew =
+
+     9     2     1
+    10     2     2
+     8     3     0
+     7     4    -1
+     6     5    -2
+
+j
+
+j =
+
+     4
+     5
+     3
+     2
+     1
+
+sort(A)
+
+ans =
+
+     6     2    -2
+     7     2    -1
+     8     3     0
+     9     4     1
+    10     5     2
+
+% to get in ascending order, we can first flip the matrix upside down 
+flipud(sort(A))
+
+ans =
+
+    10     5     2
+     9     4     1
+     8     3     0
+     7     2    -1
+     6     2    -2
+
+% diff results in vector yi = xi+1 - xi
+x
+
+x =
+
+     1     2     3     4     5
+
+diff(x)
+
+ans =
+
+     1     1     1     1
+
+% trapz computes the integral of the data using the trapezoidal rule 
+trapz(x)
+
+ans =
+
+    12
+
+trapz(A)
+
+ans =
+
+   32.0000   12.5000         0
+
+% Above is the same thing as the area under the curve 
+% cumtrapz computes the cumulative integral of the data 
+cumtrapz(x)
+
+ans =
+
+         0    1.5000    4.0000    7.5000   12.0000
+
+% Numerical evaluation of an intergral is called "quadrature"
+% "quad" integrates a specified function over specified limits based on adaptive Simpson's rule; where adaptive rule seeks to improve accuracy by adaptively 
+% selecting the size of the subintervals (as opposed to it being constant) within the limits of integration while evaluating the sums that make up the integral
+% general syntax is "integral = quad('your_function', a, b, tol, trace, p1, p2,..)
+edit erfcousin.m
+y = quad('erfcousin', 1/2, 3/2)    % here a = 1/2, b = 3/2
+
+y =
+
+    0.3949
+
+% Double integration "I = dblquad('fxy_fun', xmin, xmax, ymin, ymax, tol @method)
+F = inline('1-6*x.^2*y');
+I = dblquad(F, 0, 2, -1, 1)
+
+I =
+
+    4.0000
+
+% let's verify that the higher-order method quad1 gives the same result 
+I = dblquad(F, 0, 2, -1, 1, [], @quad1)
+{Undefined function or variable 'quad1'.
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('dblquad', '/Applications/MATLAB_R2018a.app/toolbox/matlab/funfun/dblquad.m', 55)" style="font-weight:bold">dblquad</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2018a.app/toolbox/matlab/funfun/dblquad.m',55,0)">line 55</a>)
+Q = quadf(@innerintegral, ymin, ymax, tol, trace, intfcn, ...
+} 
+I = dblquad(F, 0, 2, -1, 1, [], @quadl)
+
+I =
+
+     4
+
+% What is the domain of integration is not rectangular but variable?
+% If the domain of integration is triangular region, say D, because x varies from x = y to x = 1 but can still use dblquad over a rectagular region that contains the triangular regions
+% Can do this by setting the integrand to be zero outside the triagular region. 
+% We can multiply the integrand with another relational expression that returns 0 when (x, y) is not in the doman, D, and 1 otherwise 
+% Therefore, for our example we can multiply the integrad with y - x <= 0. This expression return 0 when x is to the left of the line y = x and 1 otherwise
+F = inline('x.^2.*exp(x*y).*(y-x<=0)');
+I = dblquad(F, 0, 1, 0, 1)
+
+I =
+
+    0.3592
+
+% Ordinary Differential Equations are solved mostly with 'ode23' and 'ode45' but there are variants for stiff equations. 
+% The ode23 and ode45 are implementation of the 2nd/3rd order Runge-Kutta and 4th/5th order Runge-Kutta respectively 
+% To solve ODEs: 1. Write the differential equation(s) as a set of first-order ODE's 
+% 2. Write a funcion to compute the state derivatives. 
+% 3. Use built-in ODE solvers to solve the equations. 
+% Syntax is '[time, solution] = ode23('your_function', tspan, x0)'
+% 'your_function' is defined as xdot = your_function(t, x); 
+% 4. Extract the desired variables from the output and interpret the results. 
+edit simpode.m
+tspan = [0, 2];
+x0 = 0; 
+[t, x] = ode23('simpode', tspan, x0);
+plot(t, x), xlabel('t'), ylabel('x')
+% Second order ode: thetaddot + w^2 * sin(theta) -> thetaddot = -w^2 * sin(theta)
+% theta(0) = 1, thetadot(0) = 0. 
+% Let's rewrite as a system of first order equations: let z1 = theta, z2 = thetadot -> z1dot = z2 and z2dot = thetaddot = -w^2 * sin(z1)
+% Write in matrix form as zdot = f(z)
+edit pend.m
+size(x)
+
+ans =
+
+    18     1
+
+tspan = [0, 20]; z0 = [1; 0];
+[t, z] = ode23('pend', tspan, z0);
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('nargin')" style="font-weight:bold">nargin</a>
+Error: <a href="matlab: opentoline('/Users/aocoe/working/review/matlab_review/getting_started_with_matlab/chp5/pend.m',7,28)">File: pend.m Line: 7 Column: 28
+</a>Invalid expression. When calling a function or indexing a variable, use parentheses. Otherwise, check for mismatched delimiters.
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('odearguments', '/Applications/MATLAB_R2018a.app/toolbox/matlab/funfun/private/odearguments.m', 60)" style="font-weight:bold">odearguments</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2018a.app/toolbox/matlab/funfun/private/odearguments.m',60,0)">line 60</a>)
+    if (nargin(ode) == 2)
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('ode23', '/Applications/MATLAB_R2018a.app/toolbox/matlab/funfun/ode23.m', 114)" style="font-weight:bold">ode23</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2018a.app/toolbox/matlab/funfun/ode23.m',114,0)">line 114</a>)
+    odearguments(FcnHandlesUsed, solver_name, ode, tspan, y0, options, varargin);
+} 
+tspan
+
+tspan =
+
+     0    20
+
+z0
+
+z0 =
+
+     1
+     0
+
+[t, z] = ode23('pend',tspan,z0);
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('nargin')" style="font-weight:bold">nargin</a>
+Error: <a href="matlab: opentoline('/Users/aocoe/working/review/matlab_review/getting_started_with_matlab/chp5/pend.m',7,28)">File: pend.m Line: 7 Column: 28
+</a>Invalid expression. When calling a function or indexing a variable, use parentheses. Otherwise, check for mismatched delimiters.
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('odearguments', '/Applications/MATLAB_R2018a.app/toolbox/matlab/funfun/private/odearguments.m', 60)" style="font-weight:bold">odearguments</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2018a.app/toolbox/matlab/funfun/private/odearguments.m',60,0)">line 60</a>)
+    if (nargin(ode) == 2)
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('ode23', '/Applications/MATLAB_R2018a.app/toolbox/matlab/funfun/ode23.m', 114)" style="font-weight:bold">ode23</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2018a.app/toolbox/matlab/funfun/ode23.m',114,0)">line 114</a>)
+    odearguments(FcnHandlesUsed, solver_name, ode, tspan, y0, options, varargin);
+} 
+[t, z] = ode23('pend',tspan,z0);
+
+zdot =
+
+         0
+   -1.3127
+
+
+zdot =
+
+   -0.0000
+   -1.3127
+
+
+zdot =
+
+   -0.0001
+   -1.3127
+
+
+zdot =
+
+   -0.0001
+   -1.3127
+
+
+zdot =
+
+   -0.0003
+   -1.3127
+
+
+zdot =
+
+   -0.0004
+   -1.3127
+
+
+zdot =
+
+   -0.0005
+   -1.3127
+
+
+zdot =
+
+   -0.0015
+   -1.3127
+
+
+zdot =
+
+   -0.0020
+   -1.3127
+
+
+zdot =
+
+   -0.0025
+   -1.3127
+
+
+zdot =
+
+   -0.0075
+   -1.3127
+
+
+zdot =
+
+   -0.0100
+   -1.3127
+
+
+zdot =
+
+   -0.0125
+   -1.3126
+
+
+zdot =
+
+   -0.0375
+   -1.3124
+
+
+zdot =
+
+   -0.0500
+   -1.3117
+
+
+zdot =
+
+   -0.0625
+   -1.3114
+
+
+zdot =
+
+   -0.1355
+   -1.3085
+
+
+zdot =
+
+   -0.1718
+   -1.3018
+
+
+zdot =
+
+   -0.2080
+   -1.2985
+
+
+zdot =
+
+   -0.3152
+   -1.2835
+
+
+zdot =
+
+   -0.3670
+   -1.2638
+
+
+zdot =
+
+   -0.4190
+   -1.2519
+
+
+zdot =
+
+   -0.5452
+   -1.2115
+
+
+zdot =
+
+   -0.6022
+   -1.1711
+
+
+zdot =
+
+   -0.6614
+   -1.1429
+
+
+zdot =
+
+   -0.7876
+   -1.0624
+
+
+zdot =
+
+   -0.8374
+   -0.9950
+
+
+zdot =
+
+   -0.8934
+   -0.9435
+
+
+zdot =
+
+   -1.0029
+   -0.8099
+
+
+zdot =
+
+   -1.0343
+   -0.7134
+
+
+zdot =
+
+   -1.0783
+   -0.6350
+
+
+zdot =
+
+   -1.1482
+   -0.4616
+
+
+zdot =
+
+   -1.1546
+   -0.3548
+
+
+zdot =
+
+   -1.1780
+   -0.2624
+
+
+zdot =
+
+   -1.2014
+   -0.0998
+
+
+zdot =
+
+   -1.1914
+   -0.0130
+
+
+zdot =
+
+   -1.1954
+    0.0678
+
+
+zdot =
+
+   -1.1950
+   -0.1443
+
+
+zdot =
+
+   -1.1920
+   -0.0823
+
+
+zdot =
+
+   -1.1966
+   -0.0230
+
+
+zdot =
+
+   -1.1980
+    0.0980
+
+
+zdot =
+
+   -1.1870
+    0.1585
+
+
+zdot =
+
+   -1.1839
+    0.2176
+
+
+zdot =
+
+   -1.1705
+    0.3290
+
+
+zdot =
+
+   -1.1536
+    0.3823
+
+
+zdot =
+
+   -1.1436
+    0.4354
+
+
+zdot =
+
+   -1.1093
+    0.5688
+
+
+zdot =
+
+   -1.0763
+    0.6280
+
+
+zdot =
+
+   -1.0543
+    0.6883
+
+
+zdot =
+
+   -0.9879
+    0.8270
+
+
+zdot =
+
+   -0.9346
+    0.8808
+
+
+zdot =
+
+   -0.8960
+    0.9390
+
+
+zdot =
+
+   -0.7870
+    1.0634
+
+
+zdot =
+
+   -0.7107
+    1.1005
+
+
+zdot =
+
+   -0.6516
+    1.1475
+
+
+zdot =
+
+   -0.5238
+    1.2211
+
+
+zdot =
+
+   -0.4477
+    1.2355
+
+
+zdot =
+
+   -0.3819
+    1.2616
+
+
+zdot =
+
+   -0.2457
+    1.2983
+
+
+zdot =
+
+   -0.1717
+    1.2971
+
+
+zdot =
+
+   -0.1035
+    1.3080
+
+
+zdot =
+
+    0.0248
+    1.3165
+
+
+zdot =
+
+    0.0902
+    1.3049
+
+
+zdot =
+
+    0.1534
+    1.3037
+
+
+zdot =
+
+   -0.0055
+    1.3145
+
+
+zdot =
+
+    0.0442
+    1.3085
+
+
+zdot =
+
+    0.0928
+    1.3086
+
+
+zdot =
+
+    0.1909
+    1.3027
+
+
+zdot =
+
+    0.2392
+    1.2901
+
+
+zdot =
+
+    0.2874
+    1.2839
+
+
+zdot =
+
+    0.4044
+    1.2602
+
+
+zdot =
+
+    0.4597
+    1.2329
+
+
+zdot =
+
+    0.5159
+    1.2154
+
+
+zdot =
+
+    0.6442
+    1.1603
+
+
+zdot =
+
+    0.6996
+    1.1095
+
+
+zdot =
+
+    0.7587
+    1.0725
+
+
+zdot =
+
+    0.8796
+    0.9717
+
+
+zdot =
+
+    0.9230
+    0.8927
+
+
+zdot =
+
+    0.9750
+    0.8304
+
+
+zdot =
+
+    1.0737
+    0.6720
+
+
+zdot =
+
+    1.0949
+    0.5638
+
+
+zdot =
+
+    1.1317
+    0.4742
+
+
+zdot =
+
+    1.1798
+    0.3011
+
+
+zdot =
+
+    1.1775
+    0.2016
+
+
+zdot =
+
+    1.1916
+    0.1125
+
+
+zdot =
+
+    1.1695
+    0.3386
+
+
+zdot =
+
+    1.1722
+    0.2627
+
+
+zdot =
+
+    1.1851
+    0.1926
+
+
+zdot =
+
+    1.2004
+    0.0459
+
+
+zdot =
+
+    1.1906
+   -0.0306
+
+
+zdot =
+
+    1.1922
+   -0.1032
+
+
+zdot =
+
+    1.1964
+    0.0848
+
+
+zdot =
+
+    1.1925
+    0.0292
+
+
+zdot =
+
+    1.1949
+   -0.0247
+
+
+zdot =
+
+    1.1935
+   -0.1337
+
+
+zdot =
+
+    1.1832
+   -0.1878
+
+
+zdot =
+
+    1.1793
+   -0.2410
+
+
+zdot =
+
+    1.1640
+   -0.3558
+
+
+zdot =
+
+    1.1454
+   -0.4103
+
+
+zdot =
+
+    1.1342
+   -0.4648
+
+
+zdot =
+
+    1.0965
+   -0.5995
+
+
+zdot =
+
+    1.0613
+   -0.6586
+
+
+zdot =
+
+    1.0376
+   -0.7192
+
+
+zdot =
+
+    0.9665
+   -0.8571
+
+
+zdot =
+
+    0.9106
+   -0.9094
+
+
+zdot =
+
+    0.8697
+   -0.9667
+
+
+zdot =
+
+    0.7582
+   -1.0844
+
+
+zdot =
+
+    0.6821
+   -1.1185
+
+
+zdot =
+
+    0.6221
+   -1.1628
+
+
+zdot =
+
+    0.4931
+   -1.2318
+
+
+zdot =
+
+    0.4171
+   -1.2442
+
+
+zdot =
+
+    0.3509
+   -1.2684
+
+
+zdot =
+
+    0.2147
+   -1.3017
+
+
+zdot =
+
+    0.1413
+   -1.2990
+
+
+zdot =
+
+    0.0733
+   -1.3085
+
+
+zdot =
+
+   -0.0523
+   -1.3144
+
+
+zdot =
+
+   -0.1160
+   -1.3020
+
+
+zdot =
+
+   -0.1777
+   -1.2998
+
+
+zdot =
+
+   -0.2799
+   -1.2876
+
+
+zdot =
+
+   -0.3296
+   -1.2706
+
+
+zdot =
+
+   -0.3795
+   -1.2607
+
+
+zdot =
+
+   -0.5033
+   -1.2256
+
+
+zdot =
+
+   -0.5601
+   -1.1891
+
+
+zdot =
+
+   -0.6186
+   -1.1643
+
+
+zdot =
+
+   -0.7458
+   -1.0915
+
+
+zdot =
+
+   -0.7974
+   -1.0291
+
+
+zdot =
+
+   -0.8545
+   -0.9819
+
+
+zdot =
+
+   -0.9675
+   -0.8582
+
+
+zdot =
+
+   -1.0026
+   -0.7668
+
+
+zdot =
+
+   -1.0489
+   -0.6931
+
+
+zdot =
+
+   -1.1278
+   -0.5217
+
+
+zdot =
+
+   -1.1380
+   -0.4128
+
+
+zdot =
+
+   -1.1654
+   -0.3200
+
+
+zdot =
+
+   -1.1950
+   -0.1535
+
+
+zdot =
+
+   -1.1867
+   -0.0631
+
+
+zdot =
+
+   -1.1932
+    0.0203
+
+
+zdot =
+
+   -1.1876
+   -0.1956
+
+
+zdot =
+
+   -1.1857
+   -0.1293
+
+
+zdot =
+
+   -1.1923
+   -0.0664
+
+
+zdot =
+
+   -1.1969
+    0.0626
+
+
+zdot =
+
+   -1.1857
+    0.1278
+
+
+zdot =
+
+   -1.1835
+    0.1909
+
+
+zdot =
+
+   -1.1723
+    0.2978
+
+
+zdot =
+
+   -1.1573
+    0.3492
+
+
+zdot =
+
+   -1.1487
+    0.4005
+
+
+zdot =
+
+   -1.1181
+    0.5314
+
+
+zdot =
+
+   -1.0877
+    0.5902
+
+
+zdot =
+
+   -1.0678
+    0.6500
+
+
+zdot =
+
+   -1.0068
+    0.7887
+
+
+zdot =
+
+   -0.9567
+    0.8439
+
+
+zdot =
+
+   -0.9209
+    0.9029
+
+
+zdot =
+
+   -0.8179
+    1.0313
+
+
+zdot =
+
+   -0.7444
+    1.0715
+
+
+zdot =
+
+   -0.6880
+    1.1208
+
+
+zdot =
+
+   -0.5627
+    1.2009
+
+
+zdot =
+
+   -0.4867
+    1.2181
+
+
+zdot =
+
+   -0.4218
+    1.2469
+
+
+zdot =
+
+   -0.2865
+    1.2885
+
+
+zdot =
+
+   -0.2121
+    1.2892
+
+
+zdot =
+
+   -0.1441
+    1.3022
+
+
+zdot =
+
+   -0.0135
+    1.3144
+
+
+zdot =
+
+    0.0537
+    1.3039
+
+
+zdot =
+
+    0.1181
+    1.3043
+
+
+zdot =
+
+   -0.0487
+    1.3111
+
+
+zdot =
+
+   -0.0000
+    1.3067
+
+
+zdot =
+
+    0.0474
+    1.3082
+
+
+zdot =
+
+    0.1432
+    1.3052
+
+
+zdot =
+
+    0.1908
+    1.2947
+
+
+zdot =
+
+    0.2380
+    1.2901
+
+
+zdot =
+
+    0.3491
+    1.2718
+
+
+zdot =
+
+    0.4023
+    1.2492
+
+
+zdot =
+
+    0.4560
+    1.2352
+
+
+zdot =
+
+    0.5829
+    1.1893
+
+
+zdot =
+
+    0.6393
+    1.1448
+
+
+zdot =
+
+    0.6984
+    1.1132
+
+
+zdot =
+
+    0.8224
+    1.0250
+
+
+zdot =
+
+    0.8696
+    0.9531
+
+
+zdot =
+
+    0.9239
+    0.8975
+
+
+zdot =
+
+    1.0290
+    0.7544
+
+
+zdot =
+
+    1.0565
+    0.6534
+
+
+zdot =
+
+    1.0976
+    0.5707
+
+
+zdot =
+
+    1.1584
+    0.3974
+
+
+zdot =
+
+    1.1611
+    0.2937
+
+
+zdot =
+
+    1.1806
+    0.2027
+
+
+zdot =
+
+    1.1980
+    0.0458
+
+
+zdot =
+
+    1.1865
+   -0.0364
+
+
+zdot =
+
+    1.1882
+   -0.1138
+
+
+zdot =
+
+    1.1927
+    0.0935
+
+
+zdot =
+
+    1.1890
+    0.0370
+
+
+zdot =
+
+    1.1917
+   -0.0176
+
+
+zdot =
+
+    1.1906
+   -0.1282
+
+
+zdot =
+
+    1.1802
+   -0.1831
+
+
+zdot =
+
+    1.1764
+   -0.2371
+
+
+zdot =
+
+    1.1614
+   -0.3512
+
+
+zdot =
+
+    1.1431
+   -0.4054
+
+
+zdot =
+
+    1.1321
+   -0.4596
+
+
+zdot =
+
+    1.0950
+   -0.5938
+
+
+zdot =
+
+    1.0602
+   -0.6528
+
+
+zdot =
+
+    1.0368
+   -0.7132
+
+
+zdot =
+
+    0.9665
+   -0.8509
+
+
+zdot =
+
+    0.9111
+   -0.9033
+
+
+zdot =
+
+    0.8706
+   -0.9606
+
+
+zdot =
+
+    0.7597
+   -1.0791
+
+
+zdot =
+
+    0.6837
+   -1.1136
+
+
+zdot =
+
+    0.6239
+   -1.1582
+
+
+zdot =
+
+    0.4954
+   -1.2278
+
+
+zdot =
+
+    0.4195
+   -1.2404
+
+
+zdot =
+
+    0.3535
+   -1.2649
+
+
+zdot =
+
+    0.2178
+   -1.2986
+
+
+zdot =
+
+    0.1445
+   -1.2961
+
+
+zdot =
+
+    0.0766
+   -1.3057
+
+
+zdot =
+
+   -0.0488
+   -1.3120
+
+
+zdot =
+
+   -0.1125
+   -1.2997
+
+
+zdot =
+
+   -0.1742
+   -1.2976
+
+
+zdot =
+
+   -0.2755
+   -1.2857
+
+
+zdot =
+
+   -0.3247
+   -1.2690
+
+
+zdot =
+
+   -0.3741
+   -1.2593
+
+
+zdot =
+
+   -0.4973
+   -1.2247
+
+
+zdot =
+
+   -0.5538
+   -1.1888
+
+
+zdot =
+
+   -0.6121
+   -1.1643
+
+
+zdot =
+
+   -0.7390
+   -1.0926
+
+
+zdot =
+
+   -0.7907
+   -1.0308
+
+
+zdot =
+
+   -0.8477
+   -0.9842
+
+
+zdot =
+
+   -0.9608
+   -0.8618
+
+
+zdot =
+
+   -0.9963
+   -0.7711
+
+
+zdot =
+
+   -1.0428
+   -0.6981
+
+
+zdot =
+
+   -1.1225
+   -0.5274
+
+
+zdot =
+
+   -1.1331
+   -0.4185
+
+
+zdot =
+
+   -1.1609
+   -0.3259
+
+
+zdot =
+
+   -1.1912
+   -0.1595
+
+
+zdot =
+
+   -1.1832
+   -0.0689
+
+
+zdot =
+
+   -1.1900
+    0.0146
+
+
+zdot =
+
+   -1.1837
+   -0.2012
+
+
+zdot =
+
+   -1.1820
+   -0.1346
+
+
+zdot =
+
+   -1.1887
+   -0.0715
+
+
+zdot =
+
+   -1.1937
+    0.0581
+
+
+zdot =
+
+   -1.1827
+    0.1236
+
+
+zdot =
+
+   -1.1806
+    0.1870
+
+
+zdot =
+
+   -1.1697
+    0.2930
+
+
+zdot =
+
+   -1.1550
+    0.3441
+
+
+zdot =
+
+   -1.1465
+    0.3950
+
+
+zdot =
+
+   -1.1164
+    0.5252
+
+
+zdot =
+
+   -1.0865
+    0.5839
+
+
+zdot =
+
+   -1.0669
+    0.6435
+
+
+zdot =
+
+   -1.0067
+    0.7818
+
+
+zdot =
+
+   -0.9572
+    0.8371
+
+
+zdot =
+
+   -0.9218
+    0.8961
+
+
+zdot =
+
+   -0.8200
+    1.0247
+
+
+zdot =
+
+   -0.7471
+    1.0652
+
+
+zdot =
+
+   -0.6913
+    1.1147
+
+
+zdot =
+
+   -0.5667
+    1.1957
+
+
+zdot =
+
+   -0.4908
+    1.2133
+
+
+zdot =
+
+   -0.4262
+    1.2425
+
+
+zdot =
+
+   -0.2913
+    1.2848
+
+
+zdot =
+
+   -0.2170
+    1.2858
+
+
+zdot =
+
+   -0.1492
+    1.2990
+
+
+zdot =
+
+   -0.0187
+    1.3118
+
+
+zdot =
+
+    0.0485
+    1.3015
+
+
+zdot =
+
+    0.1129
+    1.3021
+
+
+zdot =
+
+   -0.0530
+    1.3085
+
+
+zdot =
+
+   -0.0039
+    1.3041
+
+
+zdot =
+
+    0.0439
+    1.3057
+
+
+zdot =
+
+    0.1406
+    1.3029
+
+
+zdot =
+
+    0.1886
+    1.2922
+
+
+zdot =
+
+    0.2362
+    1.2877
+
+
+zdot =
+
+    0.3467
+    1.2696
+
+
+zdot =
+
+    0.3997
+    1.2471
+
+
+zdot =
+
+    0.4531
+    1.2332
+
+
+zdot =
+
+    0.5796
+    1.1875
+
+
+zdot =
+
+    0.6357
+    1.1433
+
+
+zdot =
+
+    0.6947
+    1.1119
+
+
+zdot =
+
+    0.8184
+    1.0241
+
+
+zdot =
+
+    0.8656
+    0.9526
+
+
+zdot =
+
+    0.9198
+    0.8972
+
+
+zdot =
+
+    1.0249
+    0.7549
+
+
+zdot =
+
+    1.0524
+    0.6543
+
+
+zdot =
+
+    1.0935
+    0.5720
+
+
+zdot =
+
+    1.1545
+    0.3992
+
+
+zdot =
+
+    1.1574
+    0.2956
+
+
+zdot =
+
+    1.1771
+    0.2049
+
+
+zdot =
+
+    1.1946
+    0.0481
+
+
+zdot =
+
+    1.1832
+   -0.0340
+
+
+zdot =
+
+    1.1850
+   -0.1114
+
+
+zdot =
+
+    1.1893
+    0.0955
+
+
+zdot =
+
+    1.1856
+    0.0389
+
+
+zdot =
+
+    1.1884
+   -0.0158
+
+
+zdot =
+
+    1.1874
+   -0.1266
+
+
+zdot =
+
+    1.1770
+   -0.1816
+
+
+zdot =
+
+    1.1733
+   -0.2357
+
+
+zdot =
+
+    1.1584
+   -0.3493
+
+
+zdot =
+
+    1.1401
+   -0.4033
+
+
+zdot =
+
+    1.1293
+   -0.4573
+
+
+zdot =
+
+    1.0923
+   -0.5912
+
+
+zdot =
+
+    1.0577
+   -0.6500
+
+
+zdot =
+
+    1.0344
+   -0.7103
+
+
+zdot =
+
+    0.9645
+   -0.8477
+
+
+zdot =
+
+    0.9093
+   -0.9001
+
+
+zdot =
+
+    0.8690
+   -0.9574
+
+
+zdot =
+
+    0.7584
+   -1.0760
+
+
+zdot =
+
+    0.6825
+   -1.1106
+
+
+zdot =
+
+    0.6229
+   -1.1553
+
+
+zdot =
+
+    0.4946
+   -1.2249
+
+
+zdot =
+
+    0.4189
+   -1.2376
+
+
+zdot =
+
+    0.3531
+   -1.2621
+
+
+zdot =
+
+    0.2177
+   -1.2960
+
+
+zdot =
+
+    0.1446
+   -1.2935
+
+
+zdot =
+
+    0.0770
+   -1.3031
+
+
+zdot =
+
+   -0.0481
+   -1.3094
+
+
+zdot =
+
+   -0.1116
+   -1.2972
+
+
+zdot =
+
+   -0.1731
+   -1.2951
+
+
+zdot =
+
+   -0.2738
+   -1.2833
+
+
+zdot =
+
+   -0.3228
+   -1.2666
+
+
+zdot =
+
+   -0.3720
+   -1.2570
+
+
+zdot =
+
+   -0.4947
+   -1.2226
+
+
+zdot =
+
+   -0.5510
+   -1.1868
+
+
+zdot =
+
+   -0.6091
+   -1.1625
+
+
+zdot =
+
+   -0.7356
+   -1.0910
+
+
+zdot =
+
+   -0.7872
+   -1.0294
+
+
+zdot =
+
+   -0.8441
+   -0.9831
+
+
+zdot =
+
+   -0.9570
+   -0.8612
+
+
+zdot =
+
+   -0.9925
+   -0.7708
+
+
+zdot =
+
+   -1.0390
+   -0.6981
+
+
+zdot =
+
+   -1.1188
+   -0.5279
+
+
+zdot =
+
+   -1.1295
+   -0.4193
+
+
+zdot =
+
+   -1.1573
+   -0.3270
+
+
+zdot =
+
+   -1.1878
+   -0.1609
+
+
+zdot =
+
+   -1.1798
+   -0.0704
+
+
+zdot =
+
+   -1.1867
+    0.0128
+
+
+zdot =
+
+   -1.1802
+   -0.2024
+
+
+zdot =
+
+   -1.1786
+   -0.1358
+
+
+zdot =
+
+   -1.1854
+   -0.0728
+
+
+zdot =
+
+   -1.1905
+    0.0567
+
+
+zdot =
+
+   -1.1794
+    0.1221
+
+
+zdot =
+
+   -1.1774
+    0.1855
+
+
+zdot =
+
+   -1.1666
+    0.2910
+
+
+zdot =
+
+   -1.1520
+    0.3419
+
+
+zdot =
+
+   -1.1436
+    0.3926
+
+
+zdot =
+
+   -1.1138
+    0.5224
+
+
+zdot =
+
+   -1.0840
+    0.5809
+
+
+zdot =
+
+   -1.0645
+    0.6404
+
+
+zdot =
+
+   -1.0047
+    0.7784
+
+
+zdot =
+
+   -0.9554
+    0.8336
+
+
+zdot =
+
+   -0.9202
+    0.8925
+
+
+zdot =
+
+   -0.8190
+    1.0210
+
+
+zdot =
+
+   -0.7464
+    1.0616
+
+
+zdot =
+
+   -0.6909
+    1.1112
+
+
+zdot =
+
+   -0.5666
+    1.1924
+
+
+zdot =
+
+   -0.4908
+    1.2101
+
+
+zdot =
+
+   -0.4264
+    1.2394
+
+
+zdot =
+
+   -0.2919
+    1.2819
+
+
+zdot =
+
+   -0.2178
+    1.2830
+
+
+zdot =
+
+   -0.1501
+    1.2963
+
+
+zdot =
+
+   -0.0200
+    1.3092
+
+
+zdot =
+
+    0.0470
+    1.2989
+
+
+zdot =
+
+    0.1112
+    1.2996
+
+
+zdot =
+
+   -0.0541
+    1.3059
+
+
+zdot =
+
+   -0.0050
+    1.3015
+
+
+zdot =
+
+    0.0428
+    1.3032
+
+
+zdot =
+
+    0.1394
+    1.3004
+
+
+zdot =
+
+    0.1873
+    1.2897
+
+
+zdot =
+
+    0.2349
+    1.2852
+
+
+zdot =
+
+    0.3450
+    1.2672
+
+
+zdot =
+
+    0.3977
+    1.2448
+
+
+zdot =
+
+    0.4509
+    1.2309
+
+
+zdot =
+
+    0.5769
+    1.1854
+
+
+zdot =
+
+    0.6329
+    1.1413
+
+
+zdot =
+
+    0.6916
+    1.1101
+
+
+zdot =
+
+    0.8151
+    1.0227
+
+
+zdot =
+
+    0.8622
+    0.9514
+
+
+zdot =
+
+    0.9163
+    0.8962
+
+
+zdot =
+
+    1.0212
+    0.7544
+
+
+zdot =
+
+    1.0488
+    0.6541
+
+
+zdot =
+
+    1.0899
+    0.5721
+
+
+zdot =
+
+    1.1544
+    0.3897
+
+
+zdot =
+
+    1.1559
+    0.2794
+
+
+zdot =
+
+    1.1759
+    0.1837
+
+
+zdot =
+
+    1.1388
+    0.4345
+
+
+zdot =
+
+    1.1456
+    0.3546
+
+
+zdot =
+
+    1.1634
+    0.2823
+
+
+zdot =
+
+    1.1711
+    0.2334
+
+
+zdot =
+
+    1.1729
+    0.2084
+
+
+zdot =
+
+    1.1761
+    0.1838
+
+[t, z] = ode23('pend',tspan,z0);
+size(z)
+
+ans =
+
+   115     2
+
+size(t)
+
+ans =
+
+   115     1
+
+pos = z(:, 1);
+vel = z(:, 2);
+plot(t, x, t, y), xlabel('t'), ylabel('position and velocity')
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('plot')" style="font-weight:bold">plot</a>
+Vectors must be the same length.
+} 
+plot(t, pos, t, vel), xlabel('t'), ylabel('position and velocity')
+plot(t, pos, t, vel), xlabel('t'), ylabel('angle and rate')
+figure(2)
+
+plot(pos, vel), xlabel('displacement'), ylabel('velocity'), title('Phase plot')
+% Relative tolerance controls the number of correct digits  in the solution of a component, so for k digit accuracy you set relative tol to 10^(-k).
+% Error estimated in solution of yi is compared with the value of (Relative Tolerance * |yi|). 
+% The ODE solvers used to estimate local error ei in the solution component yi at any step is required to satisfy: ei <= max(RelTol * |yi|, AbsTol)
+% Absolute tolerance specifies the threshold level for any component of the solution below which the computed values of the component have no gurantee of any accuracy
+% From the error relationship specifying a low value of relative tolerance below absolute tolerance may not lead to more accurate solution
+% We can also terminate the ODE when the dependent variable (not time, t) reaches some value, called an event. 
+% The event location problem is called integrating across discontinuities. 
+% Specify we want solver to look for events 
+options = odeset('events', 'on');
+% Specify a flag for the ode to specify the outputs we're looking for 
+% value is a vector of values of thos variables for which a zero crossing defines the event. The event in our case is collision with the ground or when y = 0 
+% isterminal is a vector of ones and zeros specifying whether the event occurrence is terminal (stops solution), for each of the values in value vector a 1 or 0 is required in isterminal
+% direction is a vector of same length as value specifying the direction for each element in value 
+edit proj
+edit proj.m
+edit runproj.m
+runproj
+{Undefined function or variable 'zo'.
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('runproj', '/Users/aocoe/working/review/matlab_review/getting_started_with_matlab/chp5/runproj.m', 6)" style="font-weight:bold">runproj</a> (<a href="matlab: opentoline('/Users/aocoe/working/review/matlab_review/getting_started_with_matlab/chp5/runproj.m',6,0)">line 6</a>)
+[t, z, te, ze, ie] = ode45('proj', tspan, zo, options);
+} 
+runproj
+{Index exceeds array bounds.
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('proj', '/Users/aocoe/working/review/matlab_review/getting_started_with_matlab/chp5/proj.m', 5)" style="font-weight:bold">proj</a> (<a href="matlab: opentoline('/Users/aocoe/working/review/matlab_review/getting_started_with_matlab/chp5/proj.m',5,0)">line 5</a>)
+    value = [z(2); 0; z(4); -g];
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('odearguments', '/Applications/MATLAB_R2018a.app/toolbox/matlab/funfun/private/odearguments.m', 90)" style="font-weight:bold">odearguments</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2018a.app/toolbox/matlab/funfun/private/odearguments.m',90,0)">line 90</a>)
+f0 = feval(ode,t0,y0,args{:});   % ODE15I sets args{1} to yp0.
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('ode45', '/Applications/MATLAB_R2018a.app/toolbox/matlab/funfun/ode45.m', 115)" style="font-weight:bold">ode45</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2018a.app/toolbox/matlab/funfun/ode45.m',115,0)">line 115</a>)
+  odearguments(FcnHandlesUsed, solver_name, ode, tspan, y0, options, varargin);
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('runproj', '/Users/aocoe/working/review/matlab_review/getting_started_with_matlab/chp5/runproj.m', 6)" style="font-weight:bold">runproj</a> (<a href="matlab: opentoline('/Users/aocoe/working/review/matlab_review/getting_started_with_matlab/chp5/runproj.m',6,0)">line 6</a>)
+[t, z, te, ze, ie] = ode45('proj', tspan, z0, options);
+} 
+runproj
+{Index exceeds array bounds.
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('proj', '/Users/aocoe/working/review/matlab_review/getting_started_with_matlab/chp5/proj.m', 5)" style="font-weight:bold">proj</a> (<a href="matlab: opentoline('/Users/aocoe/working/review/matlab_review/getting_started_with_matlab/chp5/proj.m',5,0)">line 5</a>)
+    value = [z(2); 0; z(4); -g];
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('odearguments', '/Applications/MATLAB_R2018a.app/toolbox/matlab/funfun/private/odearguments.m', 90)" style="font-weight:bold">odearguments</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2018a.app/toolbox/matlab/funfun/private/odearguments.m',90,0)">line 90</a>)
+f0 = feval(ode,t0,y0,args{:});   % ODE15I sets args{1} to yp0.
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('ode45', '/Applications/MATLAB_R2018a.app/toolbox/matlab/funfun/ode45.m', 115)" style="font-weight:bold">ode45</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2018a.app/toolbox/matlab/funfun/ode45.m',115,0)">line 115</a>)
+  odearguments(FcnHandlesUsed, solver_name, ode, tspan, y0, options, varargin);
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('runproj', '/Users/aocoe/working/review/matlab_review/getting_started_with_matlab/chp5/runproj.m', 6)" style="font-weight:bold">runproj</a> (<a href="matlab: opentoline('/Users/aocoe/working/review/matlab_review/getting_started_with_matlab/chp5/runproj.m',6,0)">line 6</a>)
+[t, z, te, ze, ie] = ode45('proj', tspan, z0, options);
+} 
+runproj
+{Index exceeds array bounds.
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('proj', '/Users/aocoe/working/review/matlab_review/getting_started_with_matlab/chp5/proj.m', 5)" style="font-weight:bold">proj</a> (<a href="matlab: opentoline('/Users/aocoe/working/review/matlab_review/getting_started_with_matlab/chp5/proj.m',5,0)">line 5</a>)
+    value = [z(2); 0; z(4); -g];
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('odearguments', '/Applications/MATLAB_R2018a.app/toolbox/matlab/funfun/private/odearguments.m', 90)" style="font-weight:bold">odearguments</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2018a.app/toolbox/matlab/funfun/private/odearguments.m',90,0)">line 90</a>)
+f0 = feval(ode,t0,y0,args{:});   % ODE15I sets args{1} to yp0.
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('ode45', '/Applications/MATLAB_R2018a.app/toolbox/matlab/funfun/ode45.m', 115)" style="font-weight:bold">ode45</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2018a.app/toolbox/matlab/funfun/ode45.m',115,0)">line 115</a>)
+  odearguments(FcnHandlesUsed, solver_name, ode, tspan, y0, options, varargin);
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('runproj', '/Users/aocoe/working/review/matlab_review/getting_started_with_matlab/chp5/runproj.m', 6)" style="font-weight:bold">runproj</a> (<a href="matlab: opentoline('/Users/aocoe/working/review/matlab_review/getting_started_with_matlab/chp5/runproj.m',6,0)">line 6</a>)
+[t, z, te, ze, ie] = ode45('proj', tspan, z0, options);
+} 
+runproj
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('vertcat')" style="font-weight:bold">vertcat</a>
+Dimensions of arrays being concatenated are not consistent.
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('runproj', '/Users/aocoe/working/review/matlab_review/getting_started_with_matlab/chp5/runproj.m', 11)" style="font-weight:bold">runproj</a> (<a href="matlab: opentoline('/Users/aocoe/working/review/matlab_review/getting_started_with_matlab/chp5/runproj.m',11,0)">line 11</a>)
+info = ['Range (x-value) = ', num2str(ze(1)), 'm';
+} 
+runproj
+% Nonlinear algebraic equations can be solved as well 
+edit transf.m
+% Use fzero to find the solution
+x = fzero('transf', 1)
+
+x =
+
+    1.7878
+
+% Can find roots of polynomials with fzero, however fzero locates roots closest to initial guess and doesn't give all the roots 
+% For polynomial x^5 - 3*x^3 + x^2 - 9 = 0. 
+c = [1, 0, -3, 1, 0, 9];
+roots(c)
+
+ans =
+
+  -2.1065 + 0.0000i
+   1.5260 + 0.6815i
+   1.5260 - 0.6815i
+  -0.4727 + 1.1429i
+  -0.4727 - 1.1429i
+
+ls
+chp5_041424	erfcousin.m	exp_fit.m~	pend.m~		proj.m~		runproj.m~	transf.m
+chp5_041524	exp_fit.m	pend.m		proj.m		runproj.m	simpode.m
+
+mkdir exercises
+diary off

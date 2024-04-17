@@ -1,0 +1,15 @@
+% Find the eigenvalues and eigenvectors of A
+A = [3, -3, 4; 2, -3, 4; 0, -1, 1];
+[V1, D1] = eig(A);
+[V2, D2] = eig(A * A);
+D1sq = D1.^2; 
+if D2 == int32(D1sq)
+    disp("They are equal!")
+end 
+[V4, D4] = eig(A * A * A * A);
+text = ['The structure of the A^4 will be = ', num2str(size(D4))];
+display(text);
+% Given A^4 compute A^-1
+A4 = A*A*A*A; 
+A3 = A*A*A
+Ainv = A

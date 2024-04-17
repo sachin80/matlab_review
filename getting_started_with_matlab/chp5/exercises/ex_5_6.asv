@@ -1,0 +1,5 @@
+% Consider the following simple linear ODE of second order
+% xddot + x = F0 * cos(w * t) 
+% 1. Convert the equation to set of first-order ODEs
+% z1 = x, z2 = xdot 
+% zdot = [z2; F0 * cost(w *t) - z1]

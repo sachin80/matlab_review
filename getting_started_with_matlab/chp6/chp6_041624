@@ -1,0 +1,79 @@
+% Example use of the hold command 
+x = linspace(0, 2*pi, 100); 
+y1 = sin(x); 
+plot(x, y1)
+hold on
+y2 = x; 
+plot(x, y2, '--')
+y3 = x - (x.^3)/6 + (x.^5)/120;
+plot(x, y3, 'o')
+axis([0 5 -1 5])
+hold off
+edit ex_line_style.m
+ex_line_style
+ex_line_style
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('legend')" style="font-weight:bold">legend</a>
+Error setting property 'Location' of class '<a href="matlab:doc matlab.graphics.illustration.Legend">Legend</a>':
+Invalid enum value. Use one of these values: 'north' | 'south' | 'east' | 'west' | 'northeast' | 'northwest' |
+'southeast' | 'southwest' | 'northoutside' | 'southoutside' | 'eastoutside' | 'westoutside' | 'northeastoutside' |
+'northwestoutside' | 'southeastoutside' | 'southwestoutside' | 'best' | 'bestoutside' | 'none' | 'layout'.
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('ex_line_style', '/Users/sachinagrawal/Working/matlab_review/getting_started_with_matlab/chp6/ex_line_style.m', 14)" style="font-weight:bold">ex_line_style</a> (<a href="matlab: opentoline('/Users/sachinagrawal/Working/matlab_review/getting_started_with_matlab/chp6/ex_line_style.m',14,0)">line 14</a>)
+legend('sin(t)', 'linear approx.', 'fifth-order approx', Location=1)
+} 
+ex_line_style
+% let's do an errobar plot
+x = 0:0.1:2;
+apprx2 = x - x.^3/6;
+er = apprx2 - sin(x);
+errobar(x, apprx2, er)
+{Unrecognized function or variable 'errobar'.
+} 
+errorbar(x, apprx2, er)
+% let's do an example of plotyy
+x = 1:.1:10; 
+y1 = exp(-x).*sin(x);
+y2 = exp(x);
+ax = plotyy(x, y1, x, y2);
+
+hy1 = get(ax(1), 'ylabel')
+
+hy1 = 
+
+  <a href="matlab:helpPopup matlab.graphics.primitive.Text" style="font-weight:bold">Text</a> with properties:
+
+                 String: ''
+               FontSize: 11
+             FontWeight: 'normal'
+               FontName: 'Helvetica'
+                  Color: [0 0.4470 0.7410]
+    HorizontalAlignment: 'center'
+               Position: [0.4816 0.1500 -1.0000]
+                  Units: 'data'
+
+  Show <a href="matlab:if exist('hy1', 'var'), matlab.graphics.internal.getForDisplay('hy1', hy1, 'matlab.graphics.primitive.Text'), else, matlab.graphics.internal.getForDisplay('hy1'), end">all properties</a>
+
+hy2 = get(ax(2), 'ylabel')
+
+hy2 = 
+
+  <a href="matlab:helpPopup matlab.graphics.primitive.Text" style="font-weight:bold">Text</a> with properties:
+
+                 String: ''
+               FontSize: 11
+             FontWeight: 'normal'
+               FontName: 'Helvetica'
+                  Color: [0.8500 0.3250 0.0980]
+    HorizontalAlignment: 'center'
+               Position: [10.4355 1.2500e+04 -1.0000]
+                  Units: 'data'
+
+  Show <a href="matlab:if exist('hy2', 'var'), matlab.graphics.internal.getForDisplay('hy2', hy2, 'matlab.graphics.primitive.Text'), else, matlab.graphics.internal.getForDisplay('hy2'), end">all properties</a>
+
+set(hy1, 'string', 'e^-xsin(x)');
+set(hy2, 'string', 'e^-x');
+subplot(2, 2, 3)
+figure
+subplot(2, 2, 3)
+subplot(2, 2, 4)
+diary off

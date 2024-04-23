@@ -63,3 +63,107 @@ ex_beadgoesaroundcircletrail
 [> In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('ex_beadgoesaroundcircletrail', '/Users/sachinagrawal/Working/matlab_review/getting_started_with_matlab/chp6_Graphics/ex_beadgoesaroundcircletrail.m', 9)" style="font-weight:bold">ex_beadgoesaroundcircletrail</a> (<a href="matlab: opentoline('/Users/sachinagrawal/Working/matlab_review/getting_started_with_matlab/chp6_Graphics/ex_beadgoesaroundcircletrail.m',9,0)">line 9</a>)] 
 [Warning: The EraseMode property is no longer supported and will error in a future release.] 
 [> In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('ex_beadgoesaroundcircletrail', '/Users/sachinagrawal/Working/matlab_review/getting_started_with_matlab/chp6_Graphics/ex_beadgoesaroundcircletrail.m', 10)" style="font-weight:bold">ex_beadgoesaroundcircletrail</a> (<a href="matlab: opentoline('/Users/sachinagrawal/Working/matlab_review/getting_started_with_matlab/chp6_Graphics/ex_beadgoesaroundcircletrail.m',10,0)">line 10</a>)] 
+edit pendulum_swing2d.m
+!git add . 
+!git commit -m "added animation"
+[main 0ba38e5] added animation
+ 7 files changed, 1157 insertions(+)
+ create mode 100644 getting_started_with_matlab/chp6_Graphics/chp6_041924
+ create mode 100644 getting_started_with_matlab/chp6_Graphics/ex_beadgoesaroundcircle.m
+ create mode 100644 getting_started_with_matlab/chp6_Graphics/ex_beadgoesaroundcircletrail.m
+ create mode 100644 getting_started_with_matlab/chp6_Graphics/pendulum_swing2d.m
+ create mode 100644 getting_started_with_matlab/chp6_Graphics/sineplot.eps
+ create mode 100644 getting_started_with_matlab/chp6_Graphics/sineplot.fig
+ create mode 100644 getting_started_with_matlab/chp6_Graphics/sineplot.jpg
+!git push origin main
+Enumerating objects: 14, done.
+Counting objects:   7% (1/14)Counting objects:  14% (2/14)Counting objects:  21% (3/14)Counting objects:  28% (4/14)Counting objects:  35% (5/14)Counting objects:  42% (6/14)Counting objects:  50% (7/14)Counting objects:  57% (8/14)Counting objects:  64% (9/14)Counting objects:  71% (10/14)Counting objects:  78% (11/14)Counting objects:  85% (12/14)Counting objects:  92% (13/14)Counting objects: 100% (14/14)Counting objects: 100% (14/14), done.
+Delta compression using up to 10 threads
+Compressing objects:   9% (1/11)Compressing objects:  18% (2/11)Compressing objects:  27% (3/11)Compressing objects:  36% (4/11)Compressing objects:  45% (5/11)Compressing objects:  54% (6/11)Compressing objects:  63% (7/11)Compressing objects:  72% (8/11)Compressing objects:  81% (9/11)Compressing objects:  90% (10/11)Compressing objects: 100% (11/11)Compressing objects: 100% (11/11), done.
+Writing objects:   9% (1/11)Writing objects:  18% (2/11)Writing objects:  27% (3/11)Writing objects:  36% (4/11)Writing objects:  45% (5/11)Writing objects:  63% (7/11)Writing objects:  72% (8/11)Writing objects:  81% (9/11)Writing objects:  90% (10/11)Writing objects: 100% (11/11)Writing objects: 100% (11/11), 51.57 KiB | 25.78 MiB/s, done.
+Total 11 (delta 4), reused 0 (delta 0), pack-reused 0
+remote: Resolving deltas:   0% (0/4)        remote: Resolving deltas:  25% (1/4)        remote: Resolving deltas:  50% (2/4)        remote: Resolving deltas:  75% (3/4)        remote: Resolving deltas: 100% (4/4)        remote: Resolving deltas: 100% (4/4), completed with 3 local objects.        
+To https://github.com/sachin80/matlab_review.git
+   1ccb288..0ba38e5  main -> main
+ls
+).mat				ex_beadgoesaroundcircletrail.m	ex_line_style.asv		pendulum_swing2d.m
+chp6_041624			ex_handle_graphics.asv		ex_line_style.m			sineplot.eps
+chp6_041724			ex_handle_graphics.m		ex_surf.m			sineplot.fig
+chp6_041924			ex_handle_insets.asv		ex_surfinterp.m			sineplot.jpg
+ex_beadgoesaroundcircle.m	ex_handle_insets.m		ex_view.m
+
+pendulum_swing2d
+[Warning: The EraseMode property is no longer supported and will error in a future release.] 
+[> In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('pendulum_swing2d', '/Users/sachinagrawal/Working/matlab_review/getting_started_with_matlab/chp6_Graphics/pendulum_swing2d.m', 13)" style="font-weight:bold">pendulum_swing2d</a> (<a href="matlab: opentoline('/Users/sachinagrawal/Working/matlab_review/getting_started_with_matlab/chp6_Graphics/pendulum_swing2d.m',13,0)">line 13</a>)] 
+
+bar = 
+
+  <a href="matlab:helpPopup matlab.graphics.primitive.Line" style="font-weight:bold">Line</a> with properties:
+
+              Color: [0 0 0]
+          LineStyle: '-'
+          LineWidth: 3
+             Marker: 'none'
+         MarkerSize: 6
+    MarkerFaceColor: 'none'
+              XData: [0 0]
+              YData: [-1.5000 0]
+              ZData: [1×0 double]
+
+  Show <a href="matlab:if exist('bar', 'var'), matlab.graphics.internal.getForDisplay('bar', bar, 'matlab.graphics.primitive.Line'), else, matlab.graphics.internal.getForDisplay('bar'), end">all properties</a>
+
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('line')" style="font-weight:bold">line</a>
+Too many input arguments.
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('pendulum_swing2d', '/Users/sachinagrawal/Working/matlab_review/getting_started_with_matlab/chp6_Graphics/pendulum_swing2d.m', 16)" style="font-weight:bold">pendulum_swing2d</a> (<a href="matlab: opentoline('/Users/sachinagrawal/Working/matlab_review/getting_started_with_matlab/chp6_Graphics/pendulum_swing2d.m',16,0)">line 16</a>)
+path = line('xdata', [], 'ydata', [], '.', 'erasemode', 'none');
+} 
+pendulum_swing2d
+[Warning: The EraseMode property is no longer supported and will error in a future release.] 
+[> In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('pendulum_swing2d', '/Users/sachinagrawal/Working/matlab_review/getting_started_with_matlab/chp6_Graphics/pendulum_swing2d.m', 13)" style="font-weight:bold">pendulum_swing2d</a> (<a href="matlab: opentoline('/Users/sachinagrawal/Working/matlab_review/getting_started_with_matlab/chp6_Graphics/pendulum_swing2d.m',13,0)">line 13</a>)] 
+
+bar = 
+
+  <a href="matlab:helpPopup matlab.graphics.primitive.Line" style="font-weight:bold">Line</a> with properties:
+
+              Color: [0 0 0]
+          LineStyle: '-'
+          LineWidth: 3
+             Marker: 'none'
+         MarkerSize: 6
+    MarkerFaceColor: 'none'
+              XData: [0 0]
+              YData: [-1.5000 0]
+              ZData: [1×0 double]
+
+  Show <a href="matlab:if exist('bar', 'var'), matlab.graphics.internal.getForDisplay('bar', bar, 'matlab.graphics.primitive.Line'), else, matlab.graphics.internal.getForDisplay('bar'), end">all properties</a>
+
+[Warning: The EraseMode property is no longer supported and will error in a future release.] 
+[> In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('pendulum_swing2d', '/Users/sachinagrawal/Working/matlab_review/getting_started_with_matlab/chp6_Graphics/pendulum_swing2d.m', 16)" style="font-weight:bold">pendulum_swing2d</a> (<a href="matlab: opentoline('/Users/sachinagrawal/Working/matlab_review/getting_started_with_matlab/chp6_Graphics/pendulum_swing2d.m',16,0)">line 16</a>)] 
+matlab.internal.language.introspective.errorDocCallback('pendulum_swing2d', '/Users/sachinagrawal/Working/matlab_review/getting_started_with_matlab/chp6_Graphics/pendulum_swing2d.m', 16)
+opentoline('/Users/sachinagrawal/Working/matlab_review/getting_started_with_matlab/chp6_Graphics/pendulum_swing2d.m',16,0)
+pendulum_swing2d
+[Warning: The EraseMode property is no longer supported and will error in a future release.] 
+[> In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('pendulum_swing2d', '/Users/sachinagrawal/Working/matlab_review/getting_started_with_matlab/chp6_Graphics/pendulum_swing2d.m', 13)" style="font-weight:bold">pendulum_swing2d</a> (<a href="matlab: opentoline('/Users/sachinagrawal/Working/matlab_review/getting_started_with_matlab/chp6_Graphics/pendulum_swing2d.m',13,0)">line 13</a>)] 
+
+bar = 
+
+  <a href="matlab:helpPopup matlab.graphics.primitive.Line" style="font-weight:bold">Line</a> with properties:
+
+              Color: [0 0 0]
+          LineStyle: '-'
+          LineWidth: 3
+             Marker: 'none'
+         MarkerSize: 6
+    MarkerFaceColor: 'none'
+              XData: [0 0]
+              YData: [-1.5000 0]
+              ZData: [1×0 double]
+
+  Show <a href="matlab:if exist('bar', 'var'), matlab.graphics.internal.getForDisplay('bar', bar, 'matlab.graphics.primitive.Line'), else, matlab.graphics.internal.getForDisplay('bar'), end">all properties</a>
+
+pendulum_swing2d
+[Warning: The EraseMode property is no longer supported and will error in a future release.] 
+[> In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('pendulum_swing2d', '/Users/sachinagrawal/Working/matlab_review/getting_started_with_matlab/chp6_Graphics/pendulum_swing2d.m', 13)" style="font-weight:bold">pendulum_swing2d</a> (<a href="matlab: opentoline('/Users/sachinagrawal/Working/matlab_review/getting_started_with_matlab/chp6_Graphics/pendulum_swing2d.m',13,0)">line 13</a>)] 
+[Warning: The EraseMode property is no longer supported and will error in a future release.] 
+[> In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('pendulum_swing2d', '/Users/sachinagrawal/Working/matlab_review/getting_started_with_matlab/chp6_Graphics/pendulum_swing2d.m', 16)" style="font-weight:bold">pendulum_swing2d</a> (<a href="matlab: opentoline('/Users/sachinagrawal/Working/matlab_review/getting_started_with_matlab/chp6_Graphics/pendulum_swing2d.m',16,0)">line 16</a>)] 

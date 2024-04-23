@@ -13,7 +13,7 @@ axis('equal')
 bar = line('xdata', data(1, :), 'ydata', data(2, :),...
     'linewidth', 3, 'EraseMode', 'xor');
 hinge = line('xdata', 0, 'ydata', 0, 'marker', 'o', 'markersize', 10); 
-path = line('xdata', [], 'ydata', [], 'marker', '.', 'EraseMode', 'none');
+path = line('xdata', [], 'ydata', [], 'marker', '.', 'EraseMode', ;no);
 
 % intial angle
 theta = pi - pi/1000; 

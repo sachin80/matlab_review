@@ -1,0 +1,216 @@
+% The dynamic system to be controlled is called a plant 
+% DC motor example 
+% State space model is of the form: 
+% xdot = Ax + Bu; y = Cx + Du
+% x is called the state vector
+% u is the input vector
+% y is the output vector 
+% x = [i; w]; u = v_app
+R = 2.0;
+L = 0.5; 
+Km = 0.15;
+Km = 0.015;
+Kb = .015; 
+Kf = 0.2;
+J = 0.02;
+A = [-R/L, -Kb/L; Km/J, -Kf/J];
+B = [1/L; 0];
+C = [0, 1];
+D = [0];
+sys_dc = ss(A, B, C, D)
+
+sys_dc =
+ 
+  A = 
+          x1     x2
+   x1     -4  -0.03
+   x2   0.75    -10
+ 
+  B = 
+       u1
+   x1   2
+   x2   0
+ 
+  C = 
+       x1  x2
+   y1   0   1
+ 
+  D = 
+       u1
+   y1   0
+ 
+Continuous-time state-space model.
+
+% We can convert to other model representations
+% Transfer function representation 
+sys_tf = tf(sys_dc)
+
+sys_tf =
+ 
+         1.5
+  ------------------
+  s^2 + 14 s + 40.02
+ 
+Continuous-time transfer function.
+
+% Can also convert to transfer function representation
+% Can also convert to zero/pole/gain format 
+sys_zpk = zpk(sys_dc)
+
+sys_zpk =
+ 
+          1.5
+  -------------------
+  (s+4.004) (s+9.996)
+ 
+Continuous-time zero/pole/gain model.
+
+% can also create the transfer function by specifying the num and den
+sys_tf = tf(1.5, [1, 14, 40.02])
+
+sys_tf =
+ 
+         1.5
+  ------------------
+  s^2 + 14 s + 40.02
+ 
+Continuous-time transfer function.
+
+% Can create teh transfer function directly 
+s = tf('s')
+
+s =
+ 
+  s
+ 
+Continuous-time transfer function.
+
+sys_tf = 1.5/(s^2 + 14*s + 40.02)
+
+sys_tf =
+ 
+         1.5
+  ------------------
+  s^2 + 14 s + 40.02
+ 
+Continuous-time transfer function.
+
+% Can also build zpk directly 
+sys_zpk = zpk([], [-9.996, -4.004], 1.5)
+
+sys_zpk =
+ 
+          1.5
+  -------------------
+  (s+9.996) (s+4.004)
+ 
+Continuous-time zero/pole/gain model.
+
+% Can creeate a discrete time system by specifying a sample period
+sys_disc = tf(1, [1, 1], .01);
+sys_disc
+
+sys_disc =
+ 
+    1
+  -----
+  z + 1
+ 
+Sample time: 0.01 seconds
+Discrete-time transfer function.
+
+% Can slso add time delays to discrete time models 
+% Must specify the time delay as a non-neg integer that is a multiple of sample time
+sys_delay(tf, [1, 1], 0.01, 'ioDelay', 5)
+{Unrecognized function or variable 'sys_delay'.
+} 
+sys_delay = (tf, [1, 1], 0.01, 'ioDelay', 5)
+ sys_delay = (tf, [1, 1], 0.01, 'ioDelay', 5)
+                ↑
+{Invalid expression. When calling a function or indexing a
+variable, use parentheses. Otherwise, check for mismatched
+delimiters.
+} 
+sys_delay = tf(1, [1, 1], 0.01, 'ioDelay', 5)
+
+sys_delay =
+ 
+             1
+  z^(-5) * -----
+           z + 1
+ 
+Sample time: 0.01 seconds
+Discrete-time transfer function.
+
+% Can also add time delays to linear models 
+% For example we can specify a time delay for linear models by specifying an inpyt delay
+sys_tfdelay = tf(1.5, [1, 14, 40.02], 'ioDelay', 0.05)
+
+sys_tfdelay =
+ 
+                        1.5
+  exp(-0.05*s) * ------------------
+                 s^2 + 14 s + 40.02
+ 
+Continuous-time transfer function.
+
+% For convenience thsi toolbox uses custom data structures called LTI objects to store model-related data
+% To see what the LTI object contains
+get(sys_dc)
+                A: [2×2 double]
+                B: [2×1 double]
+                C: [0 1]
+                D: 0
+                E: []
+           Scaled: 0
+        StateName: {2×1 cell}
+        StatePath: {2×1 cell}
+        StateUnit: {2×1 cell}
+    InternalDelay: [0×1 double]
+       InputDelay: 0
+      OutputDelay: 0
+               Ts: 0
+         TimeUnit: 'seconds'
+        InputName: {''}
+        InputUnit: {''}
+       InputGroup: [1×1 struct]
+       OutputName: {''}
+       OutputUnit: {''}
+      OutputGroup: [1×1 struct]
+            Notes: [0×1 string]
+         UserData: []
+             Name: ''
+     SamplingGrid: [1×1 struct]
+
+sys_dc.A
+
+ans =
+
+   -4.0000   -0.0300
+    0.7500  -10.0000
+
+sys_dc.StateName
+
+ans =
+
+  2×1 <a href="matlab:helpPopup cell" style="font-weight:bold">cell</a> array
+
+    {0×0 char}
+    {0×0 char}
+
+sys_dc.StateName{1, 1}
+
+ans =
+
+  0×0 empty <a href="matlab:helpPopup char" style="font-weight:bold">char</a> array
+
+% We can change the values of the A matrix directly
+A_new = [-4.5, -0.05; 0.8, -12.0]
+
+A_new =
+
+   -4.5000   -0.0500
+    0.8000  -12.0000
+
+sys_dc.A = A_new;
+diary off

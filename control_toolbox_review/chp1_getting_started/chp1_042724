@@ -1,0 +1,210 @@
+% Let's use PID Tuner to desing a controller for plant
+% sys = 1/(s + 1)^3 
+% CL Requirements: track reference with rise time less than 1.5s and settling less than 6s
+sys = zpk([], [-1 -1 -1], 1);
+pidTuner(sys, 'pi')
+C
+
+C =
+ 
+             1            s    
+  Kp + Ki * --- + Kd * --------
+             s          Tf*s+1 
+
+  with Kp = 2.17, Ki = 0.855, Kd = 1.19, Tf = 0.0106
+ 
+Continuous-time PIDF controller in parallel form.
+
+C
+
+C =
+ 
+             1            s    
+  Kp + Ki * --- + Kd * --------
+             s          Tf*s+1 
+
+  with Kp = 2.17, Ki = 0.855, Kd = 1.19, Tf = 0.0106
+ 
+Continuous-time PIDF controller in parallel form.
+
+C.kp
+
+ans =
+
+    2.1694
+
+% We have just exported a controller, C, we designed in PIDtuner
+% Let's now do something similar using the Bode Diagram Design to shape the open loop response
+% Design requirements: Rise time < 0.5 secs, Steady state error < 5%, 
+% Overshoot < 10%, Gain margin > 20db, Phase margin > 40 deg
+G = tf(1.5, [1, 14, 40.02]);
+controlSystemDesigner('bode', G);
+% Let's do some control system modeling with Model Objects
+% F is the prefilter, G is the plant, C is the controller, S is sensor dynamics 
+% We don't need to use the same type of model object for each component
+G = zpk([], [-1, -1], 1);
+C = pid(2, 1.3, 0.3, .5);
+S = tf(5, [1, 4]);
+F = tf(1, [1, 1]);
+% To create the open loop response = S * G * C
+open_loop = S * G * C;
+% We can build a model of the unfiltered closed-loop response
+% Without the filter 
+T = feedback(G*C, S);
+% Model the entire closed looip response from r to y combine T with filter
+Try = T * F;
+% Let's plot the step response
+stepplot(Try)
+% In Matlab we represent SISO, MIMO systems. 
+% Can also represent continuous-time, discrete-time linear systems, and systems with time delays
+% What are Model Objects?
+% Ans: They are specialized data containers that encapsulate model data in a structured way
+% Model objects allso you to manipulate linear systems as single entities rather than keeping track of multiple data vectors, matrices, cell arrays
+% Main families of model objects: numerical models which is a basic representation of linear systesm with numerical coefficients
+% Also, Generalized models that combine numberic coefficiens with tunable or uncertain coefficients
+%% Creating Continuous Time Models %% 
+% Given s^2 + 2*s + 10 
+% Want to create the transfer function: H(s) = s/(s^2 + 2*s + 10)
+num = [1, 0]; 
+den = [1, 2, 10];
+H = tf(num, den)
+
+H =
+ 
+        s
+  --------------
+  s^2 + 2 s + 10
+ 
+Continuous-time transfer function.
+
+% Can also use a factored form of the transfer function called zero-pole-gain model s
+% zeros
+z = 0; 
+% poles
+p = [2, 1 + i, 1 - i];
+k = -2
+
+k =
+
+    -2
+
+H = zpk(z, p, k)
+
+H =
+ 
+          -2 s
+  --------------------
+  (s-2) (s^2 - 2s + 2)
+ 
+Continuous-time zero/pole/gain model.
+
+% Can also create state-space models
+% thetaddot + 2*thetadot + 5*theta = 3*I
+% To write in state space form: 
+% xdot = Ax + Bu 
+A = [0, 1; -5, -2];
+B = [0; 3]
+
+B =
+
+     0
+     3
+
+C = [1, 0];
+D = 0 
+
+D =
+
+     0
+
+H = ss(A, B, C, D)
+
+H =
+ 
+  A = 
+       x1  x2
+   x1   0   1
+   x2  -5  -2
+ 
+  B = 
+       u1
+   x1   0
+   x2   3
+ 
+  C = 
+       x1  x2
+   y1   1   0
+ 
+  D = 
+       u1
+   y1   0
+ 
+Continuous-time state-space model.
+
+% Can also create freq response data models 
+% These models let you store measure or simulated complex freq response of a system LTI object
+% Can also create a MIMO model 
+% Do this by concatenating simpler models
+s = tf('s');
+H = [1/(s+1), 0; (s + 1)/(s^2 + s + 3), -4*s/(s+2)]
+
+H =
+ 
+  From input 1 to output...
+         1
+   1:  -----
+       s + 1
+ 
+          s + 1
+   2:  -----------
+       s^2 + s + 3
+ 
+  From input 2 to output...
+   1:  0
+ 
+       -4 s
+   2:  -----
+       s + 2
+ 
+Continuous-time transfer function.
+
+size(H)
+Transfer function with 2 outputs and 2 inputs.
+pole(H)
+
+ans =
+
+  -1.0000 + 0.0000i
+  -0.5000 + 1.6583i
+  -0.5000 - 1.6583i
+  -2.0000 + 0.0000i
+
+isstable(H)
+
+ans =
+
+  <a href="matlab:helpPopup logical" style="font-weight:bold">logical</a>
+
+   1
+
+step(H)
+% 2DOF PID controllers
+% These controllers are capable of fast disturbance rejection without increase of overshoot in setpoint tracking
+% This is a 2 input, one output controller 
+% Please see documentation
+%% Using the Right Model Representation %% 
+!git status
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   ../../getting_started_with_matlab/chp6_Graphics/chp6_041924
+	deleted:    ../../getting_started_with_matlab/chp6_Graphics/pendulum_swing2d.asv
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	../
+
+no changes added to commit (use "git add" and/or "git commit -a")

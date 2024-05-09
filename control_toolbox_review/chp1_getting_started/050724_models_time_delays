@@ -1,0 +1,217 @@
+% Let's model a first-order dead time model
+% Here the model is P(s) = 5e^(-3.4s)/(s + 1)
+num = 5
+
+num =
+
+     5
+
+den = [1, 1]
+
+den =
+
+     1     1
+
+P = tf(num, den, 'InputDelay', 3.4)
+
+P =
+ 
+                  5
+  exp(-3.4*s) * -----
+                s + 1
+ 
+Continuous-time transfer function.
+
+% The step response of P is a shifted version of teh delay free response
+P0 = tf(num, den)
+
+P0 =
+ 
+    5
+  -----
+  s + 1
+ 
+Continuous-time transfer function.
+
+step(P0, 'b', P, 'r')
+% We can also do this for multi-input multi-output models 
+% Let's try this for a state space model: 
+% xdot = -x(t) + u(t - 2.5), y(t) = 12x(t)
+% The input u(t) is delayed by 2.5 seconds 
+sys = ss(-1, 1, 12, 0, 'InputDelay', 2.5)
+
+sys =
+ 
+  A = 
+       x1
+   x1  -1
+ 
+  B = 
+       u1
+   x1   1
+ 
+  C = 
+       x1
+   y1  12
+ 
+  D = 
+       u1
+   y1   0
+ 
+  Input delays (seconds): 2.5 
+ 
+Continuous-time state-space model.
+
+% Let's try a related model where the 2.5 second delay is at the output
+ss(-1, 1, 12, 0, 'OutputDelay', 2.5);
+sys1 = ss(-1, 1, 12, 0, 'OutputDelay', 2.5);
+step(sys, 'b', sys1, 'r--')
+% We can see that these have the same I/O response but different state trajectories 
+% This delay has only been modeled for simple I/O pairs
+% Given a parallel connection: H(s) = H1(s) + H2(s) = 1/(s+2) + 5e^-3.4s/(s+1)
+% The resulting transfer function cannot be represented as a delay on input or output. 
+% Switch to state-space representation using "internal delay"
+H1 = 1/(s+2)
+
+H1 =
+ 
+    1
+  -----
+  s + 2
+ 
+Continuous-time transfer function.
+
+H2 = 5*exp(-3.4*s)/(s+1)
+
+H2 =
+ 
+                  5
+  exp(-3.4*s) * -----
+                s + 1
+ 
+Continuous-time transfer function.
+
+H = H1 + H2
+
+H =
+ 
+  A = 
+       x1  x2
+   x1  -2   0
+   x2   0  -1
+ 
+  B = 
+       u1
+   x1   1
+   x2   2
+ 
+  C = 
+        x1   x2
+   y1    1  2.5
+ 
+  D = 
+       u1
+   y1   0
+ 
+  (values computed with all internal delays set to zero)
+
+  Internal delays (seconds): 3.4 
+ 
+Continuous-time state-space model.
+
+% Here the delay value is 3.4 is listed as internal 
+% A, B, C, D data corresponses to dynamics when all delays are set to zero (0th Pade approx)
+step(H1, H2, H)
+legend('H1', 'H2', 'H', 'Location', 'NorthWest'), grid
+bode(H1, 'b', H2-H2, 'r--') % verify that H-H2 = H1
+bode(H1, 'b', H-H2, 'r--') % verify that H-H2 = H1
+F = 0.3/(s + 4);
+P.u = 'u'; 
+P.y = 'y'
+
+P =
+ 
+  From input "u" to output "y":
+                  5
+  exp(-3.4*s) * -----
+                s + 1
+ 
+Continuous-time transfer function.
+
+C.y = 'e';
+C.u = 'e';
+C.y = 'uc'; 
+% Let's derive a model T fro the closed-loop response form r to y and simulate it
+P = 5*exp(-3.4*s)/(s + 1);
+C = 0.1 * (1 + 1(5*s)); 
+ C = 0.1 * (1 + 1(5*s)); 
+                 ↑
+{Invalid expression. When calling a function or indexing a variable, use
+parentheses. Otherwise, check for mismatched delimiters.
+} 
+C = 0.1 * (1 + 1*(5*s));
+T = feedback(P*C, 1);
+step(T, 100)
+C = 0.1 * (1 + 1/(5*s));
+T = feedback(P*C, 1);
+step(T, 100)
+grid, title('Closed-loop step response')
+F.u = 'r'; F.y = 'uf';
+Sum1 = sumblk('e=r-y');
+Sum2 = sumblk('u=uf+uc');
+Tff = connect(P, C, F, Sum1, Sum2, 'r', 'y');
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('DynamicSystem/connect')" style="font-weight:bold">DynamicSystem/connect</a>
+Input argument 1 is not a dynamic system or has some unspecified I/O
+names.
+} 
+P
+
+P =
+ 
+                  5
+  exp(-3.4*s) * -----
+                s + 1
+ 
+Continuous-time transfer function.
+
+C
+
+C =
+ 
+  0.5 s + 0.1
+  -----------
+      5 s
+ 
+Continuous-time transfer function.
+
+F
+
+F =
+ 
+  From input "r" to output "uf":
+   0.3
+  -----
+  s + 4
+ 
+Continuous-time transfer function.
+
+% We can also use state-space equations with delayed terms 
+% Please see documentation 
+% Discrete delays are similar but have minor differences 
+% Discrete-time delays are always integer multiples of a sampling period 
+% They are equivalent to poles at z = 0 so it's possible to absord delays into model dynamics
+% However, it's better to keep delays separate for performance
+% Closed feedback loops with time delays 
+% We can show how internal delays arise when you inteconnect modles that input, output, transport time delays
+G = tf(1, [1, 10], 'InputDelay', 2.1); 
+C = pid(-.5, 2.3);
+T = feedback(C*G, 1);
+% The time delay in T is not an input delay as it is in G, because the internal time delay is internal to the cl system
+T.InternalDelay
+
+ans =
+
+    2.1000
+
+step(T)
+diary off

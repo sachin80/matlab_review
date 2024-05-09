@@ -1,0 +1,752 @@
+% Using the Right Representation 
+% We can represent LTI systems in four different ways: 
+% Transfer functoin (tf)
+% Zero-pole-gain (zpk)
+% State-space (ss)
+% Frequencey response data (frd)
+% tf and zpk representation are compact and good for display purposes but not ideal for several reasons:
+% - working with tf anf zpk models results in higher-order polynomials whose eval can be plagued by inaccuracies
+% - tf, zpk representations are inefficent for manipulating MIMO systems and inflate model order
+% Should use ss and frd representations for most computations involveing LTI models
+% Pitfalls of higher-order transfer functions: 
+% Can suffer from a loss of accuracy and even overflow 
+% Let's load two discrete tf's Pd and Cd of order 9 and 2
+load numdemo Pd Cd
+Pd
+
+Pd =
+ 
+                                                                     
+  8.084e-06 z^8 + 0.0001535 z^7 - 0.0001766 z^6 - 0.0004082 z^5      
+                                                                     
+          + 0.000867 z^4 - 0.0004864 z^3 - 8.206e-05 z^2 + 0.00012 z 
+                                                                     
+                                                         + 4.994e-06 
+                                                                     
+  -------------------------------------------------------------------
+                                                                    
+  z^9 - 7.106 z^8 + 23.22 z^7 - 46.03 z^6 + 61.23 z^5 - 56.77 z^4   
+                                                                    
+                          + 36.69 z^3 - 15.91 z^2 + 4.181 z - 0.5027
+                                                                    
+ 
+Sample time: 1e-05 seconds
+Discrete-time transfer function.
+
+Cd
+
+Cd =
+ 
+  7.462 z^2 - 14.79 z + 7.325
+  ---------------------------
+    z^2 - 1.755 z + 0.7547
+ 
+Sample time: 1e-05 seconds
+Discrete-time transfer function.
+
+% Plot the frequency response 
+bode(Pd, 
+ bode(Pd, 
+          ↑
+{Invalid expression. When calling a function or indexing a variable, use
+parentheses. Otherwise, check for mismatched delimiters.
+} 
+bode(Pd,'b', Cd, 'r'), grid
+legend('Pd', 'Cd')
+% Compute the open-loop tf using L = Pd * Cd using tf, zpk, ss, frd
+Ltf = Pd * Cd; % tf
+Lzp = zpk(Pd) * Cd; % zpk
+Lss = ss(Pd) * Cd; 
+w = logspace(-1, 3, 100);
+Lfrd = frd(Pd, w) * Cd; % frd
+% Let's compare the frequency response magnitude for the resulting models
+sigma(Ltf, 'b--', Lzp, 'g', Lss, 'r', Lfrd, 'm--', {1e-1, 1e3});
+legend('TF', 'ZPK', 'SS', 'FRD')
+% We can see from the plot that zpk, ss, frd representations closely match
+% The tf representations is choppy and eratic below 100 rad/sec
+% To understand the loss of accuracy with the transfer function let's compare the pole/zero maps of Pd and Cz near z=1
+pzplot(Pd, 'b', Cd, 'r')
+title('Pole/zero maps of Pd(blue) and Cd(red)');
+axis([0.4 1.05 -1 1])
+% From the pole-zero plot there are multiple roots near z = 1
+% The relative accuracy of the polynomial values drops near roots
+% Therefore, the relative error of the transfer function value near z = 1 exceeds 100%
+% The frequencies below 100 rad/s map to |z-1| < 1e-3 explaining the erratic results below 100 rad/s
+% Back and forth coversions between representations 
+% Convert LTI model to transfer function, zpk, ss form:
+% Given a two-input, two-ouput random state-space model HSS1 using 
+HSS1 = rdd(3, 2, 2);
+{Unrecognized function or variable 'rdd'.
+} 
+HSS1 = rss(3, 2, 2);
+% Can obtain the transfer function using
+HTF = tf(HSS1);
+% Convert back to state-space 
+HSS2 = ss(HTF)
+
+HSS2 =
+ 
+  A = 
+           x1      x2      x3      x4      x5      x6
+   x1  -37.01  -21.33  -2.688       0       0       0
+   x2      16       0       0       0       0       0
+   x3       0       2       0       0       0       0
+   x4       0       0       0  -37.01  -21.33  -2.688
+   x5       0       0       0      16       0       0
+   x6       0       0       0       0       2       0
+ 
+  B = 
+       u1  u2
+   x1   4   0
+   x2   0   0
+   x3   0   0
+   x4   0   2
+   x5   0   0
+   x6   0   0
+ 
+  C = 
+            x1       x2       x3       x4       x5       x6
+   y1  -0.4675   -0.712  -0.7757  -0.4073  -0.3609   0.4346
+   y2  -0.5243  -0.7949   -1.508   0.5314   0.6589    1.071
+ 
+  D = 
+           u1      u2
+   y1       0       0
+   y2  -2.944       0
+ 
+Continuous-time state-space model.
+
+% Beware: back and forth conversions are expensive, incur loss of accuracy and can inflate model order of MIMO systems
+% The order of HSS2 is double that of HSS1 which is order 3. 
+% 6 is the generic order of a 2x2 transfer matrix with denominators 3
+
+HTF
+
+HTF =
+ 
+  From input 1 to output...
+          -1.87 s^2 - 45.57 s - 99.29
+   1:  ---------------------------------
+       s^3 + 37.01 s^2 + 341.3 s + 86.01
+ 
+       -2.944 s^3 - 111.1 s^2 - 1056 s - 446.2
+   2:  ---------------------------------------
+          s^3 + 37.01 s^2 + 341.3 s + 86.01
+ 
+  From input 2 to output...
+         -0.8146 s^2 - 11.55 s + 27.81
+   1:  ---------------------------------
+       s^3 + 37.01 s^2 + 341.3 s + 86.01
+ 
+          1.063 s^2 + 21.08 s + 68.56
+   2:  ---------------------------------
+       s^3 + 37.01 s^2 + 341.3 s + 86.01
+ 
+Continuous-time transfer function.
+
+order(HSS1)
+
+ans =
+
+     3
+
+order(HSS2)
+
+ans =
+
+     6
+
+% To understand the difference in model order we can compare the pole/zero maps of the two models:
+subplot(211)
+pzmap(HSS1, 'b')
+subplot(212)
+pzmap(HSS2, 'r')
+title('Poles and zeros of HSS2')
+% We can see the cancelling pole/zero pairs in HSS2
+% Let's use minreal to eliminate cancelling pole/zeor pairs and recover 3rd order minimal state-space model from HSS2
+HSS2_min = minreal(HSS2);
+3 states removed.
+order(HSS2_min)
+
+ans =
+
+     3
+
+% Lets check that HSS1 and HSS2_min coincide by plotting the relative gap between the two models
+clf
+Gap = HSS1 - HSS2_min;
+sigma(HSS1, Gap), grid
+[Warning: The frequency response has poor relative accuracy. This may be
+because the response is nearly zero or infinite at all frequencies, or
+because the state-space realization is ill conditioned. Use the
+"prescale" command to investigate further.] 
+[> In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('ltipack.ssdata/sigmaresp', '/Applications/MATLAB_R2022a.app/toolbox/shared/controllib/engine/+ltipack/@ssdata/sigmaresp.m', 39)" style="font-weight:bold">ltipack.ssdata/sigmaresp</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2022a.app/toolbox/shared/controllib/engine/+ltipack/@ssdata/sigmaresp.m',39,0)">line 39</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('resppack.ltisource/sigma', '/Applications/MATLAB_R2022a.app/toolbox/shared/controllib/graphics/@resppack/@ltisource/sigma.m', 30)" style="font-weight:bold">resppack.ltisource/sigma</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2022a.app/toolbox/shared/controllib/graphics/@resppack/@ltisource/sigma.m',30,0)">line 30</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('wavepack.waveform/draw', '/Applications/MATLAB_R2022a.app/toolbox/shared/controllib/graphics/@wavepack/@waveform/draw.m', 25)" style="font-weight:bold">wavepack.waveform/draw</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2022a.app/toolbox/shared/controllib/graphics/@wavepack/@waveform/draw.m',25,0)">line 25</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('wrfc.plot/draw', '/Applications/MATLAB_R2022a.app/toolbox/shared/controllib/graphics/@wrfc/@plot/draw.m', 17)" style="font-weight:bold">wrfc.plot/draw</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2022a.app/toolbox/shared/controllib/graphics/@wrfc/@plot/draw.m',17,0)">line 17</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('wrfc.plot.init_listeners>LocalRefreshPlot', '/Applications/MATLAB_R2022a.app/toolbox/shared/controllib/graphics/@wrfc/@plot/init_listeners.m', 79)" style="font-weight:bold">wrfc.plot.init_listeners>LocalRefreshPlot</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2022a.app/toolbox/shared/controllib/graphics/@wrfc/@plot/init_listeners.m',79,0)">line 79</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('DynamicSystem/sigmaplot', '/Applications/MATLAB_R2022a.app/toolbox/control/ctrlanalysis/@DynamicSystem/sigmaplot.m', 138)" style="font-weight:bold">DynamicSystem/sigmaplot</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2022a.app/toolbox/control/ctrlanalysis/@DynamicSystem/sigmaplot.m',138,0)">line 138</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('DynamicSystem/sigma', '/Applications/MATLAB_R2022a.app/toolbox/control/ctrlanalysis/@DynamicSystem/sigma.m', 76)" style="font-weight:bold">DynamicSystem/sigma</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2022a.app/toolbox/control/ctrlanalysis/@DynamicSystem/sigma.m',76,0)">line 76</a>)] 
+legend('HSS1', 'Gap HSS1 vs. minimal HSS2', 'Location', 'Best')
+% The red gap curve is very small at all frequencies. 
+% The sigma warns that the gap plot is "noisy" because the difference is so small that it essentially consists of rounding errors
+% We should avoid creating nonminimal models
+% Creating Discrete-Time Models:
+% Must provide a sampling time
+num = [1, -1]; 
+den = [1, -1.85, 0.9];
+H = tf(num, den, 0.1)
+
+H =
+ 
+        z - 1
+  ------------------
+  z^2 - 1.85 z + 0.9
+ 
+Sample time: 0.1 seconds
+Discrete-time transfer function.
+
+% Can also do the following: 
+z = tf('z', 0.1); 
+H = (z-1)/(z^2 - 1.85*z + 0.9);
+% Discrete-time state-space model: 
+% x[k+1] = 0.5x[k] + u[k]
+% y[k] = 0.2x[k]
+% Sampling time, Ts = 0.1
+sys = ss(.5, 1, .2, 0, 0.1); 
+% We can recongnize a discrete time system with the following functions
+% Sampling time
+H.Ts
+
+ans =
+
+    0.1000
+
+isdt(sys)
+
+ans =
+
+  <a href="matlab:helpPopup logical" style="font-weight:bold">logical</a>
+
+   1
+
+% Can also look at the time response plots 
+step(H)
+% Also, Bode plots where there is a vertical bar marking the Nyquist frequency (pi divided by sample time)
+bode(H), grid
+pi/H.Ts
+
+ans =
+
+   31.4159
+
+% Discrete-Time PID Controller Representations: 
+% We can specify the IF(z) and DF(z) for discrete integrator formulas for the integrator and derivative filter
+% The IFormula and DFormula that we can specify is: ForwardEular(default), BackwardEuler, Trapezoidal
+% Let's create a standard-form discrete-time PID controller: 
+% Kp = 29.5, Ti = 1.13, Td = 0.15, N = 2.3, Ts = 0.1
+C = pidstd(29.5, 1.13, 0.15, 2.3, 0.1, 'IFormula', 'Trapezoidal', 'DFormula', 'BackwardEuler')
+
+C =
+ 
+             1     Ts*(z+1)                1        
+  Kp * (1 + ---- * -------- + Td * -----------------)
+             Ti    2*(z-1)         (Td/N)+Ts*z/(z-1)
+
+  with Kp = 29.5, Ti = 1.13, Td = 0.15, N = 2.3, Ts = 0.1
+ 
+Sample time: 0.1 seconds
+Discrete-time PIDF controller in standard form
+
+% Discrete-Time 2-DOF PI Controller in Standard Form: 
+% Can use trapezoidal discretization formula 
+Kp = 1; 
+Ti = 2.4; 
+Td = 0; 
+N = Inf; 
+b = 0.5; 
+c = 0; 
+Ts = 0.1; 
+C2 = pidstd2(Kp, Ti, Td, N, b, c, Ts, 'IFormula', 'Trapezoidal')
+
+C2 =
+ 
+                       1     Ts*(z+1)
+  u = Kp * [(b*r-y) + ---- * -------- * (r-y)]
+                       Ti    2*(z-1) 
+
+  with Kp = 1, Ti = 2.4, b = 0.5, Ts = 0.1
+ 
+Sample time: 0.1 seconds
+Discrete-time 2-DOF PI controller in standard form
+
+% MIMO Transfer Functions: 
+% Creates a 2d array of elementary SISO functions
+% Can speicfy MIMO tf models two ways 
+% Concatenate SISO tf models
+% Using tf with cell array arguments
+% MIMO State-Space Models: 
+% If we have a dynamical system like J*omegadot + F*omega = T
+% Then we can put it into the usual ss form: xdot = Ax + Bu, y = Cx
+% To get it in this form we must take inv(J). 
+% If inv(J) is ill-conditioned then we can use the MIMO descriptor State-Space Model
+% Exdot = Ax + Bu, y = Cx
+% Example: State-space model of Jet Transport Aircraft
+A = [-0.0558   -0.9968    0.0802    0.0415
+      0.5980   -0.1150   -0.0318         0
+     -3.0500    0.3880   -0.4650         0
+           0    0.0805    1.0000         0];
+
+A = [-0.0558   -0.9968    0.0802    0.0415
+      0.5980   -0.1150   -0.0318         0
+     -3.0500    0.3880   -0.4650         0
+           0    0.0805    1.0000         0];
+
+A = [-0.0558   -0.9968    0.0802    0.0415
+      0.5980   -0.1150   -0.0318         0
+     -3.0500    0.3880   -0.4650         0
+           0    0.0805    1.0000         0];
+
+A = [-0.0558   -0.9968    0.0802    0.0415
+      0.5980   -0.1150   -0.0318         0
+     -3.0500    0.3880   -0.4650         0
+           0    0.0805    1.0000         0];
+B = [ 0.0073         0
+     -0.4750    0.0077
+      0.1530    0.1430
+           0         0];
+A
+
+A =
+
+   -0.0558   -0.9968    0.0802    0.0415
+    0.5980   -0.1150   -0.0318         0
+   -3.0500    0.3880   -0.4650         0
+         0    0.0805    1.0000         0
+
+C = [0     1     0     0
+     0     0     0     1];
+D = [0 0; 0 0]
+
+D =
+
+     0     0
+     0     0
+
+% use cell array to specify the state-space model as LTI object
+states = {'beta', 'yaw', 'roll', 'phi'}
+
+states =
+
+  1×4 <a href="matlab:helpPopup cell" style="font-weight:bold">cell</a> array
+
+    {'beta'}    {'yaw'}    {'roll'}    {'phi'}
+
+input = {'rudder', 'airelon'}; 
+outputs = {'yaw rate', 'bank angle'}
+
+outputs =
+
+  1×2 <a href="matlab:helpPopup cell" style="font-weight:bold">cell</a> array
+
+    {'yaw rate'}    {'bank angle'}
+
+sys_mimo = ss(A, B, C, D, 'statename', states,...
+'inputname', inputs,...
+'outputname', outputs);
+{Unrecognized function or variable 'inputs'.
+} 
+'inputname', inputs,...
+sys_mimo = ss(A, B, C, D, 'statename', states,...
+sys_mimo = ss(A, B, C, D, 'statename', states,...
+'inputname', input,...
+'outputname', outputs);
+sys_mimo
+
+sys_mimo =
+ 
+  A = 
+            beta      yaw     roll      phi
+   beta  -0.0558  -0.9968   0.0802   0.0415
+   yaw     0.598   -0.115  -0.0318        0
+   roll    -3.05    0.388   -0.465        0
+   phi         0   0.0805        1        0
+ 
+  B = 
+          rudder  airelon
+   beta   0.0073        0
+   yaw    -0.475   0.0077
+   roll    0.153    0.143
+   phi         0        0
+ 
+  C = 
+               beta   yaw  roll   phi
+   yaw rate       0     1     0     0
+   bank angle     0     0     0     1
+ 
+  D = 
+                rudder  airelon
+   yaw rate          0        0
+   bank angle        0        0
+ 
+Continuous-time state-space model.
+
+% can derive the transfer function
+tf(sys_mimo)
+
+ans =
+ 
+  From input "rudder" to output...
+                 -0.475 s^3 - 0.2479 s^2 - 0.1187 s - 0.05633
+   yaw rate:  ---------------------------------------------------
+              s^4 + 0.6358 s^3 + 0.9389 s^2 + 0.5116 s + 0.003674
+ 
+                           0.1148 s^2 - 0.2004 s - 1.373
+   bank angle:  ---------------------------------------------------
+                s^4 + 0.6358 s^3 + 0.9389 s^2 + 0.5116 s + 0.003674
+ 
+  From input "airelon" to output...
+              0.0077 s^3 - 0.0005372 s^2 + 0.008688 s + 0.004523
+   yaw rate:  ---------------------------------------------------
+              s^4 + 0.6358 s^3 + 0.9389 s^2 + 0.5116 s + 0.003674
+ 
+                          0.1436 s^2 + 0.02737 s + 0.1104
+   bank angle:  ---------------------------------------------------
+                s^4 + 0.6358 s^3 + 0.9389 s^2 + 0.5116 s + 0.003674
+ 
+Continuous-time transfer function.
+
+% Select Input/Output Pairs in MIMO Models: 
+% Let's first create a two-input, one-output transfer function
+N = {[1, -1], [1]; [1, 2], [3, 1, 4]};
+D = [1, 1, 10];
+H = tf(N, D)
+
+H =
+ 
+  From input 1 to output...
+          s - 1
+   1:  ------------
+       s^2 + s + 10
+ 
+          s + 2
+   2:  ------------
+       s^2 + s + 10
+ 
+  From input 2 to output...
+            1
+   1:  ------------
+       s^2 + s + 10
+ 
+       3 s^2 + s + 4
+   2:  -------------
+       s^2 + s + 10
+ 
+Continuous-time transfer function.
+
+% To select the response from the second input to output of H
+size(H)
+Transfer function with 2 outputs and 2 inputs.
+% For any MIMO system H, the index notation H(i, j) selects the response from the jth input to ith output
+H12 = H(1, 2)
+
+H12 =
+ 
+       1
+  ------------
+  s^2 + s + 10
+ 
+Continuous-time transfer function.
+
+H(2, 2)
+
+ans =
+ 
+  3 s^2 + s + 4
+  -------------
+  s^2 + s + 10
+ 
+Continuous-time transfer function.
+
+% Types of Model Objects: 
+% Dynamic System Models versus Static Models where dynamic system models represent models that have internal dynamics
+% Static Models represent static input/output relationships
+% Numeric Models are the basic numeric representation of linear systems with fixed coefficients
+% Generalized Models are systems with tunable or uncertain components
+% Here are the steps to model a system with tunable components:
+% 1. Model the nontunable components of your system using numeric LTI models
+% 2. Model each tunable component using Control Design Blocks 
+% 3. Use model interconnection commands such as series, parallel, connect
+% Let's create a tunable low-pass filter, where the tunable parameter is a
+% F = a/(s + a)
+% Create tunable parameter with an initial value of 10. 
+a = realp('a', 10)
+
+a = 
+
+       Name: 'a'
+      Value: 10
+    Minimum: -Inf
+    Maximum: Inf
+       Free: 1
+
+Real scalar parameter.
+
+% Let's use tf to create a tunable low-pass filter
+numerator = a; 
+denominator = [1, a]; 
+F = tf(numerator, denominator)
+
+F =
+
+  Generalized continuous-time state-space model with 1 outputs, 1 inputs, 1 states, and the following blocks:
+    a: Scalar parameter, 2 occurrences.
+
+Type "ss(F)" to see the current value, "get(F)" to see all properties, and "F.Blocks" to interact with the blocks.
+
+% F is a genss object which has a tunable parameter a. Can connect F with other tunable or numeric models. 
+% Let's create a tunable second order filter: 
+% F(s) = wn^2/(s^2 + 2*w*zeta*n*s + wn^2)
+% Define the tunable paramenters using realp
+wn = realp('wn', 3);
+zeta = realp('zeta', 0.8);
+% Create a model using the tunable parameters
+F = tf(wn^2, [1, 2*zeta*wn, wn^2]);
+% F is a genss model 
+F.blocks
+
+ans = 
+
+  <a href="matlab:helpPopup struct" style="font-weight:bold">struct</a> with fields:
+
+      wn: [1×1 realp]
+    zeta: [1×1 realp]
+
+% Can examine the number of tunable blocks: 
+nblocks(F)
+
+ans =
+
+     6
+
+% F has two tunable parameters but wn appears five times - twice in the numberator and three times in denominator
+% Let's reduce the number of parameters in F by rewriting F as: 
+% F(s) = 1/((s/wn)^2 + 2*zeta*(s/wn) + 1)
+% Create an alternative filter
+F = tf(1, [(1/wn)^2, 2*zeta*(1/wn), 1])
+
+F =
+
+  Generalized continuous-time state-space model with 1 outputs, 1 inputs, 2 states, and the following blocks:
+    wn: Scalar parameter, 3 occurrences.
+    zeta: Scalar parameter, 1 occurrences.
+
+Type "ss(F)" to see the current value, "get(F)" to see all properties, and "F.Blocks" to interact with the blocks.
+
+nblocks(F)
+
+ans =
+
+     4
+
+% There are now only 3 appearances of tunable parameter wn, this improves the performance of calculations in the model
+% Can also create a genss model using state space models
+% Control System with Tunable Components: 
+% G(s) = 1/(s + 1)^2, S(s) = 5/(s + 4), C is tunable PID, prefilter is F=a/(s + a)
+G = zpk([], [-1, -1], 1);
+S = tf(5, [1, 4])
+
+S =
+ 
+    5
+  -----
+  s + 4
+ 
+Continuous-time transfer function.
+
+% Create a tunable representation of controller C
+C = tunablePID('C', 'PID')
+
+C = 
+
+  Tunable continuous-time PID controller "C" with formula:
+
+             1            s    
+  Kp + Ki * --- + Kd * --------
+             s          Tf*s+1 
+
+  and tunable parameters Kp, Ki, Kd, Tf.
+
+Type "pid(C)" to see the current value and "get(C)" to see all properties.
+
+% Create a model of the prefilter with one tunable parameter, a
+a = realp('a', 10);
+F = tf(a, [1, a]);
+% Connect the models together to construct model of closed-loop response from r to y
+T = feedback(G*C, S) * F
+
+T =
+
+  Generalized continuous-time state-space model with 1 outputs, 1 inputs, 5 states, and the following blocks:
+    C: Tunable PID controller, 1 occurrences.
+    a: Scalar parameter, 2 occurrences.
+
+Type "ss(T)" to see the current value, "get(T)" to see all properties, and "T.Blocks" to interact with the blocks.
+
+% T keeps track of tunable elements of control system, stored in Blocks
+T.Blocks
+
+ans = 
+
+  <a href="matlab:helpPopup struct" style="font-weight:bold">struct</a> with fields:
+
+    C: [1×1 tunablePID]
+    a: [1×1 realp]
+
+% Can use "systune" to tune the free parameters of T to meet desing requirements
+% Control System with Multichannel Analysis Points: 
+% Let's consider the following 2 input, 2 output control system.
+s = tf('s')
+
+s =
+ 
+  s
+ 
+Continuous-time transfer function.
+
+G = [87.8, -86.4; 108.2, -109.6]/(75*s + 1);
+D = tunableGain('Decoupler', eye(2))
+
+D = 
+
+  Tunable gain "Decoupler" with 2 outputs, 2 inputs, and 4 tunable parameters.
+
+Type "ss(D)" to see the current value and "get(D)" to see all properties.
+
+C_L = tunablePID('C_L', 'pi');
+C_V = tunablePID('C_V','pi');
+% Create an AnalysisPoint that bundles both L and V channels 
+AP_1 = AnalysisPoint('AP_1', 2)
+
+AP_1 =
+
+Multi-channel analysis point at locations:
+   AP_1(1)
+   AP_1(2)
+
+Type "ss(AP_1)" to see the current value and "get(AP_1)" to see all properties.
+
+% Let's rename the channels to match the corresponding signals
+AP_1.Location = {'L'; 'V'}
+
+AP_1 =
+
+Multi-channel analysis point at locations:
+   L
+   V
+
+Type "ss(AP_1)" to see the current value and "get(AP_1)" to see all properties.
+
+AP_1.u
+
+ans =
+
+  2×1 <a href="matlab:helpPopup cell" style="font-weight:bold">cell</a> array
+
+    {0×0 char}
+    {0×0 char}
+
+% The input/output names of AnalysisPoint block are distinct from channel names
+% Use channel names to refer to analysis-point locations when extracting responses or defining goals of tuning
+GC = G * AP_1 * append(C_L, C_V) * D;
+% Close the feedback loop, note GC has two inputs and two outputs
+CL = feedback(GC, eye(2))
+
+CL =
+
+  Generalized continuous-time state-space model with 2 outputs, 2 inputs, 4 states, and the following blocks:
+    AP_1: Analysis point, 2 channels, 1 occurrences.
+    C_L: Tunable PID controller, 1 occurrences.
+    C_V: Tunable PID controller, 1 occurrences.
+    Decoupler: Tunable 2x2 gain, 1 occurrences.
+
+Type "ss(CL)" to see the current value, "get(CL)" to see all properties, and "CL.Blocks" to interact with the blocks.
+
+% Can use analysis points for analysis or tuning
+% To extract the SISO closed-loop transfer function from 'L' to the first output
+CL.OutputName = 'y';
+TLy1 = getIOTransfer(CL, 'L', 'y(1)')'
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('InputOutputModel/ctranspose')" style="font-weight:bold"> ' </a>
+Cannot transpose models with dynamic or non-scalar Control Design
+blocks.
+} 
+TLy1 = getIOTransfer(CL, 'L', 'y(1)')
+
+TLy1 =
+
+  Generalized continuous-time state-space model with 1 outputs, 1 inputs, 4 states, and the following blocks:
+    AP_1: Analysis point, 2 channels, 1 occurrences.
+    C_L: Tunable PID controller, 1 occurrences.
+    C_V: Tunable PID controller, 1 occurrences.
+    Decoupler: Tunable 2x2 gain, 1 occurrences.
+
+Type "ss(TLy1)" to see the current value, "get(TLy1)" to see all properties, and "TLy1.Blocks" to interact with the blocks.
+
+bodeplot(TLy1)
+% Mark Signals of Interest for Control System Analysis and Design:
+% Analysis points can be thought of an access port to a signal flowing from one block to another
+% In Simulink, analysis points are attached to the outports of Simulink blocks
+% Using analysis points, can extract open-loop and closed-loop responses from a control system model
+G = tf(10, [1, 3, 10])
+
+G =
+ 
+        10
+  --------------
+  s^2 + 3 s + 10
+ 
+Continuous-time transfer function.
+
+C = pid(0.2, 1.5)
+
+C =
+ 
+             1 
+  Kp + Ki * ---
+             s 
+
+  with Kp = 0.2, Ki = 1.5
+ 
+Continuous-time PI controller in parallel form.
+
+T = feedback(G*C, 1)
+
+T =
+ 
+         2 s + 15
+  -----------------------
+  s^3 + 3 s^2 + 12 s + 15
+ 
+Continuous-time transfer function.
+
+% With the model about we can obtain the closed-loop response from r to y
+% We can't analyse the open-loop response at the plant input or simulate the rejection of a step disturbance at the plant input
+% To enable this analysis let's mark the signal 'u' as an analysis point
+% This analysis point block is between the plant and controller
+AP = AnalysisPoint('u');
+T = feedback(G*AP*C, 1);
+T.OutputName = 'y';
+% The plant input 'u' is now available for analysis
+% Can also mark signals for Simulink block diagrams - please see documentation
+% Sparse State-Space Models:
+% Sparse models are ideal and efficient since dense model representations for large-scale models are computationally expensive
+% Sparse Model Basics:
+diary off
+% Sparse matrices provide an efficient storage of double or logical data that has a lot of zeros
+% Continuos-time and discrete-time 1st-order and second-order systems
+% Can use the "interface" command to specify physical couplings between components
+% Example: Rigid Assembly of Model Components:
+% Two square plates are connected with pillars at each vertex
+
+% Lower plate is connected rigidly to the ground while the pillars are connected rigidly to each vertex of square plates
+diary off

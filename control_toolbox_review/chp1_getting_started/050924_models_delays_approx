@@ -1,0 +1,565 @@
+% Many control design algorithms can't handle time delays directly
+% For example root-locus, LQG, pole-placement do not work properly if time delays are present
+% Common technique is to replace delays with all-pass filter that approximate time delays
+% For continuous-time LTI models we can use a Pade approximation
+% Pade approximations are valid for low frequencies and provide better frequency-domain approximation than time-domain
+% Must choose the right order Pade approx and check approx validity
+% For discrete-time models use absorbDelay to convert time delay to factos of 1/z where time delay is a integer multiple of sample time
+% Use thiran command to approximate time delay that is fractional multiple of sample time
+% Use thiran command to approximate time delay that is fractional multiple of sample time
+% For a time delay tau and sample time, Ts, use thiran(tau, Ts)
+% Disscretizing using Pade approximation does not guarantee good phase matching between continuous time delay and its discrete approximation
+%% Time-Delay Approximation in Continuous-Time Open-Loop Model: 
+% The delay is e^(-2.6s)
+s = tf('s');
+P = exp(-2.6*s)/(s^2 + 0.9*s + 1); 
+% The first order Pade approximation of P
+Pnd1 = pade(P, 1)
+
+Pnd1 =
+ 
+             -s + 0.7692
+  ----------------------------------
+  s^3 + 1.669 s^2 + 1.692 s + 0.7692
+ 
+Continuous-time transfer function.
+
+% This command replaces all time delays in P with a 1st order approx, so Pnd1 is a 3rd-order tf with no delays
+% Let's comapre the frequency response of the original and approx models
+h = bodeoptions; 
+h.PhaseMatching = 'on'; 
+bodeplot(P, '-b', Pnd1, '-.r', {0.1, 10}, h)
+legend('Exact delay', 'First-order Pade', 'Location', 'SouthWest')
+% We see that the magnitude of P and Pnd1 match exactly but the phase of Pnd1 deviates from the phase of P beyond 1 rad/s
+% Let's increase the Pade approximation order to extend the frequency band in which the phase approx is good
+Pnd3 = pade(P, 3);
+bodeplot(P, '-b', Pnd3, '-.r', Pnd1, ':k', {0.1, 10}, h)
+legend('Exact delay', 'First-order Pade', 'First-Order Pade', 'Location', 'SouthWest')
+% We can see that the phase approximation error is reduced using a 3rd-order Pade approximation
+% Let's compare the time-domain responses of the original and approx systesm 
+stepplot(P, '-b', Pnd3, '-.r', Pnd1, ':k')
+legend('Exact delay', 'Third-order Pade', 'First-Order Pade', 'Location', 'Southeast')
+% Using Pade approximation introduces nonminuimum phase artifact ("wrong way") in the initial response
+% Note: the effect is reduced in the higher-order approximation, which matches the the exact system's response.
+%% Time-Delay Approximation in Continuous-Time Closed-Loop Model 
+s = tf('s');
+G = (s + 1)/(s^2 + .68*s + 1) * exp(-4.2*s);
+C = pid(0.06, 0.15, 0.006);
+Tcl = feedback(G*C, 1);
+Tcl.InternalDelay
+
+ans =
+
+    4.2000
+
+% The first-order Pade approximation of Tcl
+Tnd1 = pade(Tcl, 1)
+
+Tnd1 =
+ 
+  A = 
+            x1       x2       x3       x4
+   x1  -0.6177  -0.7948   0.1509   0.4791
+   x2        1        0        0        0
+   x3        0        1        0        0
+   x4  -0.1246  -0.4105  -0.3018  -0.4819
+ 
+  B = 
+           u1
+   x1  -0.503
+   x2       0
+   x3       0
+   x4   1.006
+ 
+  C = 
+             x1        x2        x3        x4
+   y1    0.1246    0.4105    0.3018  0.005749
+ 
+  D = 
+              u1
+   y1  -0.006036
+ 
+Continuous-time state-space model.
+
+% This output is a ss model with no delays 
+% Let's compare the frequency response of the original and approximate models 
+h = bodeoptions; 
+h.PhaseMatching = 'on
+ h.PhaseMatching = 'on
+                   ↑
+{Error: Character vector is not terminated properly.
+} 
+h.PhaseMatching = 'on'
+
+h =
+
+                   FreqUnits: 'rad/s'
+                   FreqScale: 'log'
+                    MagUnits: 'dB'
+                    MagScale: 'linear'
+                  MagVisible: 'on'
+             MagLowerLimMode: 'auto'
+                  PhaseUnits: 'deg'
+                PhaseVisible: 'on'
+               PhaseWrapping: 'off'
+               PhaseMatching: 'on'
+           PhaseMatchingFreq: 0
+    ConfidenceRegionNumberSD: 1
+                 MagLowerLim: -Inf
+          PhaseMatchingValue: 0
+         PhaseWrappingBranch: -180
+                  IOGrouping: 'none'
+                 InputLabels: [1×1 struct]
+                OutputLabels: [1×1 struct]
+                InputVisible: {'on'}
+               OutputVisible: {'on'}
+                       Title: [1×1 struct]
+                      XLabel: [1×1 struct]
+                      YLabel: [1×1 struct]
+                   TickLabel: [1×1 struct]
+                        Grid: 'off'
+                   GridColor: [0.1500 0.1500 0.1500]
+                        XLim: {[1 10]}
+                        YLim: {[1 10]}
+                    XLimMode: {'auto'}
+                    YLimMode: {'auto'}
+
+bodeplot(Tcl, '-b', Tnd1, '-.r', {.1, 10}, h);
+legend('Exact delay', 'First-Order Pade', 'Location', 'SouthWest')
+% We can see the magnitude and phase approximation erros are significant beyond 1 rad/sec
+stepplot(Tcl, '-b', Tnd1, '-.r')
+legend('Exact delay', 'First-Order Pade', 'Location', 'SouthEast')
+[Warning: Ignoring extra legend entries.] 
+[> In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('legend>process_inputs', '/Applications/MATLAB_R2022a.app/toolbox/matlab/scribe/legend.m', 592)" style="font-weight:bold">legend>process_inputs</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2022a.app/toolbox/matlab/scribe/legend.m',592,0)">line 592</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('legend>make_legend', '/Applications/MATLAB_R2022a.app/toolbox/matlab/scribe/legend.m', 319)" style="font-weight:bold">legend>make_legend</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2022a.app/toolbox/matlab/scribe/legend.m',319,0)">line 319</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('legend', '/Applications/MATLAB_R2022a.app/toolbox/matlab/scribe/legend.m', 263)" style="font-weight:bold">legend</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2022a.app/toolbox/matlab/scribe/legend.m',263,0)">line 263</a>)] 
+stepplot(Tcl, '-b', Tnd1, '-.r')
+legend('Exact delay', 'First-Order Pade', 'Location', 'SouthEast')
+% Let's increase the Pade approximation order
+% And see if this will extend the frequency with good phase and magnitude approximation
+Tnd3 = pade(Tcl, 3);
+% Let's compare to the 3rd order Pade approx of Tcl
+bodeplot(Tcl, '-b', Tnd3, '-.r', Tnd1, '--k', {.1, 10}, h);
+h
+
+h =
+
+                   FreqUnits: 'rad/s'
+                   FreqScale: 'log'
+                    MagUnits: 'dB'
+                    MagScale: 'linear'
+                  MagVisible: 'on'
+             MagLowerLimMode: 'auto'
+                  PhaseUnits: 'deg'
+                PhaseVisible: 'on'
+               PhaseWrapping: 'off'
+               PhaseMatching: 'on'
+           PhaseMatchingFreq: 0
+    ConfidenceRegionNumberSD: 1
+                 MagLowerLim: -Inf
+          PhaseMatchingValue: 0
+         PhaseWrappingBranch: -180
+                  IOGrouping: 'none'
+                 InputLabels: [1×1 struct]
+                OutputLabels: [1×1 struct]
+                InputVisible: {'on'}
+               OutputVisible: {'on'}
+                       Title: [1×1 struct]
+                      XLabel: [1×1 struct]
+                      YLabel: [1×1 struct]
+                   TickLabel: [1×1 struct]
+                        Grid: 'off'
+                   GridColor: [0.1500 0.1500 0.1500]
+                        XLim: {[1 10]}
+                        YLim: {[1 10]}
+                    XLimMode: {'auto'}
+                    YLimMode: {'auto'}
+
+legend('Exact delay
+ legend('Exact delay
+        ↑
+{Error: Character vector is not terminated properly.
+} 
+legend('Exact delay', 'Third-Order Pade', 'First-Order Pade', 'Location', 'SouthWest')
+% Extending the Pade approx order extends the frequency band where the approximation is good
+% Too hight an approx order may result in numerical issues and unstable poles
+% Avoid Pade approx with order N>10
+
+%% Approximate Different Delays with Different Approximation Orders: please see documentation
+%%% Model Attributes are data fields that store all information about a dynamic model
+%% Accessing and Modifying the Model Data: 
+% Let's look at the different ways to access model data
+G = tf([1,2], [1, 3, 10], 'inputdelay', 3)
+
+G =
+ 
+                  s + 2
+  exp(-3*s) * --------------
+              s^2 + 3 s + 10
+ 
+Continuous-time transfer function.
+
+% To see all the properties of the TF object G
+get(G)
+       Numerator: {[0 1 2]}
+     Denominator: {[1 3 10]}
+        Variable: 's'
+         IODelay: 0
+      InputDelay: 3
+     OutputDelay: 0
+              Ts: 0
+        TimeUnit: 'seconds'
+       InputName: {''}
+       InputUnit: {''}
+      InputGroup: [1×1 struct]
+      OutputName: {''}
+      OutputUnit: {''}
+     OutputGroup: [1×1 struct]
+           Notes: [0×1 string]
+        UserData: []
+            Name: ''
+    SamplingGrid: [1×1 struct]
+
+% To retrieve a particular property use
+G.InputDelay
+
+ans =
+
+     3
+
+% Can also use abbreviations for property names 
+G.iod
+
+ans =
+
+     0
+
+G.var
+
+ans =
+
+    's'
+
+% Can also retrieve all model parameters using tfdata
+[Numerator, Denominator, Ts] = tfdata(G)
+
+Numerator =
+
+  1×1 <a href="matlab:helpPopup cell" style="font-weight:bold">cell</a> array
+
+    {[0 1 2]}
+
+
+Denominator =
+
+  1×1 <a href="matlab:helpPopup cell" style="font-weight:bold">cell</a> array
+
+    {[1 3 10]}
+
+
+Ts =
+
+     0
+
+% The numerator and denominator are returned as cell arrays, consistent with MIMO case
+% MIMO case is where Numerator and Denominator contain cell arrays of numerator and denominator polynomials
+% There is one numerator and denominator polynomial entry per I/O pair
+% We can also edit the data stored in the LTI object by editing the corresponding LTI objects
+G.Ts = 1; 
+G
+
+G =
+ 
+               z + 2
+  z^(-3) * --------------
+           z^2 + 3 z + 10
+ 
+Sample time: 1 seconds
+Discrete-time transfer function.
+
+% The set command is equivalent to dot assignments but allows to set multiple properties at once
+% Let's investigat the effecto of damping zeta on frequency response by creating 3 models 
+s = tf('s');
+% Create 3 transfer functions 
+H = repsys(s + 5, [1, 1, 3])
+
+H(:,:,1,1) =
+ 
+  s + 5
+ 
+
+H(:,:,2,1) =
+ 
+  s + 5
+ 
+
+H(:,:,3,1) =
+ 
+  s + 5
+ 
+3x1 array of continuous-time transfer functions.
+
+% The above has Numerator = s + 5, and Denominator = 1
+% Let's now specify the denominators using 3 different zeta values 
+zeta = [1, .5, .2]; 
+for k = 1:3
+H(:, :, k).Denominator = [1, 2*zeta(k), 5];
+end
+bode(H)
+grid
+%% Store and Retrieve Model Data
+% When you create a dynamic system model the sw sets all property values
+% Can change them using Name, Value pair syntax
+% Let's assign a transport delay and input/output names to new transfer function model 
+H = tf(1, [1, 10], 'IOdelay', 6.5, 'InputName', 'torque', 'OutputName', 'velocity')
+
+H =
+ 
+  From input "torque" to output "velocity":
+                  1
+  exp(-6.5*s) * ------
+                s + 10
+ 
+Continuous-time transfer function.
+
+%% Extract Model Coefficients 
+% Extracting coefficients of a different model type. let;s use tfdata to extract tf num and den coeffficients
+s = tf('s');
+H = exp(-2.5*s)/(s+12);
+[num, den] = tfdata(H, 'v') % without 'v' returns cell arrays
+
+num =
+
+     0     1
+
+
+den =
+
+     1    12
+
+%% Attach Metadata to Models: Please see documentation 
+%% Query Model Characteristics
+% We can query characteristics like stability, time domain, and num of inputs and outputs
+load('queryexample.mat', 'T')
+% Let's query whether T has stable dynamics 
+Bstab = isstable(T)
+
+Bstab =
+
+  <a href="matlab:helpPopup logical" style="font-weight:bold">logical</a>
+
+   1
+
+% This will return 1 if all poles are in the open left-half plane or inside the open unit disk (discrete time models)
+% Let's query whether the model T has time delays
+Bdel = hasdelay(T)
+
+Bdel =
+
+  <a href="matlab:helpPopup logical" style="font-weight:bold">logical</a>
+
+   1
+
+get(T)
+                A: [5×5 double]
+                B: [5×1 double]
+                C: [0 -0.1128 0.0162 0.2794 -0.0016]
+                D: -1.0571e-04
+                E: []
+           Scaled: 0
+        StateName: {5×1 cell}
+        StatePath: {5×1 cell}
+        StateUnit: {5×1 cell}
+    InternalDelay: [0×1 double]
+       InputDelay: 6
+      OutputDelay: 0
+               Ts: 0.5000
+         TimeUnit: 'seconds'
+        InputName: {''}
+        InputUnit: {''}
+       InputGroup: [1×1 struct]
+       OutputName: {''}
+       OutputUnit: {''}
+      OutputGroup: [1×1 struct]
+            Notes: [0×1 string]
+         UserData: []
+             Name: ''
+     SamplingGrid: [1×1 struct]
+
+T.InternalDelay
+
+ans =
+
+  0×1 empty <a href="matlab:helpPopup double" style="font-weight:bold">double</a> column vector
+
+% Let's see whether T is proper
+Bprop = isproper(T)
+
+Bprop =
+
+  <a href="matlab:helpPopup logical" style="font-weight:bold">logical</a>
+
+   1
+
+% This indicates the system has relative degress less than or equal to 0 
+% This is true of a SISO system when as a transfer function the degree of the numerator does not exceed the denominator
+N = order(T)
+
+N =
+
+     5
+
+% For a state-space model this will return the number of states, which is 5 in this case 
+% For a tf or zpk model, the order is the num of states required for state-space realization of the system
+% Let's query whether we have a discrete time system
+Bdisc = isdt(T)
+
+Bdisc =
+
+  <a href="matlab:helpPopup logical" style="font-weight:bold">logical</a>
+
+   1
+
+%% Configure Display Format of Transfer Function of Factorized Form
+% Let's create a zpk model having a zero at s = 5, a pole at s=-10, and pair of complex poles at s=-3+/-5i
+H = zpk(5, [-10, -3-5*i,-3+5*i], 10)
+
+H =
+ 
+         10 (s-5)
+  ----------------------
+  (s+10) (s^2 + 6s + 34)
+ 
+Continuous-time zero/pole/gain model.
+
+% The display format here is called 'roots' which displays the standard factorization of num and en
+% Let's configure to display the natural frequency of each polynomial root 
+H.DisplayFormat = 'frequency
+ H.DisplayFormat = 'frequency
+                   ↑
+{Error: Character vector is not terminated properly.
+} 
+H.DisplayFormat = 'frequency'
+
+H =
+ 
+               -0.14706 (1-s/5)
+  -------------------------------------------
+  (1+s/10) (1 + 1.029(s/5.831) + (s/5.831)^2)
+ 
+Continuous-time zero/pole/gain model.
+
+% Can read teh natural frequencies and damping ratios for each pole and zero as follows: 
+% Factors correspodning to real roots are displayed as (1-s/w0). The variable w0 is the natural frequency of the root. 
+% Factors correspodning to real roots are displayed as (1-s/w0). The variable w0 is the natural frequency of the root.
+% Above the natural frquency of the zero of H is 5
+% Factos corresponding to complex pairs of roots are 1-2*zeta(s/w0) + (s/w0)^2.
+% Above the natural frequency of the complex pole pair is 5.831 and the damping ratio is 1.029/2
+% Finally we can also display as a time constant of each pole and zero
+H.DisplayFormat = 'time constant'
+
+H =
+ 
+               -0.14706 (1-0.2s)
+  -------------------------------------------
+  (1+0.1s) (1 + 1.029(0.1715s) + (0.1715s)^2)
+ 
+Continuous-time zero/pole/gain model.
+
+%% Model Arrays: let's you analyze collections of multiple linear models, stored as a single Matlab array 
+% For all the model collected the single model array, the following attribute must be the smae: 
+% 1. The number of input and outputs 
+% 2. The sample time Ts
+% 3. The time unit TimeUnit
+% Model arrays are useful for: 
+% 1. Representing and analysing sensitivity to parameter variations 
+% 2. Validating a controller design against several plant models 
+% 3. Representing linear models arising from the linearization of a nonlinear system at several operating points 
+% 4. Storing models obtained from several system id experiments applies to one plant
+% Let's try this for a single parameter variation 
+% Low pass filter at three values with a roll-off frequency a
+% F(s) = a/(s + a)
+F1 = tf(3, [1, 3]);
+F2 = tf(5, [1, 5]); 
+F3 = tf(7, [1, 7]);
+% use the stack command to build array 
+Farray = stack(1, F1, F2, F3)
+
+Farray(:,:,1,1) =
+ 
+    3
+  -----
+  s + 3
+ 
+
+Farray(:,:,2,1) =
+ 
+    5
+  -----
+  s + 5
+ 
+
+Farray(:,:,3,1) =
+ 
+    7
+  -----
+  s + 7
+ 
+3x1 array of continuous-time transfer functions.
+
+% Here the stack specifies the array dimension along which stack builds an array 
+% The remaining args specify the models to arrange along that dimension
+% Farray is a 3 x 1 array of transfer functions 
+size(Farray)
+3x1 array of transfer functions.
+Each model has 1 outputs and 1 inputs.
+% Concatenating models instead of using stack creates a MIMO models rather than model arrays
+G = [F1; F2; F3]
+
+G =
+ 
+  From input to output...
+         3
+   1:  -----
+       s + 3
+ 
+         5
+   2:  -----
+       s + 5
+ 
+         7
+   3:  -----
+       s + 7
+ 
+Continuous-time transfer function.
+
+size(G)
+Transfer function with 3 outputs and 1 inputs.
+% Can also associate the corresponding parameter value with each entry in the array 
+Farray.SamplingGrid = struct('alpha', [3, 5, 7]);
+Farray
+
+Farray(:,:,1,1) [alpha=3] =
+ 
+    3
+  -----
+  s + 3
+ 
+
+Farray(:,:,2,1) [alpha=5] =
+ 
+    5
+  -----
+  s + 5
+ 
+
+Farray(:,:,3,1) [alpha=7] =
+ 
+    7
+  -----
+  s + 7
+ 
+3x1 array of continuous-time transfer functions.
+
+bodeplot(Farray)
+diary off

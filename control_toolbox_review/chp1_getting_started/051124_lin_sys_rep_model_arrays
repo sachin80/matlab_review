@@ -1,0 +1,1182 @@
+%% Model Array with Variations in Two Parameters
+% We can create a 2D array of transfer functions using for loops 
+% One parameter of the transfer function varies in each dimension of the loop
+% Given the following 2nd order SISO transfer function H(s) = w^2/(s^2 + 2*zeta*w*s + w^2)
+% This depends on w and zeta
+% Let's preallocate memory for the model array for computational efficiency 
+H = tf(zeros(1, 1, 3, 3))
+
+H(:,:,1,1) =
+ 
+  0
+ 
+
+H(:,:,2,1) =
+ 
+  0
+ 
+
+H(:,:,3,1) =
+ 
+  0
+ 
+
+H(:,:,1,2) =
+ 
+  0
+ 
+
+H(:,:,2,2) =
+ 
+  0
+ 
+
+H(:,:,3,2) =
+ 
+  0
+ 
+
+H(:,:,1,3) =
+ 
+  0
+ 
+
+H(:,:,2,3) =
+ 
+  0
+ 
+
+H(:,:,3,3) =
+ 
+  0
+ 
+3x3 array of static gains.
+
+% There are 3 values for each parameter in the transfer function H, this creates a 3 by 3 array of SISO zero transfer functions
+% Create arrays with parameter values:
+zeta = [0.66, 0.71, 0.75];
+w = [1.0, 1.2, 1.5];
+% Let's loop through all combinations of parameter values 
+for i = i:length(zeta)
+for j = 1:length(w)
+H(:, :, i, j) = tf(w(j)^2, [1, 2*zeta(i)*w(j), w(j)^2[);
+ H(:, :, i, j) = tf(w(j)^2, [1, 2*zeta(i)*w(j), w(j)^2[);
+                                                      
+{Error: Invalid expression. When calling a function or indexing a variable, use parentheses. Otherwise, check
+for mismatched delimiters.
+} 
+for i = i:length(zeta)
+for j = 1:length(w)
+H(:, :, i, j) = tf(w(j)^2, [1, 2*zeta(i)*w(j), w(j)^2]);
+end
+end
+[Warning: Colon operands must be real scalars.] 
+[] 
+{Array indices must be positive integers or logical values.
+} 
+H
+
+H(:,:,1,1) =
+ 
+  0
+ 
+
+H(:,:,2,1) =
+ 
+  0
+ 
+
+H(:,:,3,1) =
+ 
+  0
+ 
+
+H(:,:,1,2) =
+ 
+  0
+ 
+
+H(:,:,2,2) =
+ 
+  0
+ 
+
+H(:,:,3,2) =
+ 
+  0
+ 
+
+H(:,:,1,3) =
+ 
+  0
+ 
+
+H(:,:,2,3) =
+ 
+  0
+ 
+
+H(:,:,3,3) =
+ 
+  0
+ 
+3x3 array of static gains.
+
+for i = i:length(zeta)
+for j = 1:length(w)
+H(:, :, i, j) = tf(w(j)^2, [1, 2*zeta(i)*w(j), w(j)^2]);
+end
+end
+{Array indices must be positive integers or logical values.
+} 
+for i = 1:length(zeta)
+
+for j = 1:length(w)
+H(:, :, i, j) = tf(w(j)^2, [1, 2*zeta(i)*w(j), w(j)^2]);
+end
+end
+H
+
+H(:,:,1,1) =
+ 
+         1
+  ----------------
+  s^2 + 1.32 s + 1
+ 
+
+H(:,:,2,1) =
+ 
+         1
+  ----------------
+  s^2 + 1.42 s + 1
+ 
+
+H(:,:,3,1) =
+ 
+         1
+  ---------------
+  s^2 + 1.5 s + 1
+ 
+
+H(:,:,1,2) =
+ 
+          1.44
+  --------------------
+  s^2 + 1.584 s + 1.44
+ 
+
+H(:,:,2,2) =
+ 
+          1.44
+  --------------------
+  s^2 + 1.704 s + 1.44
+ 
+
+H(:,:,3,2) =
+ 
+         1.44
+  ------------------
+  s^2 + 1.8 s + 1.44
+ 
+
+H(:,:,1,3) =
+ 
+         2.25
+  -------------------
+  s^2 + 1.98 s + 2.25
+ 
+
+H(:,:,2,3) =
+ 
+         2.25
+  -------------------
+  s^2 + 2.13 s + 2.25
+ 
+
+H(:,:,3,3) =
+ 
+         2.25
+  -------------------
+  s^2 + 2.25 s + 2.25
+ 
+3x3 array of continuous-time transfer functions.
+
+% This creates a 3 x 3 transfer functions, where zeta varies as you move from model to model along a single column of H
+% The parameter w varies as you move along a single row
+% Let's plot the step response of H to see how the parameter variation affects the step response
+stepplot(H)
+%% Study Parameter Variation by Sampling Tunable Model
+% Let's looks at how to sample a parametric model of a second order filter across a grid of parameter values 
+% The 2nd order is represented by F(s) = wn^2/(s^2 + 2*zeta*wn*s + wn^2)
+%Let's sample this filter at varying values of damping constant zeta and natural frequency wn. Create a parametric model of filter using tunable elements zeta and wn
+wn = realp('wn', 3);
+zeta = realp('zeta', 0.8);
+F = tf(wn^2, [1, 2*zeta*wn, wn^2])
+
+F =
+
+  Generalized continuous-time state-space model with 1 outputs, 1 inputs, 2 states, and the following blocks:
+    wn: Scalar parameter, 5 occurrences.
+    zeta: Scalar parameter, 1 occurrences.
+
+Type "ss(F)" to see the current value, "get(F)" to see all properties, and "F.Blocks" to interact with the blocks.
+
+% F is a fenss model with two tunable Control Design Blocks, the realp blocks wn and zeta, where these blocks have initial values 3 and 0.8 
+% Let's sample F over a 2 by 3 grid of (wn, zeta) values 
+wnvals = [3; 5];
+zetavals = [0.6, 0.8, 1.0];
+Fsample = sampleBlock(F, 'wn', wnvals, 'zeta', zetavals);
+% sampleBlock samples the model independently over the two wn values and three zeta values 
+% Therefore, Fsample is a 2 by 3 state-space model 
+% Lets first create a grid of parameters that matches the dims of the array and assign these value to Fsample.SamplingGrid in a structure
+[wngrid, zetagrid] = ndgrid(wnvals, zetavals);
+Fsample.SamplingGrid = struct('wn', wngrid, 'zeta', zetagrid);
+% Here ndgrid command produces a full 2 by 3 grid of (wn, zeta) combinations 
+Fsample.SamplingGrid
+
+ans = 
+
+  <a href="matlab:helpPopup struct" style="font-weight:bold">struct</a> with fields:
+
+      wn: [2×3 double]
+    zeta: [2×3 double]
+
+Fsample.SamplingGrid.wn
+
+ans =
+
+     3     3     3
+     5     5     5
+
+Fsample.SamplingGrid.zeta
+
+ans =
+
+    0.6000    0.8000    1.0000
+    0.6000    0.8000    1.0000
+
+stepplot(Fsample)
+% The step response show the variation in the natural frequency and dampling constant acress the six models in the array
+% When you click on one of the responses in the plot, the datatip includes the corresponding wn, zeta values specified in Fsample.SamplingGrid
+%% Select Models from Array
+load LTIexamples m2d
+step(m2d)
+% Let's examine the dims of m2d
+arraydim = size(m2d)
+
+arraydim =
+
+     2     1     2     3
+
+% The first entries of arraydim, 2 and 1 show that the array of two-output, one-input transfer functions
+% The remaining entries in the arraydim give the array dims of m2d, 2 by 3 
+% Let's select the transfer function in the second row, first column of m2d
+sys = m2d(:, :, 2, 1)
+
+sys =
+ 
+  From input to output...
+        3.36
+   1:  -------
+       s + 2.9
+ 
+   2:  7.23
+ 
+Continuous-time transfer function.
+
+% Select the array of subsystems from first input to first output of each model m2d
+m11 = m2d(1, 1, :, :)
+
+m11(:,:,1,1) =
+ 
+    3.31
+  --------
+  s + 2.95
+ 
+
+m11(:,:,2,1) =
+ 
+   3.36
+  -------
+  s + 2.9
+ 
+
+m11(:,:,1,2) =
+ 
+    3.38
+  --------
+  s + 2.88
+ 
+
+m11(:,:,2,2) =
+ 
+    3.4
+  --------
+  s + 2.86
+ 
+
+m11(:,:,1,3) =
+ 
+    3.42
+  --------
+  s + 2.84
+ 
+
+m11(:,:,2,3) =
+ 
+    3.45
+  --------
+  s + 2.81
+ 
+2x3 array of continuous-time transfer functions.
+
+step(m11)
+% The response shows that m11 is an array of six single-input, single-output (SISO) models
+%% Query Array Size and Characteristics
+% We may want to query a model to find the size of model arrays, including the number of inputs and outputs of the models in array, and array dims
+% Model arrays have I/O dimensions and array dimensions 
+% I/O dimensions are the number of inputs and outputs of the models in the array (each model in array must have same I/O dims)
+% Array dimensions are the dimensions of the array itself
+load(fullfile(matlabroot, 'examples', 'control', 'queryexample.mat'), 'sysarr')
+size(sysarr)
+2x4 array of state-space models.
+Each model has 3 outputs, 1 inputs, and 3 states.
+% The first two entries in dims are the I/O dimes of the models in sysarr, which each have three outputs and one input
+% The remaining entries in dims are the dimensions of the array itself, thus sysarr is a 2 by 4 array of models 
+% To query the num of dimensions in the array, rathern than the values of those dimensions, use ndims
+dims = ndims(sysarr)
+
+dims =
+
+     4
+
+ios = iosize(sysarr)
+
+ios =
+
+     3     1
+
+% Can also query the total number of models in the array
+N = nmodels(sysarr)
+
+N =
+
+     8
+
+% Because sysarr is 2 by 4 array of models the command returns a values of 2 x 4 = 8
+% Query commands such as isproper and isstable work on model arrays 
+Bsiso = isstable(sysarr)
+
+Bsiso =
+
+  <a href="matlab:helpPopup logical" style="font-weight:bold">logical</a>
+
+   1
+
+% So all models are stable. To perform an element by element query of a model array use 'elem'
+Bsiso = isstable(sysarr, 'elem')
+
+Bsiso =
+
+  2×4 <a href="matlab:helpPopup logical" style="font-weight:bold">logical</a> array
+
+   1   1   1   1
+   1   1   1   1
+
+% This matches the array dimensions of sysarr, each entry in the array Bsiso indicates whether the corresponsing model of sysarr is stable
+%% Using LTI Array for Simulating Multi-Mode Dynamics: Please see documentation.
+%%% Model Interconnection
+%% Numeric Model of SISO Feedback Loop:
+% Let's construct a model of the following single-loop control system
+% Create model objects representing each of the components 
+G = zpk([], [-1, -1], 1);
+C = pid(1, 1.3, 0.3, 0.5);
+S = tf(5, [1, 4])
+
+S =
+ 
+    5
+  -----
+  s + 4
+ 
+Continuous-time transfer function.
+
+F = tf(1, [1, 1]);
+% Connect the controller and plant models
+H = G * C;
+% Need to enter the models in reversed order compared to the block diagram
+% The unfilitered closed loop response is T(s) = H/(1 + H*S)
+T = feedback(H, S);
+% Construct the entire closed-loop system response from r to y. 
+% Use input filter tf, F
+T_ry = T * F
+
+T_ry =
+ 
+                1.6 (s+4) (s^2 + 2.062s + 1.625)
+  -------------------------------------------------------------
+  (s+4.661) (s+1) (s^2 + 2.658s + 2.52) (s^2 + 0.6811s + 1.107)
+ 
+Continuous-time zero/pole/gain model.
+
+%% Control System Model with Both Numeric and Tunable Components 
+% Say we have one tunable parameter for the prefilter, F = a/(s + a), a is tunable parameter
+G = zpk([] [-1, -1], 1);
+ G = zpk([] [-1, -1], 1);
+            
+{Error: Invalid expression. When calling a function or indexing a variable, use parentheses. Otherwise, check
+for mismatched delimiters.
+} 
+G = zpk([] [-1, -1], 1);;
+ G = zpk([] [-1, -1], 1);;
+            
+{Error: Invalid expression. When calling a function or indexing a variable, use parentheses. Otherwise, check
+for mismatched delimiters.
+} 
+G = zpk([], [-1, -1], 1);
+S = tf(5, [1, 4]);
+% Model the tunable components create tunable representation of controller C
+C = tunablePID('C', 'PID');
+% Create a model of filter F, with tunable parameter a
+a = realp('a', 10);
+F = tf(a, [1, a]);
+% 'a' is a realp or real tunable parameter object with initial value 10. If we use 'a' as coefficient in tf creates genss model object F
+% Interconnect models to construct a model of the complete closed-loop response form r to y
+T = feedback(G*C, S)*F
+
+T =
+
+  Generalized continuous-time state-space model with 1 outputs, 1 inputs, 5 states, and the following blocks:
+    C: Parametric PID controller, 1 occurrences.
+    a: Scalar parameter, 2 occurrences.
+
+Type "ss(T)" to see the current value, "get(T)" to see all properties, and "T.Blocks" to interact with the blocks.
+
+% T is a genss model object, which keeps track of tunable elemeents of the controls system 
+% Tunable elements are stored in Blocks property of genss model object 
+T.Blocks
+
+ans = 
+
+  <a href="matlab:helpPopup struct" style="font-weight:bold">struct</a> with fields:
+
+    C: [1×1 tunablePID]
+    a: [1×1 realp]
+
+% Can use systune to tun the free parameter to meet design requirements you specify
+%% Multi-Loop Control System
+% 'connect' lets use automatically join ports that have the same name if we have specified input and output channel names
+% Let's do this for a smith predictor 
+s = tf('s');
+% Process model 
+P = exp(-93.9*s) * 5.6/(40.2*s + 1);
+P.InputName =
+ P.InputName =
+              
+{Error: Invalid expression. Check for missing or extra characters.
+} 
+P.InputName = 'u'; P.OutputName = 'y';
+% Predictor model, Gp: 
+Gp = 5.6/(40.2 *s +1); 
+Gp.InputName = 'u'; Gp.OutputName = 'yp';
+Dp = exp(-93.9*s);
+% Dp is the delay model 
+Dp.InputName = 'yp'; Dp.OutputName = 'y1';
+% The filter, F
+F = 1/(20*s + 1);
+F.InputName = 'dy'; F.OutputName = 'dp';
+% The PI controller, C
+C = pidstd(0.574, 40.1);
+C.Inputname = 'e'; C.OutputName = 'u';
+% Create summing junctions needed to complete the block diagram 
+sum1 = sumblk('e = ysp - ym');
+sum2 = sumblk('ym = yp + dp');
+sum3 = sumblk('dy = y - y1');
+% Assemble the complete model from ysp to y
+T = connect(P, Gp, Dp, C, F, sum1, sum2, sum3, 'ysp', 'y');
+% Can list the models and summing junctions in any order because 'connect' authomatically interconnects using inputs and output channel names
+% Last two arguments specigy the input and output signals of multi-loop controls structure. 
+%% MIMO Control System: Please see documentation 
+%% MIMO Feedback Loop: 
+% Let's see how to obtain closed-loop response of a MIMO feedback loop in 3 different ways 
+% Can compute the closed-loop response using one of the following 3 approaches: 
+% 1. Name-based interconnection with 'connect'
+% 2. Name-based interconnection with 'feedback'
+% 3. Index-based interconnection with 'feedback'
+% Load the Aerodyn plant and Autopilot controller
+load(fullfile(matlabroot, 'examples', 'control', 'MIMOfeedback.mat');
+ load(fullfile(matlabroot, 'examples', 'control', 'MIMOfeedback.mat');
+                                                                     
+{Error: Invalid expression. When calling a function or indexing a variable, use parentheses. Otherwise, check
+for mismatched delimiters.
+} 
+load(fullfile(matlabroot, 'examples', 'control', 'MIMOfeedback.mat'));
+% Aerodyn is a 4 input, 7 output state-space model 
+% Autopilot is a 5-input , 1-output ss model 
+% Compute the closed-loop response from Azref to Az using connect 
+T1 = connect(Autopilot, Aerodyn, 'Azref', 'Az');
+[Warning: The following block inputs are not used: Rho,a,Thrust.] 
+[> In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('DynamicSystem/connect', '/Applications/MATLAB_R2018a.app/toolbox/shared/controllib/engine/@DynamicSystem/connect.m', 265)" style="font-weight:bold">DynamicSystem/connect</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2018a.app/toolbox/shared/controllib/engine/@DynamicSystem/connect.m',265,0)">line 265</a>)] 
+[Warning: The following block outputs are not used: Xe,Ze,Altitude.] 
+[> In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('DynamicSystem/connect', '/Applications/MATLAB_R2018a.app/toolbox/shared/controllib/engine/@DynamicSystem/connect.m', 270)" style="font-weight:bold">DynamicSystem/connect</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2018a.app/toolbox/shared/controllib/engine/@DynamicSystem/connect.m',270,0)">line 270</a>)] 
+% We have joined the inputs and outputs that have matching names and the last two arguments to connect specify the input and output signals of the resulting model 
+% Let's use the 'feedback' function instead
+% We need to think of the closed-loop system as a feedback interconnection between open-loop plant-controller L and a diagonal unity-gain feedback K
+L = series(Autopilot, Aerodyn, 'Fin');
+FeedbackChannels = {'Alpha', 'Mach', 'Az', 'q'};
+K = ss(eye(4), 'InputName', FeedbackChannels,...
+                  'OutputName', FeedbackChannels);
+T2 = feedback(L, K, 'name', +1);
+% The closed loop T2 represents the positive feedback interconnection of L and K
+% 'name' option caused 'feedback' to connect L and K by matching their input and output names 
+% T2 is a 5-input, 7-output state-space model
+% Finally, let's compute the cl response from Azref to Az using feedback using indices to specify the interconnections between Aerodyn and Autopilot
+L = series(Autopilot, Aerodyn, 1, 4);
+K = ss(eye(4));
+T3 = feedback(L, K, [1, 2, 3, 4], [4, 3, 6, 5], +1);
+% The above vectors specify what input and outputs complete the feedback interconnection 
+% feedback uses output 4 and input 1 of L to create the first feedback interconnection, etc. 
+% T3 is a 5-input, 7-output state-space model 
+% Let's compare the step responses of the 3 approaches to confirm they are the same
+step(T1, T2('Az', 'Azref'), T3(6, 5), 2)
+%% Mark Analysis Points in Closed-Loop Models 
+% We can insert analysis points at locations of interest using the connect command, we can use these points to extract various system responses from the model 
+% Back to the smith predictor state-space model 
+P
+
+P =
+ 
+  From input "u" to output "y":
+                    5.6
+  exp(-93.9*s) * ----------
+                 40.2 s + 1
+ 
+Continuous-time transfer function.
+
+Gp
+
+Gp =
+ 
+  From input "u" to output "yp":
+     5.6
+  ----------
+  40.2 s + 1
+ 
+Continuous-time transfer function.
+
+Dp
+
+Dp =
+ 
+  From input "yp" to output "y1":
+  exp(-93.9*s) * (1)
+ 
+Continuous-time transfer function.
+
+F
+
+F =
+ 
+  From input "dy" to output "dp":
+     1
+  --------
+  20 s + 1
+ 
+Continuous-time transfer function.
+
+C
+
+C =
+ 
+             1      1 
+  Kp * (1 + ---- * ---)
+             Ti     s 
+
+  with Kp = 0.574, Ti = 40.1
+ 
+Continuous-time PI controller in standard form
+
+sum1
+
+sum1 =
+ 
+  From input "ysp" to output "e":
+  1
+ 
+  From input "ym" to output "e":
+  -1
+ 
+Static gain.
+
+
+sum2
+
+sum2 =
+ 
+  From input "yp" to output "ym":
+  1
+ 
+  From input "dp" to output "ym":
+  1
+ 
+Static gain.
+
+sum3
+
+sum3 =
+ 
+  From input "y" to output "dy":
+  1
+ 
+  From input "y1" to output "dy":
+  -1
+ 
+Static gain.
+
+% Let's assemble the completed model 
+input = 'ysp';
+output = 'y'; 
+APs = {'u', 'dp', 'yp'}
+
+APs =
+
+  1×3 <a href="matlab:helpPopup cell" style="font-weight:bold">cell</a> array
+
+    {'u'}    {'dp'}    {'yp'}
+
+T = connect(P, Gp, Dp, C, F, sum1, sum2, sum3, input, output, APs)
+
+T =
+
+  Generalized continuous-time state-space model with 1 outputs, 1 inputs, 4 states, and the following blocks:
+    AnalysisPoints_: Analysis point, 3 channels, 1 occurrences.
+
+Type "ss(T)" to see the current value, "get(T)" to see all properties, and "T.Blocks" to interact with the blocks.
+
+% Using the Aps input arguments the connect command automatically inserts an AnalysisPoint block into the generalized state space genss model
+% To see a list of available analysis points 
+getPoints(T)
+
+ans =
+
+  3×1 <a href="matlab:helpPopup cell" style="font-weight:bold">cell</a> array
+
+    {'dp'}
+    {'u' }
+    {'yp'}
+
+% We can use these locations as inputs, outputs, or loop openings when you extract responses from the model 
+% Let's extract and plot the response at the system output to a step disturbance at the plant input u
+Tp = getIOTransfer(T, 'u', 'y')
+
+Tp =
+
+  Generalized continuous-time state-space model with 1 outputs, 1 inputs, 4 states, and the following blocks:
+    AnalysisPoints_: Analysis point, 3 channels, 1 occurrences.
+
+Type "ss(Tp)" to see the current value, "get(Tp)" to see all properties, and "Tp.Blocks" to interact with the blocks.
+
+stepplot(Tp)
+% Let's calculate the open-loop response of the plant and controller by opening both feedback loops
+opening = {'dp', 'yp'};
+L = getIOTransfer(T, 'ysp', 'y', openings);
+{Undefined function or variable 'openings'.
+} 
+L = getIOTransfer(T, 'ysp', 'y', opening);
+bodeplot(L)
+%% Control System with Multichannel Analysis Points: please see docs
+%% Note: You might obtain better results using model interconnection commands like feedback or connect instead or model arithmetic
+% Ex: T = feedback(H1, H2) will return better results thatn T = H1/(1 + H2*H1)
+% The latter expression duplicates the poles of H1, which inflates the model order and might lead to computational inaccuracy
+%% Recommended Model Type for Building Block Diagrams:
+% The choice of the model type can affect numerical accuracy when interconnecting models. 
+% For example interconnect two models in series using different model types to see how different representations introduce numerical inaccuracies
+% These are 9th order and 2nd order discrete-time transfer functions 
+load numdemo Pd Cd
+% Compute open-loop transfer function L = Pd * Cd using tf, zpk, ss, frd
+Ltf = Pd * Cd;
+Lzp = zpk(Pd)*Cd; 
+Lss = ss(Pd)*Cd; 
+w = logspace(-1, 3, 100); 
+Lfrd = frd(Pd, w) * Cd; 
+% Let's compare: 
+bodemag(Ltf, Lzp, Lss, Lfrd)
+legend('tf', 'zpk', 'ss', 'frd')
+% We can say the tf has lost low-frquency dynamics that other representations preserve
+Pd
+
+Pd =
+ 
+                                                                                                   
+  8.084e-06 z^8 + 0.0001535 z^7 - 0.0001766 z^6 - 0.0004082 z^5 + 0.000867 z^4 - 0.0004864 z^3     
+                                                                                                   
+                                                            - 8.206e-05 z^2 + 0.00012 z + 4.994e-06
+                                                                                                   
+  -------------------------------------------------------------------------------------------------
+                                                                                                   
+  z^9 - 7.106 z^8 + 23.22 z^7 - 46.03 z^6 + 61.23 z^5 - 56.77 z^4 + 36.69 z^3 - 15.91 z^2          
+                                                                                                   
+                                                                                 + 4.181 z - 0.5027
+                                                                                                   
+ 
+Sample time: 1e-05 seconds
+Discrete-time transfer function.
+
+Cd
+
+Cd =
+ 
+  7.462 z^2 - 14.79 z + 7.325
+  ---------------------------
+    z^2 - 1.755 z + 0.7547
+ 
+Sample time: 1e-05 seconds
+Discrete-time transfer function.
+
+%%% Model Type Conversion
+%% Conversion Between Model Types
+% In general you can convert from any model type to any other
+% There are a few limitations: 
+% -frd models to analytic models like ss, tf, or zpk (unless you perfrom system identification)
+% - ss models with internal delays to tf or zpk
+% Some algorithms operate only on one type of model object
+% The zero-order hold discretization with c2d can only be perfromed on state-space models 
+% Also, tfdata or piddata expect a particular type of model (tf or pid) 
+% Command can also automatically convert input models to the appropiate or required model type
+sys = ss(0, 1, 1, 0)
+
+sys =
+ 
+  A = 
+       x1
+   x1   0
+ 
+  B = 
+       u1
+   x1   1
+ 
+  C = 
+       x1
+   y1   1
+ 
+  D = 
+       u1
+   y1   0
+ 
+Continuous-time state-space model.
+
+[num, den] = tfdata(sys)
+
+num =
+
+  1×1 <a href="matlab:helpPopup cell" style="font-weight:bold">cell</a> array
+
+    {1×2 double}
+
+
+den =
+
+  1×1 <a href="matlab:helpPopup cell" style="font-weight:bold">cell</a> array
+
+    {1×2 double}
+
+% tfdata automatically converts the state-space model sys to transfer function form to return num and den data
+% Also, automatic conversion to state space do not occur when the result depends on the choice of state coordinates
+% For example, initial and kalman commands require state-space models 
+% Numeric LTI models types are not equally well-suited for numerical computations 
+% It's recommended to work with state-space (ss) or frequency response (frd) models because; 
+% - the accuracy of computations using high-order transfer function (tf or zpk) is sometimes poor, particularly for MIMO or high-order systems.
+% - conversions to transfer function representation can incur a loss of accuracy 
+% - when you convert tf or zpk models to state space using ss, the software performs balancing and scaling operations
+% - this balancing and scaling improves the numeric accuracy of computations involved
+% In addition converting back and forth between model types can introdice additional states or orders or numerical inaccuracies
+% For exaple conversions to state-space are not uniquely defined and not guranteed to produce minimal realization for MIMO models
+% For a given state-space model sys, ss(tf(sys)) can return a model with differents state-space matrices or different number of states in the MIMO case
+% Create a PID controller 
+pid_sys = pid(1, 1.5, 3)
+
+pid_sys =
+ 
+             1          
+  Kp + Ki * --- + Kd * s
+             s          
+
+  with Kp = 1, Ki = 1.5, Kd = 3
+ 
+Continuous-time PID controller in parallel form.
+
+C = tf(pid_sys)
+
+C =
+ 
+  3 s^2 + s + 1.5
+  ---------------
+         s
+ 
+Continuous-time transfer function.
+
+% C has the same dynamics as pid_sys but stores the dynamic parameters as tf num and den coefficients instead of prop, integral, derivative gains
+% Can also convert from tf to pid models provided tf model object represents a parallel-form PID controller Tf >=0.
+%% Get Current value of Generalized Model by Model Conversion
+% We can get the current value of a generalized model by converting it to a numeric model
+% This is useful, for example, when you have tuned parameters of the generalized model using a tuning command like systune
+% F = a/(s+a)
+% We have a real tunable parameter a with initial value 10
+a = realp('a', 10); 
+F = tf(a, [1, a])
+
+F =
+
+  Generalized continuous-time state-space model with 1 outputs, 1 inputs, 1 states, and the following blocks:
+    a: Scalar parameter, 2 occurrences.
+
+Type "ss(F)" to see the current value, "get(F)" to see all properties, and "F.Blocks" to interact with the blocks.
+
+% Once we have a generalized model we can tune the parameters of the model using tuning command 
+% Instead of tuning the model let's manually change the value of the tunable component of F
+F.Blocks.a.value = 5; 
+F.Blocks.a.Value = 5;
+% Get the current value of the generalized model by converting it to a numeric model
+F_cur_val = tf(F)
+
+F_cur_val =
+ 
+    5
+  -----
+  s + 5
+ 
+Continuous-time transfer function.
+
+% tf converts the generalized model, F, to numeric transfer function F_cur_val
+% Can also view the state space representation of it
+ss(F)
+
+ans =
+ 
+  A = 
+       x1
+   x1  -5
+ 
+  B = 
+       u1
+   x1   1
+ 
+  C = 
+       x1
+   y1   5
+ 
+  D = 
+       u1
+   y1   0
+ 
+Continuous-time state-space model.
+
+%% Decompose a 2DOF PID Controller into SISO Components 
+% Let's try to extract SISO controller components from a 2 DOF PID controller 
+% Create a plant and tune a 2-dof PID controller for it 
+G = tf(1, [1, 0.5, 0.1]);
+C2 = pidtune(G, 'pidf2', 1.5)
+
+C2 =
+ 
+                       1                s    
+  u = Kp (b*r-y) + Ki --- (r-y) + Kd -------- (c*r-y)
+                       s              Tf*s+1 
+
+  with Kp = 1.12, Ki = 0.23, Kd = 1.3, Tf = 0.122, b = 0.664, c = 0.0136
+ 
+Continuous-time 2-DOF PIDF controller in parallel form.
+
+% Let's decompose C2 into SISO control components using the feedforward configuration 
+[Cff, Xff] = getComponents(C2, 'feedforward')
+
+Cff =
+ 
+             1            s    
+  Kp + Ki * --- + Kd * --------
+             s          Tf*s+1 
+
+  with Kp = 1.12, Ki = 0.23, Kd = 1.3, Tf = 0.122
+ 
+Continuous-time PIDF controller in parallel form.
+
+
+Xff =
+ 
+  -10.898 (s+0.2838)
+  ------------------
+      (s+8.181)
+ 
+Continuous-time zero/pole/gain model.
+
+% Construct the closed-loop system for the feedforward configuration
+Tff = G*(Cff + Xff) * feedback(1, G * Cff);
+% Decompose C2 using the feedback configuration and construct closed-loop system 
+[Cfb, Xfb] = getComponents(C2, 'feedback')
+
+Cfb =
+ 
+             1            s    
+  Kp + Ki * --- + Kd * --------
+             s          Tf*s+1 
+
+  with Kp = 0.746, Ki = 0.23, Kd = 0.0177, Tf = 0.122
+ 
+Continuous-time PIDF controller in parallel form.
+
+
+Xfb =
+ 
+  10.898 (s+0.2838)
+  -----------------
+      (s+8.181)
+ 
+Continuous-time zero/pole/gain model.
+
+Tfb = G*Cfb*feedback(1, G*(Cfb + Xfb));
+% Decompose C2 using the filter configuration, construct closed-loop system 
+[[Cfr, Xfr] = getComponents(Cs, 'filter');
+ [[Cfr, Xfr] = getComponents(Cs, 'filter');
+             
+{Error: Incorrect use of '=' operator. To assign a value to a variable, use '='. To compare values for
+equality, use '=='.
+} 
+[Cfr, Xfr] = getComponents(Cs, 'filter');
+{Undefined function or variable 'Cs'.
+} 
+[Cfr, Xfr] = getComponents(C2, 'filter');
+Tfr = Xfr * feedback(G*Cfr, 1);
+% Construct the closed-loop system for the original 2 dof controller C2. Convert C2 to a two-input, one-output transfer function
+% Use array indexing to access the channels 
+Ctf = tf(C2); 
+Cr = Ctf(1); 
+Cy = Ctf(2);
+T = Cr * feedback(G, Cy, +1);
+% Compare the step respoonses of all the cl systems 
+stepplot(T, Tff, Tfb, Tfr)
+%% Discretize a Compensator: 
+% Let's convert a compensator to discrete time using several discretization methods and identify a method that yiels good match in freq domain
+% You might design a controller in continous domain and then convert to discrete time domain for digital implementation
+% We want this discretization to preserve the frequency-domain characteristics for performance and stability requirements
+% Given control system that is a continous-time 2nd order system with a sharp resonance at 3 rad/s
+% We can use a notch filter in series with an integrator for controller
+% G is a continous-time 2nd order system with a sharp resonance at 3 rad/s
+notch = tf([1, 0.5, 9], [1, 5, 9]);
+integ = pid(0, 0.34);
+C = integ * notch;
+bodeplot(C)
+% The notch filter is centered around 3 rad/s and counteracts the effect of the resonance in G
+% This allows higher loop gain for a faster overall response
+% Discretize the compensator
+Cdz = c2d(C, 0.5);
+% c2d supports several different discretization methods, the default method is zero-order hold
+% In zero-order hold method the time-domain response of the discretized compensator matches the continuous-time response at each time step
+% The discretized controller Cdz has sample time 0.5 s
+% In practice the sample time you choose might be limited by the system implementation or the bandwidth of controller
+% Lets compare
+bodeplot(C, Cdz)
+legend('C', 'Cdz')
+% The vertical line marks the Nyquist frequency pi/Ts, where Ts is the sample time
+% Near the Nyquist the response of the discretized compensator is distorted relative to the continuous-time response
+% Therefore, the discretized notched filter may not properly counteract the plant resonance
+% We try discretizing using the Tustin method and compare 
+Cdt = c2d(C, 0.5, 'tustin
+ Cdt = c2d(C, 0.5, 'tustin
+                   
+{Error: Character vector is not terminated properly.
+} 
+Cdt = c2d(C, 0.5, 'tustin');
+plotopts = bodeoptions; 
+plotopts.Ylin = {[-60, 40], [-225, 0]};
+{Unrecognized property 'Ylin' for class 'plotopts.BodePlotOptions'.
+} 
+plotopts.YLim = {[-60, 40], [-225, 0]};
+bodeplot(C, Cdz, Cdt, plotopts)
+legend('C', 'Cdz', 'Cdt')
+% The Tustin method preserves the depth of the notch, but the mehod introduces a frequency shift that's unacceptable
+% Can remedy this situation by spcifying the notch frequency as the prewarping frequency in the Tustin transform
+discopts = c2dOptions('Method', 'tustin', 'PrewarpFrequency', 3.0);
+Cdtp = c2d(C, 0.5, discopts);
+bodeplot(C, Cdt, Cdtp, plotopts)
+legend('C', 'Cdt', 'Cdtp')
+% The preqarp frequency is 3.0 rad/s the frequency of the notch in the compensator response 
+% Using Tustin method with frequency preqarping yields a better-matchin frequency response than Tustin without prewarping
+%% Improve Accuracy of Discretized System with Time Delay:
+% This example shows how to improve the freq domain accuracy of a system with time delay that is fractional multiple of the sample time
+% For systems with time delays that are not integer mutliples of the sample time, Tustin and Matched methods by default round the time delays to nearest multiple of the sample time
+% To improve accuracy of these methods for such systems, c2d can approximate the fractional portion of the time delay by an all-pass (Thiran) filter
+% Let's compare discretization of the system with and without approximation of the fractinal portion of delay
+G = tf(1, [1, 0.2, 4], 'ioDelay', 2.5);
+% Discretize G using sample time of 1s. G has a sharp resonance at 2 rad/s. At a sample time of 1s that peak is close to Nyquist freq.
+% For freq-domain match that preseres dynamics near the peak use Tustin method with prewarp freq of 2 rad/s
+discopt = c2dOptions('Method', 'tustin', 'PrewarpFrequency', 2);
+Gt = c2d(G, 1, discopts)
+[Warning: Rounding delays to the nearest multiple of the sampling period. For more accuracy in the time domain,
+use the ZOH or FOH methods. For more accuracy in the frequency domain, use Thiran filters to approximate the
+fractional delays (type "help c2dOptions" for more details).] 
+[> In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('ctrlMsgUtils.warning', '/Applications/MATLAB_R2018a.app/toolbox/shared/controllib/general/+ctrlMsgUtils/warning.m', 25)" style="font-weight:bold">ctrlMsgUtils.warning</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2018a.app/toolbox/shared/controllib/general/+ctrlMsgUtils/warning.m',25,0)">line 25</a>)
+  In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('ltipack.zpkdata/c2d>handleFractionalDelays', '/Applications/MATLAB_R2018a.app/toolbox/shared/controllib/engine/+ltipack/@zpkdata/c2d.m', 181)" style="font-weight:bold">ltipack.zpkdata/c2d>handleFractionalDelays</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2018a.app/toolbox/shared/controllib/engine/+ltipack/@zpkdata/c2d.m',181,0)">line 181</a>)
+  In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('ltipack.zpkdata/c2d>localDiscretizeDelaysTustinMatchedLeastSquares', '/Applications/MATLAB_R2018a.app/toolbox/shared/controllib/engine/+ltipack/@zpkdata/c2d.m', 225)" style="font-weight:bold">ltipack.zpkdata/c2d>localDiscretizeDelaysTustinMatchedLeastSquares</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2018a.app/toolbox/shared/controllib/engine/+ltipack/@zpkdata/c2d.m',225,0)">line 225</a>)
+  In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('ltipack.zpkdata/c2d', '/Applications/MATLAB_R2018a.app/toolbox/shared/controllib/engine/+ltipack/@zpkdata/c2d.m', 105)" style="font-weight:bold">ltipack.zpkdata/c2d</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2018a.app/toolbox/shared/controllib/engine/+ltipack/@zpkdata/c2d.m',105,0)">line 105</a>)
+  In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('ltipack.tfdata/c2d', '/Applications/MATLAB_R2018a.app/toolbox/shared/controllib/engine/+ltipack/@tfdata/c2d.m', 13)" style="font-weight:bold">ltipack.tfdata/c2d</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2018a.app/toolbox/shared/controllib/engine/+ltipack/@tfdata/c2d.m',13,0)">line 13</a>)
+  In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('ltipack.SystemArray/c2d_', '/Applications/MATLAB_R2018a.app/toolbox/shared/controllib/engine/+ltipack/@SystemArray/c2d_.m', 8)" style="font-weight:bold">ltipack.SystemArray/c2d_</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2018a.app/toolbox/shared/controllib/engine/+ltipack/@SystemArray/c2d_.m',8,0)">line 8</a>)
+  In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('tf/c2d_', '/Applications/MATLAB_R2018a.app/toolbox/control/ctrlmodels/@tf/tf.m', 797)" style="font-weight:bold">tf/c2d_</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2018a.app/toolbox/control/ctrlmodels/@tf/tf.m',797,0)">line 797</a>)
+  In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('DynamicSystem/c2d', '/Applications/MATLAB_R2018a.app/toolbox/shared/controllib/engine/@DynamicSystem/c2d.m', 101)" style="font-weight:bold">DynamicSystem/c2d</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2018a.app/toolbox/shared/controllib/engine/@DynamicSystem/c2d.m',101,0)">line 101</a>)] 
+
+Gt =
+ 
+           0.2446 z^2 + 0.4893 z + 0.2446
+  z^(-3) * ------------------------------
+               z^2 + 1.935 z + 0.9792
+ 
+Sample time: 1 seconds
+Discrete-time transfer function.
+
+% The software warns you that it rounds the fractional time delay to nearest mutliple of the sample time
+% In this example of delay 2.5 timet he sample time (2.5s) converts to an additional factor of z^(-3) in Gt
+plotopts = bodeoptions;
+plotopts.Ylim = {[-100, 20], [-1080, 0]};
+bodeplot(G, Gt, plotopts);
+legend('G', 'Gt')
+% There is a phase lag between the discretized system Gt and the continuos time system G, which grow as the frequency approached Nyquist freq
+% The phase lag is largely due to the rounding of the fractional time delay
+% The fractional time delay is half the sample itme
+% Let's discretize G again using a 3rd order discrete all-pass filter (Thiran filter) to approximate the half-period portion of the delay
+discopts.FractDelayApproxOrder = 3; 
+Gtf = c2d(G, 1, discopts);
+% Here the FractDelayApproxOrder option specifies the order of the Thiran filter that approximates the fractional portion of the delay
+% Thus Gtf is a Tustin discretization of G with prewarp at 2 rad/s
+% Compare
+plotopts.PhaseMatching = 'on';
+bodeplot(G, Gt, Gtf, plotopts);
+
+legend('G', 'Gt', 'Gtf', 'Location', 'SouthWest')
+% Gtf provides a better match to the phase of the continuous time system through the resonance
+% As the frequncy approached Nyquist the phase match deteriorates
+% A higher-order approximation of the fractional delay would improve the phase matching closer to Nyquist frequencies
+% But a higher-order approx of the fractional delay adds an additional order (or state) of the discretized system
+% If you require a accurate frequency-matching near Nyquist frequency use c2dOptions to make c2d approx. the fractional portion of time delay as Thiran filter
+%% Convert Discrete-Time System to Continuous Time 
+% Let's convert a second-order discrete-time system to continuous time using ZOH method
+% G(z) = (z + 0.5)/((z + 2)*(z - 5))
+G = zpk(-0.5, [-2, 5], 1, 0.1);
+Gcz = d2c(G)
+[Warning: The model order was increased to handle real negative poles.] 
+[> In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('ctrlMsgUtils.warning', '/Applications/MATLAB_R2018a.app/toolbox/shared/controllib/general/+ctrlMsgUtils/warning.m', 25)" style="font-weight:bold">ctrlMsgUtils.warning</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2018a.app/toolbox/shared/controllib/general/+ctrlMsgUtils/warning.m',25,0)">line 25</a>)
+  In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('ltipack.ssdata/utInvDiscretize', '/Applications/MATLAB_R2018a.app/toolbox/shared/controllib/engine/+ltipack/@ssdata/utInvDiscretize.m', 73)" style="font-weight:bold">ltipack.ssdata/utInvDiscretize</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2018a.app/toolbox/shared/controllib/engine/+ltipack/@ssdata/utInvDiscretize.m',73,0)">line 73</a>)
+  In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('ltipack.ssdata/d2c', '/Applications/MATLAB_R2018a.app/toolbox/shared/controllib/engine/+ltipack/@ssdata/d2c.m', 22)" style="font-weight:bold">ltipack.ssdata/d2c</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2018a.app/toolbox/shared/controllib/engine/+ltipack/@ssdata/d2c.m',22,0)">line 22</a>)
+  In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('ltipack.zpkdata/d2c', '/Applications/MATLAB_R2018a.app/toolbox/shared/controllib/engine/+ltipack/@zpkdata/d2c.m', 155)" style="font-weight:bold">ltipack.zpkdata/d2c</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2018a.app/toolbox/shared/controllib/engine/+ltipack/@zpkdata/d2c.m',155,0)">line 155</a>)
+  In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('ltipack.SystemArray/d2c_', '/Applications/MATLAB_R2018a.app/toolbox/shared/controllib/engine/+ltipack/@SystemArray/d2c_.m', 10)" style="font-weight:bold">ltipack.SystemArray/d2c_</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2018a.app/toolbox/shared/controllib/engine/+ltipack/@SystemArray/d2c_.m',10,0)">line 10</a>)
+  In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('zpk/d2c_', '/Applications/MATLAB_R2018a.app/toolbox/control/ctrlmodels/@zpk/zpk.m', 816)" style="font-weight:bold">zpk/d2c_</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2018a.app/toolbox/control/ctrlmodels/@zpk/zpk.m',816,0)">line 816</a>)
+  In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('DynamicSystem/d2c', '/Applications/MATLAB_R2018a.app/toolbox/shared/controllib/engine/@DynamicSystem/d2c.m', 98)" style="font-weight:bold">DynamicSystem/d2c</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2018a.app/toolbox/shared/controllib/engine/@DynamicSystem/d2c.m',98,0)">line 98</a>)] 
+
+Gcz =
+ 
+   2.6663 (s^2 + 14.28s + 780.9)
+  -------------------------------
+  (s-16.09) (s^2 - 13.86s + 1035)
+ 
+Continuous-time zero/pole/gain model.
+
+% d2c uses ZOH by default, this ZOH interpolation method increases the model order for systems that have negative real poles
+% The order increase occurs because the interpolation algorithm maps real negative poles in z domain to pairs of complex conjugate poles in the s domain
+% Let's use the Tustin method
+Gct = dsc(G, 'tustin')
+{Undefined function or variable 'dsc'.
+} 
+Gct = d2c(G, 'tustin')
+
+Gct =
+ 
+  0.083333 (s+60) (s-20)
+  ----------------------
+     (s-60) (s-13.33)
+ 
+Continuous-time zero/pole/gain model.
+
+% In this case there is no order increase
+bode(G, Gcz, Gct)
+legen('G', 'Gcz', 'Gct')
+{Undefined function or variable 'legen'.
+} 
+legend('G', 'Gcz', 'Gct')
+% The Tustin method provides a better frequency-domain match between discrete system and the interpolation
+% But the Tustin interpolation method is undefined for systems with poles at z = -1 (integrators) and is ill-conditioned for systems with poles near z = 1
+%% Upsample Discrete-Time System:
+% Upsampling can be useful when you need to implement a digital controller at a faster rate than you originally designed it
+% Consider G(z) = (z + 0.4)/(z - 0.7)
+% Sample time is 0.3 s
+G = tf([1, 0.4], [1, -0.7], 0.3);
+% Resample the system at 0.1s using d2d
+G_d2d = d2d(G, 0.1)
+
+G_d2d =
+ 
+  z - 0.4769
+  ----------
+  z - 0.8879
+ 
+Sample time: 0.1 seconds
+Discrete-time transfer function.
+
+% By default d2d uses the ZOH method to resample the system, where the resampled system has same order as G
+% Let's resample using upsample 0.1s
+G_up = upsample(G, 3)
+
+G_up =
+ 
+  z^3 + 0.4
+  ---------
+  z^3 - 0.7
+ 
+Sample time: 0.1 seconds
+Discrete-time transfer function.
+
+% The second input, 3, tells upsample to resample G at a sample three times faster than the sample time of G
+% This input to upsample must be an integer
+% G_up has three times as many poles and zeroes as G
+% Compare
+step(G, '-r', G_d2d, ':g', G_up '--b'); legend('G', 'd2d', 'upsample'. 'Location', 'SouthEast')
+ step(G, '-r', G_d2d, ':g', G_up '--b'); legend('G', 'd2d', 'upsample'. 'Location', 'SouthEast')
+                                 
+{Error: Invalid expression. Check for missing multiplication operator, missing or unbalanced delimiters, or
+other syntax error. To construct matrices, use brackets instead of parentheses.
+} 
+step(G, '-r', G_d2d, ':g', G_up '--b'), legend('G', 'd2d', 'upsample'. 'Location', 'SouthEast')
+ step(G, '-r', G_d2d, ':g', G_up '--b'), legend('G', 'd2d', 'upsample'. 'Location', 'SouthEast')
+                                 
+{Error: Invalid expression. Check for missing multiplication operator, missing or unbalanced delimiters, or
+other syntax error. To construct matrices, use brackets instead of parentheses.
+} 
+step(G, '-r', G_d2d, ':g', G_up '--b')
+ step(G, '-r', G_d2d, ':g', G_up '--b')
+                                 
+{Error: Invalid expression. Check for missing multiplication operator, missing or unbalanced delimiters, or
+other syntax error. To construct matrices, use brackets instead of parentheses.
+} 
+step(G, '-r', G_d2d, ':g', G_up, '--b'), legend('G', 'd2d', 'upsample'. 'Location', 'SouthEast')
+ step(G, '-r', G_d2d, ':g', G_up, '--b'), legend('G', 'd2d', 'upsample'. 'Location', 'SouthEast')
+                                                                       
+{Error: Invalid use of operator.
+} 
+step(G, '-r', G_d2d, ':g', G_up, '--b')
+step(G, '-r', G_d2d, ':g', G_up, '--b'), legend('G', 'd2d', 'upsample'. 'Location', 'SouthEast')
+ step(G, '-r', G_d2d, ':g', G_up, '--b'), legend('G', 'd2d', 'upsample'. 'Location', 'SouthEast')
+                                                                       
+{Error: Invalid use of operator.
+} 
+legend('G', 'd2d', 'upsample'. 'Location', 'SouthEast')
+ legend('G', 'd2d', 'upsample'. 'Location', 'SouthEast')
+                              
+{Error: Invalid use of operator.
+} 
+legend('G', 'd2d', 'upsample', 'Location', 'SouthEast')
+% The step response of the upsampled model G_up matches exactly the step response of the original model G
+% The response of the resampled model G_d2d matches only at every third sample
+% Let's compare the frequency response
+bode(G, '-r', G_d2d, ':g', G_up, '--b'), legend('G', 'd2d', 'upsample', 'Location', 'SouthWest')
+% The model G_up created with upsample command matches the original model exactly up to the Nyquist frequency of the original model
+% upsample provides a better match than d2d in both time and frequency domains
+% But upsample increase model order, which can be undesirable
+% upsample is only available where the original sample time is an integer multiple of the new sample timer
+diary off

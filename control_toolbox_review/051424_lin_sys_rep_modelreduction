@@ -1,0 +1,474 @@
+clc
+%% Balanced Truncation Model Reduction:
+% Balanced truncation computes a lower-order approximation of your model
+% It will neglect states that have low effect on the overall model respons
+% Using a lower-order approximation that preserves dynamics can simplify analysis and control design
+% Can use the "Model Reducer App", please see documentation
+% We want to find the lowest-order model that preserves the dynamics important for app
+%% Approximate Model by Balanced Truncation at the Command Line:
+% "balred" removes the states with lowest energy contribution to overall model behavior
+% Let's load a high-order model, which is 23rd-order SISO model 
+load ltiexamples hplant
+order(hplant)
+
+ans =
+
+    23
+
+% Let's examine the relative amount of energy per state using the Hankel singular-value
+hsvplot(hplant)
+% The plot show that two states account for most of the energy in the system.
+% Let's simplify the model to just 1st or 2nd order
+opts = balredOptions('StateElimMethod', 'Truncate');
+hplant1 = balred(hplant, 1, opts);
+hplant2 = balred(hplant, 2, opts);
+% The second argument specifies the target approximation order
+% By defauls balred discards states with the smallest Hankel singular values and alters the remaining states to preserve DC gain
+% By setting "StateElimMethod" to "Truncate" causes the balred to discard low-energy states without altering remaining states
+% Let's verify the approximation does not introduce inaccuracies at frequencies that are important
+% Since this is a SISO system let's analyze the Bode plot 
+bodeplot(hplant, hplant2, hplant1)
+legend('Original', '2nd order', '1st order')
+% The second order approximation matches the original well at lower frequencies
+% We need to choose an approximation that is sufficiently accurate in the bands that are important
+% For example in a control system, we might want good accuracy inside the control bandwidth
+% Accuracy at frequencies far above the control bandwidth, where gain rolls off, might be less important
+% Let's validate this approx in the time domain 
+stepplot(hplant, hplant2, 'r--', hplant1, 'g--')
+legend('Original', '2nd order', '1st order', 'Location', 'SouthEast')
+% Confirms that 2nd order is a good match to original 23rd order system
+%% Compare Truncated and DC Matched Low-Order Model Approximations: 
+% When you compute the low-order approx by balanced trunctation method you can: 
+% 1. Discard the states that make the smallest contribution to system behavior, altering the remaining states to preserve the DC gain of the system
+% 2. Discard teh low-energy states without altering the remaining states
+% The method you choose depends on what dynamics are most important to your application
+% DC gain comes at the expense of accuracy in higher-freq dynamics
+% State truncation can yield more accuracy in fast transients at expense of low-frequency
+% Let's create a closed-loop model of the system from r to y: 
+G = zpk([0, -2], [-1, -3], 1);
+C = tf(2, [1, 1e-2]);
+T = feedback(G*C, 1)
+
+T =
+ 
+             2 s (s+2)
+  --------------------------------
+  (s+0.004277) (s+1.588) (s+4.418)
+ 
+Continuous-time zero/pole/gain model.
+
+% This 3rd order system has a pole-zero cancelllation near s=0. Therefore, it's a good candidate for order reduction by approx.
+% Let's compute 2 2nd-order approx to T: one for DC gain, one that truncates the lowest-energy state without changing other states
+matchopt = balredOptions('StateProjection', 'MatchDC');
+truncopt = balredOptions('StateProjection', 'Truncate');
+Tmatch = balred(T, 2, matchopt);
+Ttrunc = balred(T, 2, truncopt);
+% Compare the freq responses
+bodeplot(T, Tmatch, Ttrunc)
+legend('Original', 'DC Match', 'Truncate')
+% The truncated model matches the original model well at high frequencies but differs at low frequencies
+% The dc gain preserved model matches at low frequencies at expense of high
+% Let's look at the differences in the time-domain response
+stepplot(T, Tmatch, 'r--', Ttrunc, 1500)
+
+legend('Original', 'DC Match', 'Truncate')
+stepplot(T, Tmatch, 'r--', Ttrunc, 1500)
+% As expected on long time scales the DC-match approx Tmatch has a very similar response to original model 
+% Let's compare the fast transients 
+stepplot(T, Tmatch, 'r', Ttrunc, 'g--', 0.5), legend('Original', 'DC Match', 'Truncate')
+% On short time scales, the truncated approx provides a better match to original model 
+%% Approximate Model with Unstable or Near-Unstable Pole:
+% When computing the reduced-order approximation, the balred command doesn
+% doesn't eliminate the unstable poles because doing so would change the dynamics of the sytem
+% Let's load a model with near unstable poles 
+load('reduce.mat', 'gasf35unst')
+% This is a 25 states SISO model
+gasf35unst
+
+gasf35unst =
+ 
+  A = 
+                x1          x2          x3          x4          x5
+   x1       -32.91    0.003096       -1344           0           0
+   x2         2258     -0.2156   9.353e+04        28.1       56.77
+   x3   -2.552e-05   -7.62e-15   0.0004693   6.765e-05   0.0001367
+   x4            0           0           0  -0.0002426           0
+   x5    -1.05e-06  -3.135e-16   1.503e-07   0.0002345  -0.0004165
+   x6   -1.174e-06  -3.505e-16   -3.02e-07   3.804e-05   0.0004769
+   x7   -3.561e-06  -1.064e-15  -1.435e-05   3.752e-05    7.58e-05
+   x8   -2.306e-05  -6.886e-15  -0.0001327   2.623e-05   5.299e-05
+   x9   -1.201e-05  -3.586e-15  -6.801e-05    1.39e-05   2.807e-05
+   x10   -2.06e-06  -6.152e-16  -8.751e-06   1.025e-05    2.07e-05
+   x11  -1.249e-06   -3.73e-16  -2.637e-06   1.129e-05    2.28e-05
+   x12           0           0           0         0.5           1
+   x13  -1.361e-07  -4.064e-17  -1.726e-06           0           0
+   x14  -4.603e-07  -1.375e-16  -1.447e-06           0           0
+   x15  -5.458e-07   -1.63e-16  -6.801e-07           0           0
+   x16   -6.27e-08  -1.873e-17  -1.339e-07           0           0
+   x17           0           0           0           0           0
+   x18           0           0           0           0           0
+   x19           0           0           0           0           0
+   x20  -1.826e-06  -5.453e-16  -3.901e-06           0           0
+   x21  -2.169e-08  -6.477e-18  -4.633e-08           0           0
+   x22           0           0           0           0           0
+   x23           0           0           0           0           0
+   x24  -6.156e-07  -1.839e-16  -8.516e-07           0           0
+   x25           0           0           0           0           0
+ 
+                x6          x7          x8          x9         x10
+   x1            0           0           0           0           0
+   x2        56.64        52.2      -67.61       -1404       -3283
+   x3    0.0001363   0.0001256  -0.0001627    -0.00338   -0.007903
+   x4            0           0           0           0           0
+   x5    7.369e-05   7.369e-05   7.369e-05   7.369e-05   3.988e-05
+   x6   -0.0004139   7.685e-05   7.685e-05   7.685e-05   4.159e-05
+   x7    0.0004758  -0.0004354    7.58e-05    7.58e-05   4.102e-05
+   x8    5.299e-05    0.000453   -0.001009   5.299e-05   2.868e-05
+   x9    2.807e-05   2.807e-05   0.0004281   -0.007172   1.519e-05
+   x10    2.07e-05    2.07e-05    2.07e-05   0.0004207     0.01548
+   x11    2.28e-05    2.28e-05    2.28e-05    2.28e-05   0.0002289
+   x12           1           1           1           1      0.5462
+   x13           0           0           0           0           0
+   x14           0           0           0           0           0
+   x15           0           0           0           0           0
+   x16           0           0           0           0           0
+   x17           0           0           0           0           0
+   x18           0           0           0           0           0
+   x19           0           0           0           0           0
+   x20           0           0           0           0           0
+   x21           0           0           0           0           0
+   x22           0           0           0           0           0
+   x23           0           0           0           0           0
+   x24           0           0           0           0           0
+   x25           0           0           0           0           0
+ 
+               x11         x12         x13         x14         x15
+   x1            0       -2977  -5.999e+05   2.176e+06  -1.251e+06
+   x2        -6519   2.073e+05   4.005e+07  -1.509e+08   8.338e+07
+   x3     -0.01569   0.0001071      -2.175    -0.05593      -3.169
+   x4            0           0           0           0           0
+   x5    3.794e-05  -5.967e-05    0.007767     0.08845     -0.1181
+   x6    3.956e-05  -5.135e-05  -0.0006286     0.09022     -0.1335
+   x7    3.902e-05  -4.441e-05      -0.264     0.02907     -0.4415
+   x8    2.728e-05  -1.259e-05      -2.401      -0.463      -2.917
+   x9    1.445e-05   2.652e-05      -1.233     -0.2235      -1.502
+   x10   1.066e-05  -2.106e-06     -0.1891    -0.01462     -0.2601
+   x11    -0.03011  -4.949e-06     -0.1046    0.003965     -0.1647
+   x12      0.5198          -1           0           0           0
+   x13           0  -5.272e-06     -0.1412    -0.06861    0.002713
+   x14           0  -4.419e-06    -0.06816    -0.09471    -0.07636
+   x15           0  -2.077e-06    -0.03118    0.005553     -0.1412
+   x16           0  -4.091e-07   -0.006427   -0.001598   -0.007343
+   x17           0           0           0           0           0
+   x18           0           0           0           0           0
+   x19           0           0           0           0           0
+   x20           0  -1.191e-05     -0.1872    -0.04653     -0.2138
+   x21           0  -1.415e-07   -0.002223  -0.0005527    -0.00254
+   x22           0           0           0           0           0
+   x23           0           0           0           0           0
+   x24           0  -2.601e-06    -0.04213     0.01052    -0.04964
+   x25           0           0           0           0           0
+ 
+               x16         x17         x18         x19         x20
+   x1     2.57e+06   4.081e+06   5.259e+06   6.636e+06  -6.227e+05
+   x2   -1.782e+08  -2.821e+08  -3.632e+08  -4.579e+08   4.132e+07
+   x3       0.1695       1.344        2.26       3.331      -2.311
+   x4            0           0           0           0           0
+   x5      0.08369       0.132      0.1697      0.2137    -0.01836
+   x6       0.0862      0.1402      0.1823      0.2316    -0.02792
+   x7        0.054      0.2178      0.3454      0.4947     -0.2923
+   x8      -0.1938      0.8707       1.701       2.672      -2.433
+   x9     -0.08339       0.471      0.9035       1.409      -1.249
+   x10     0.00397     0.09739      0.1699       0.255     -0.1975
+   x11     0.01072     0.06528      0.1072      0.1566     -0.1132
+   x12           0           0           0           0           0
+   x13    -0.05754    -0.04816    -0.04016    -0.03133    -0.06811
+   x14    -0.02216    0.001714     0.02092     0.04293    -0.06461
+   x15     0.01411     0.04058     0.06151     0.08576    -0.03781
+   x16    -0.05735    0.002556    0.005061    0.007947   -0.006463
+   x17           0    -0.05677           0           0           0
+   x18           0           0    -0.05677           0           0
+   x19           0           0           0    -0.05677           0
+   x20    -0.01704     0.07443      0.1474      0.2314      -0.245
+   x21  -0.0002025   0.0008841    0.001751    0.002749   -0.002236
+   x22           0           0           0           0           0
+   x23           0           0           0           0           0
+   x24     0.01212     0.04214     0.06592     0.09344    -0.04629
+   x25           0           0           0           0           0
+ 
+               x21         x22         x23         x24         x25
+   x1   -2.761e+06  -3.326e+06  -7.384e+05   1.011e+06  -9.638e+05
+   x2    1.884e+08   2.271e+08   4.927e+07  -7.231e+07   6.476e+07
+   x3       -3.973       -4.41      -2.401      -1.675      -2.576
+   x4            0           0           0           0           0
+   x5     -0.08673     -0.1047    -0.02206     -0.1012    -0.02926
+   x6      -0.1044     -0.1245    -0.03206     -0.1103    -0.04012
+   x7      -0.5244     -0.5858     -0.3049     -0.2528     -0.3294
+   x8       -3.931      -4.322      -2.513      -1.374      -2.671
+   x9        -2.03      -2.233      -1.291     -0.6987      -1.373
+   x10     -0.3328     -0.3706      -0.205     -0.1311     -0.2193
+   x11      -0.197     -0.2235      -0.118    -0.09031      -0.127
+   x12           0           0           0           0           0
+   x13    -0.07431    -0.07129    -0.06814    -0.01449    -0.06863
+   x14     -0.0923    -0.09557    -0.06585     0.01511    -0.06863
+   x15    -0.07221    -0.07926    -0.03954   -0.006586    -0.04309
+   x16    -0.01033    -0.01097   -0.006648   -0.003494   -0.007042
+   x17           0           0           0           0           0
+   x18           0           0           0           0           0
+   x19           0           0           0           0           0
+   x20     -0.3008     -0.3194     -0.1936     -0.1018     -0.2051
+   x21    -0.06034   -0.003793   -0.002299   -0.001209   -0.002436
+   x22           0    -0.05677           0           0           0
+   x23           0           0    -0.05677           0           0
+   x24    -0.08495    -0.09262    -0.04822     -0.1318    -0.05221
+   x25           0           0           0           0    -0.05677
+ 
+  B = 
+                u1
+   x1        -1127
+   x2   -8.302e+04
+   x3    -0.006556
+   x4            0
+   x5       0.1116
+   x6       0.1164
+   x7       0.1148
+   x8      0.08023
+   x9      0.04251
+   x10     0.03135
+   x11     0.03454
+   x12           0
+   x13    0.001092
+   x14           0
+   x15    0.009046
+   x16           0
+   x17           0
+   x18           0
+   x19           0
+   x20           0
+   x21           0
+   x22           0
+   x23           0
+   x24     0.00222
+   x25           0
+ 
+  C = 
+               x1          x2          x3          x4          x5
+   y1       1.055   3.152e-10       2.097           0           0
+ 
+               x6          x7          x8          x9         x10
+   y1           0           0           0           0           0
+ 
+              x11         x12         x13         x14         x15
+   y1           0       6.405   1.168e+05   2.751e+04   1.371e+05
+ 
+              x16         x17         x18         x19         x20
+   y1   1.476e+04  -3.382e+04  -7.169e+04   -1.16e+05   1.174e+05
+ 
+              x21         x22         x23         x24         x25
+   y1   1.861e+05   2.042e+05   1.211e+05   6.433e+04   1.283e+05
+ 
+  D = 
+       u1
+   y1   0
+ 
+Continuous-time state-space model.
+
+% Consider a physical system like a mechanical structure with many joints and links. Each joint's position and velocity might represent a state, leading to a large number of states (e.g., 25). If we are only interested in controlling one aspect of the system (e.g., the position of one specific joint) with one control input (e.g., a motor torque), this would still be a SISO system, despite the high number of states.
+pzplot(gasf35unst), axis([-0.0015, 0.0015, -0.0005, 0.0005])
+% The pole-zero plot shows several poles (marked by x) that fall in the left-half plane but close to imaginary axis
+% These are near unstable poles 
+hsvplot(gasf35unst)
+% Use the Offset option of balred to calculate a reduced-order system that preserces the near-unstable poles even if they are relatively low energy 
+% 'Offset' option will set the boundary between poles that balred can discard and poles that if must preserve
+opts = balredOptions('Offset', 0.0005);
+gasf_arr = balred(gasf35unst, [10, 15], opts);
+% The array of target approx order [10, 15] will return an array of approx models 
+bodeplot(gasf35unst, gasf_arr, 'r--')
+% The bode plot shows that the 15th order approximation is better choice
+%% Frequency-Limited Balanced Truncation: 
+% Reduce high-order model by removing states of relatively low energy within particular frequency interval 
+% By focusing on the energy contribution calculation on particular frequency region may yield a good approx to dynamics of interest at a lower order rather than taking all frequencies into account
+load('building.mat', 'G')
+bodeplot(G)
+% This is a 48th order model with several peak regions around 5.2 rad/s, 13.5 rad/s, 24.5 rad/s and smaller peaks scattered across many freq
+hsvd(G)
+
+ans =
+
+    0.0025
+    0.0024
+    0.0019
+    0.0019
+    0.0007
+    0.0007
+    0.0006
+    0.0006
+    0.0004
+    0.0004
+    0.0003
+    0.0003
+    0.0003
+    0.0002
+    0.0002
+    0.0002
+    0.0002
+    0.0002
+    0.0001
+    0.0001
+    0.0001
+    0.0001
+    0.0001
+    0.0001
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+
+% This singular-value plot shows you can discard at least 20 states without significant impact on overall system response
+% If we're only interested in dynamics near seconnd large peak, between 10 rad/s and 22 rad/s let's try a few reduced order moedls based on the Hankel plot
+G18 = balred(G, 18);
+G10 = balred(G, 10);
+bodeplot(G, G18, G10, logspace(0.5, 1.5, 100))
+legend("Original", "18th Order Approx", "10th Order Approx")
+% Let's now focus on a region of interest to obtain a good match with low-order approx
+% Let's examine the state energy contributions in that freq region only
+hopt = hsvdOptions('FreqIntervals', [10, 22]); 
+hsvd(G, hopt)
+
+ans =
+
+    0.0018
+    0.0018
+    0.0004
+    0.0004
+    0.0002
+    0.0002
+    0.0001
+    0.0001
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+    0.0000
+
+% This tells us that in this frequency range there are many fewer states that contribute significanlty to the dynamics that contirbute to the overall dynamics
+% Let's try the same reduced-model orders, choosing staes to eliminate based only on their contribution to the freq interval
+bopt = balredOptions('StateProjection', 'Truncate', 'FreqIntervals', [10, 22]); 
+GLim18 = balred(G, 18, bopt);
+GLim10 = balred(G, 10, bopt); 
+bodeplot(G, GLim18, GLim10, logspace(0.5, 1.5, 100);
+ bodeplot(G, GLim18, GLim10, logspace(0.5, 1.5, 100);
+                                                    ↑
+{Invalid expression. When calling a function or indexing a variable, use
+parentheses. Otherwise, check for mismatched delimiters.
+} 
+bodeplot(G, GLim18, GLim10, logspace(0.5, 1.5, 100));
+% By limiting the freq energy computation, a 10th order approximation is as good in this region as the 18th order
+%% Pole-Zero Simplification: 
+% Pole-zero simplification reduces the order of your model exactly by canceling pole-zero pairs or eliminating states taht have no effect on the overall model response
+% These include: 
+% 1. Structural elimination - eliminate staes that are structually disconnected from the input and outputs
+% 2. Pole-zero cancellation or minimal realization - eliminate canceling or near-canceling pole-zero pairs from transfer functions; eliminate unobservable or uncontrollable states from state-space models 
+% Can use Model Reducer App for this - please see documentation 
+% Let's do a this at the command line 
+G = zpk(3e-8, [-1, 3], 1); 
+C = pid(1, 0.3); 
+T = feedback(G*C, 1)
+
+T =
+ 
+    (s+0.3) (s-3e-08)
+  ---------------------
+  s (s-2.218) (s+1.218)
+ 
+Continuous-time zero/pole/gain model.
+
+% The integrator (1/s) from C nearly cancels the low frequency zero of G
+% Let's force the cancellation of the integrator with the zero near origin 
+Tred = minreal(T, 1e-7)
+
+Tred =
+ 
+    (s+0.3) (s-3e-08)
+  ---------------------
+  s (s-2.218) (s+1.218)
+ 
+Continuous-time zero/pole/gain model.
+
+G = zpk(3e-8, [-1, -3], 1);
+C = pid(1, 0.3);
+T = feedback(G*C, 1)
+
+T =
+ 
+    (s+0.3) (s-3e-08)
+  ----------------------
+  s (s+4.218) (s+0.7824)
+ 
+Continuous-time zero/pole/gain model.
+
+Tred = minreal(T, 1e-7)
+
+Tred =
+ 
+    (s+0.3) (s-3e-08)
+  ----------------------
+  s (s+4.218) (s+0.7824)
+ 
+Continuous-time zero/pole/gain model.
+

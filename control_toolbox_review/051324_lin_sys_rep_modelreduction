@@ -1,0 +1,39 @@
+% Working will lower-order model can simplify analysis and control design
+% When desinging a controller for a system represented by a high-order model, it's useful to start with simplyfying the plant model
+% Can then design a relatively low-order controller for the lower-order plant
+% After designing the controller can reduce further by: 
+% 1. discard states that do not contribute to the system dynamics, such as disconnected states or canceling pole-zero pairs
+% 2. discard low-energy states that contribute little to system dynamics
+% 3. Focus on particular freq. region and discard dynamics outside that region, for example if your control bw is limited by actuator dyn, discard higher-order dyn
+% You may either want to simplify your model or compute a lower-order approximation
+% Sometimes approximation can yield better results even if model looks like good candidate for simplification
+% Models with near pole-zero cancellations are sometimes better reduced by approx
+% So balred to reduce state-space models can yield more accurate results thatn minreal
+% Always compare your reduced order model preserves model characteristics important in application
+% Let's use the Model Reducer app: 
+% This example illustrates the Balanced Truncation method, which eliminates states basd on their energy contributions to system response
+% Let's load a 48-state model where each state represents displacement or velocity
+load building.mat
+% Open model reducer app 
+modelReducer(G)
+% The order of the reduced model is 14 is highlighted in bar chart
+% In the reduced model, all states with lower energy contribution than this one are discarded
+% We can also look at the abosolute error to see the difference between the original and reduced models
+% If we look at the 5-th order reduced model has at -60dB error in frequency region of the first two peaks below about 30 rad/s
+% This error increases at higher frequencies
+% The 10th order reduced model has smaller error over all frequencies. 
+% By default the balanced truncation in Model Reducer preserves DC gain, matching the steady-state response of the original and reduced models 
+% We can clear the "Preserve DC Gain" checkbox to better approzimate high-freq dynamices 
+% This error in high-frequency region is decreased at teh cost of a slight increase in error at low frequencies
+% We can also compare the models in a specific frequency range by checking "Focus on range"
+% Can also compare the time-domain responses of the stored reduced models and in the Plots tab
+% We can perform model order reduction in a livescript as well. 
+% The Hankel singular-value plot shows the relative energy contributiions of each state in the system
+% Model reduced will compute and initial reduced-order model based on these values 
+% Highlighted bar is the lowest-energy state in the intial reduced-order model
+% Try different reduced model orderss to find the lowest-order model that preserves dynamics that are important in your application
+% Also, we can limit the Hankel singular-value computation to a specific frequency range which is useful when your model has modes outisde the region of interest in your application
+% Setting the error bound to absolute controls the absolute error ||G - Gr||_inf while relative error ||G^-1*(G - Gr)||_inf controls the relative error
+% The relative error give a better match across the frequency while abs error emphasizes areas with most gain
+% Please read further documentation on Model Reducer APP
+diary off

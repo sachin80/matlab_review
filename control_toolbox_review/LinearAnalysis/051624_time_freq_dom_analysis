@@ -1,0 +1,94 @@
+% This example show how to compare multiple types of responses side by side
+% We have a 3rd order plant G, closed-loop response of G with two controllers C1 and C2
+G = zpk([], [-5, -5, -10], 100);
+C1 = pid(0, 4.4);
+T1 = feedback(G*C1, 1); 
+C2 = pid(2.9, 7.1); 
+T2 = feedback(G*C2, 1);
+linearSystemAnalyzer(G, T1, T2)
+% By default the Linear System Analyzer will plot the step responses of 2 systems 
+%% Analyzing MIMO Models: 
+% If we plot a MIMO system, or LTI array containing multiple linear models can use right-click to group response plots by input/output pairs
+% Generate a two random 3 input, 3 output MIMO systems 
+sys_mimo = stack(1, rss(3, 3, 3), rss(3, 3, 3));
+linearSystemAnalyzer(sys_mimo)
+% Plot shows a set of 9 plots one from each input to each output
+% Shows step responses of the corresponsing I/Os of both models in array
+%% Analysis of Systems with Time Delays
+% Consider the system where the plan is modeled as first-order plus dead-time
+% The closed loop from r to y 
+s = tf('s');
+P = 5*exp(-3.4*s)/(s+1);
+C = 0.1*(1 + 1/(5*s));
+T = feedback(P*C, 1);
+% T is a state-space model with internal delay
+stepplot(T)
+% For more complicated interconnections, you can name input/output signals of each blcok and use connect
+% Let's add a feedforward to the control loop
+F = 0.3/(s+4);
+P.InputName = 'u';
+P.OutputName = 'y'; 
+C.InputName = 'e'; 
+C.OutputName = 'us
+ C.OutputName = 'us
+                ↑
+{Error: Character vector is not terminated properly.
+} 
+C.OutputName = 'uc';
+F.InputName = 'r'; 
+F.OutputName = 'uf';
+Sum1 = sumblk('e', 'r', 'y', '+-'); 
+Sum2 = sumblk('u', 'uf', 'uc', '++');
+Sum1 = sumblk('e', 'r', 'y', '+-'); % e = r-y
+Tff = connect(P, C, F, Sum1, Sum2, 'r', 'y');
+stepplot(T, Tff)
+legend('No feedforward', 'Feedforward')
+% The state-space representation keeps track of internal delays in both models
+% The time and freq response fo delay systems can look and odd to those only familiar with delay-free LTI analysis
+% Bode can behave chaotically, Bode plots can exhibhit oscillations
+% Example of gain ripple: 
+s = tf('s'); 
+G = exp(-5*s)/(s+1);
+T = feedback(G, .5);
+bodemag(T)
+% Gain osciallations example 
+G = 1 + 0.5*exp(-3*s);
+bodemag(G)
+% Jagged step response example 
+G = exp(-s) * (0.8*s^2 + s + 2)/(s^2 + s);
+T = feedback(G, 1)
+
+T =
+ 
+  A = 
+           x1      x2
+   x1  -1.111  -1.111
+   x2       1       0
+ 
+  B = 
+          u1
+   x1  1.111
+   x2      0
+ 
+  C = 
+            x1       x2
+   y1  0.05556   0.5556
+ 
+  D = 
+           u1
+   y1  0.4444
+ 
+  (values computed with all internal delays set to zero)
+
+  Internal delays (seconds): 1 
+ 
+Continuous-time state-space model.
+
+stepplot(T)
+% Note the rearrivals(echoes) of initial step function 
+G = 1/(s+1) + exp(-4*s); 
+T = feedback(1, G);
+stepplot(T, 150)
+% This is an example of a chaotic response
+%% Analyzing Control Systems with Delays: 
+diary off 

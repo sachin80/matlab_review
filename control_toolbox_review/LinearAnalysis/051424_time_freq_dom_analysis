@@ -1,0 +1,940 @@
+% When you peform time-domain analysis of a dynamic system model, you may want one or more of the following:
+% 1. A plot of the system response as a functoin of time 
+% 2. Numerical value of the system response in a data array 
+% 3. Numerical values of the characteristics of the system response such as peak response of settling time
+% Example shows how to obtain step and impulse response data, as well as step and impulse response plots
+% Create the transfer function model and plot its response to a step input at t=0 
+H = tf([8, 18, 32], [1, 6, 14, 24]);
+step(H)
+% Let's calculate the step response data from t = 0 to t = 8s
+[y, t] = step(H, 8);
+% Plot the response to impulse input at t = 0
+opts = timeoptions; 
+opts.Grid = 'on'; 
+impulseplot(H, opts)
+% Calculate 200 points of impulse response data from t = 1 to t = 3s
+[y, t] = impulse(H, linspace(1, 3, 200));
+y
+
+y =
+
+   -0.6806
+   -0.6812
+   -0.6812
+   -0.6807
+   -0.6796
+   -0.6780
+   -0.6759
+   -0.6733
+   -0.6702
+   -0.6667
+   -0.6627
+   -0.6583
+   -0.6534
+   -0.6482
+   -0.6426
+   -0.6366
+   -0.6303
+   -0.6236
+   -0.6166
+   -0.6093
+   -0.6017
+   -0.5939
+   -0.5857
+   -0.5773
+   -0.5686
+   -0.5598
+   -0.5507
+   -0.5413
+   -0.5318
+   -0.5221
+   -0.5123
+   -0.5023
+   -0.4921
+   -0.4818
+   -0.4713
+   -0.4608
+   -0.4501
+   -0.4394
+   -0.4285
+   -0.4176
+   -0.4066
+   -0.3956
+   -0.3845
+   -0.3733
+   -0.3622
+   -0.3510
+   -0.3398
+   -0.3286
+   -0.3174
+   -0.3062
+   -0.2950
+   -0.2838
+   -0.2727
+   -0.2616
+   -0.2505
+   -0.2395
+   -0.2286
+   -0.2177
+   -0.2069
+   -0.1962
+   -0.1855
+   -0.1749
+   -0.1645
+   -0.1541
+   -0.1438
+   -0.1336
+   -0.1236
+   -0.1136
+   -0.1038
+   -0.0941
+   -0.0845
+   -0.0751
+   -0.0657
+   -0.0566
+   -0.0475
+   -0.0386
+   -0.0299
+   -0.0213
+   -0.0128
+   -0.0045
+    0.0036
+    0.0116
+    0.0194
+    0.0271
+    0.0346
+    0.0419
+    0.0491
+    0.0561
+    0.0630
+    0.0696
+    0.0761
+    0.0824
+    0.0886
+    0.0946
+    0.1004
+    0.1060
+    0.1115
+    0.1168
+    0.1219
+    0.1269
+    0.1317
+    0.1363
+    0.1407
+    0.1450
+    0.1491
+    0.1530
+    0.1568
+    0.1604
+    0.1638
+    0.1671
+    0.1702
+    0.1731
+    0.1759
+    0.1785
+    0.1810
+    0.1833
+    0.1854
+    0.1874
+    0.1893
+    0.1910
+    0.1925
+    0.1940
+    0.1952
+    0.1963
+    0.1973
+    0.1982
+    0.1989
+    0.1995
+    0.1999
+    0.2003
+    0.2004
+    0.2005
+    0.2005
+    0.2003
+    0.2000
+    0.1996
+    0.1991
+    0.1985
+    0.1978
+    0.1970
+    0.1960
+    0.1950
+    0.1939
+    0.1927
+    0.1914
+    0.1900
+    0.1885
+    0.1870
+    0.1853
+    0.1836
+    0.1818
+    0.1799
+    0.1780
+    0.1760
+    0.1739
+    0.1718
+    0.1696
+    0.1673
+    0.1650
+    0.1627
+    0.1602
+    0.1578
+    0.1553
+    0.1527
+    0.1501
+    0.1475
+    0.1448
+    0.1422
+    0.1394
+    0.1367
+    0.1339
+    0.1311
+    0.1282
+    0.1254
+    0.1225
+    0.1196
+    0.1167
+    0.1138
+    0.1109
+    0.1080
+    0.1050
+    0.1021
+    0.0991
+    0.0962
+    0.0933
+    0.0903
+    0.0874
+    0.0844
+    0.0815
+    0.0786
+    0.0757
+    0.0728
+    0.0699
+    0.0671
+    0.0642
+    0.0614
+    0.0586
+    0.0558
+    0.0530
+    0.0503
+
+%% Time-Domain Response of Discrete-Time Model
+% Same as continuous except for sample time, Tx
+% Ts
+H = tf([-0.06, 0.4], [1, -1.6, 0.78], 0.1); 
+step(H)
+
+% For discrete-time models step plots the response at multiples of the sample time assumming hold between samples
+% Compute the step response of H between 0.5 and 2.5 secs
+[y, t] = step(H, 0.5:0.1:2.5)
+
+y =
+
+    1.9629
+    2.3940
+    2.6393
+    2.6955
+    2.5942
+    2.3882
+    2.1377
+    1.8975
+    1.7086
+    1.5937
+    1.5572
+    1.5884
+    1.6669
+    1.7681
+    1.8687
+    1.9508
+    2.0038
+    2.0244
+    2.0160
+    1.9867
+    1.9462
+
+
+t =
+
+    0.5000
+    0.6000
+    0.7000
+    0.8000
+    0.9000
+    1.0000
+    1.1000
+    1.2000
+    1.3000
+    1.4000
+    1.5000
+    1.6000
+    1.7000
+    1.8000
+    1.9000
+    2.0000
+    2.1000
+    2.2000
+    2.3000
+    2.4000
+    2.5000
+
+% When you specify a time vector for the response of discrete-time mode, the time step must match the sample time Ts of the model
+%% Time-Domain Responses of MIMO Model 
+H = rss(2, 2, 2); 
+H.InputName ='Control'
+
+H =
+ 
+  A = 
+            x1       x2
+   x1   -1.101   0.3733
+   x2   0.3733  -0.9561
+ 
+  B = 
+       Control(1)  Control(2)
+   x1      0.7254      0.7147
+   x2           0      -0.205
+ 
+  C = 
+            x1       x2
+   y1  -0.1241    1.409
+   y2     1.49    1.417
+ 
+  D = 
+       Control(1)  Control(2)
+   y1      0.6715      0.7172
+   y2      -1.207           0
+ 
+Continuous-time state-space model.
+
+H.OutputName = 'Temperature'
+
+H =
+ 
+  A = 
+            x1       x2
+   x1   -1.101   0.3733
+   x2   0.3733  -0.9561
+ 
+  B = 
+       Control(1)  Control(2)
+   x1      0.7254      0.7147
+   x2           0      -0.205
+ 
+  C = 
+                      x1       x2
+   Temperature(  -0.1241    1.409
+   Temperature(     1.49    1.417
+ 
+  D = 
+                 Control(1)  Control(2)
+   Temperature(      0.6715      0.7172
+   Temperature(      -1.207           0
+ 
+Continuous-time state-space model.
+
+impulse(H)
+% impulse plots the response of each output to an impulse applied at each input
+% Impulse responses of all channels of H
+[y, t] = impulse(H);
+size(y)
+
+ans =
+
+   207     2     2
+
+% The first dimension of the data array y is the number of samples in the time vector t
+% The impulse command determines this number automatically if you don't supply a time vector
+% The remaining dimensions y(:, i, j) is the response of the ith output of H to an impulse applied at jth input
+%% Time-Domain Responses of Multiple Models: 
+% Example shows how to compare the step responses of multiple models on single plot of step 
+G = zpk([], [-5, -5, -10], 100);
+C1 = pid(0, 4.4);
+CL1 = feedback(G*C1, 1): 
+ CL1 = feedback(G*C1, 1): 
+                          
+{Error: Invalid expression. Check for missing or extra characters.
+} 
+CL1 = feedback(G*C1, 1);
+step(G, CL1)
+% If you don't provide a time range to plot, then step attempts to choose a time range 
+% Let's compare the step response of the closed-loop model with another controller 
+C2 = pid(2.9, 7.1); 
+CL2 = feedback(G*C2, 1);
+step(G, 'b--', CL1, 'g-', CL2, 'r-')
+%% Time-Domain Characteristics on Response Plots
+% We can display system charactersitics like settling time and overshoot on the step response plots
+H = tf([8, 18, 32], [1, 6, 14, 24]);
+stepplot(H)
+%% Numeric Values of Time-Domain System Characteristics 
+% Use stepinfo
+H = tf([8, 18, 32], [1, 6, 14, 24]);
+data = stepinfo(H)
+
+data = 
+
+  <a href="matlab:helpPopup struct" style="font-weight:bold">struct</a> with fields:
+
+        RiseTime: 0.2087
+    SettlingTime: 3.4972
+     SettlingMin: 1.1956
+     SettlingMax: 1.6871
+       Overshoot: 26.5302
+      Undershoot: 0
+            Peak: 1.6871
+        PeakTime: 0.5987
+
+% Let's calculate the time it takes the step response of H to settle within 0.5% of its final value
+data = stepinfo(H, 'SettlingTimeThreshold', 0.005);
+t05 = data.SettlingTime
+
+t05 =
+
+    4.8896
+
+% By default, 'stepinfo' defines the settling time as the time it takes for the output to settle within 0.02 (2%) of final value
+%% Response from Initial Conditions: 
+% We can plot the response of a  state-space model to specified initial state values using 'initial'
+load ltiexamples sys_dc
+sys_dc.InputName = 'Volts';
+sys_dc.OutputName = 'w'; 
+sys_dc.StateName = {'Current', 'w'}; 
+sys_dc
+
+sys_dc =
+ 
+  A = 
+            Current        w
+   Current       -4    -0.03
+   w           0.75      -10
+ 
+  B = 
+            Volts
+   Current      2
+   w            0
+ 
+  C = 
+      Current        w
+   w        0        1
+ 
+  D = 
+      Volts
+   w      0
+ 
+Continuous-time state-space model.
+
+% Here the states of the model are current (x1) and angular velocity (x2)
+% The input is the applied voltage
+% Let's plot the undriven evolution of the motor's angular rate from an intial state with current 1.0 amp and initial rate 5.0 rad/s
+x0 = [1.0, 5.0]; 
+initial(sys_dc, x0)
+% Calc the time evolution of output and the states of sys_dc from t = 0 to t = 1s 
+t = 0:0.01:1;
+[y, t, x] = initial(sys_dc, x0, t);
+% y contains the output at each time step t. The array x contains the state values at each time step
+% Therefore, x will by a 2 x 101 array
+%% Simulate Models with Arbitrary Input and Initial Conditions: 
+% Can use the Linear Simulation Tool to simulate linear models with arbitrary input signals and initial conditions 
+% Please see documentation for details. 
+%% Frequency-Domain Responses
+% May want: 
+% 1. A plot of the system responses as a functoin of frequency, or plots of pole and zero locations
+% 2. Numerical values of the system responses in a data array 
+% 3. Numerical values of characteristics of the system response like stability margins, peak gains, singular values 
+%% Frequency Response of a SISO System:
+H = tf([10, 21], [1, 1.4, 26]);
+bode(H)
+
+% Let's calculate the freq response between 1 and 13 rad/s
+[mag, phase, w] = bode(H, {1, 13});
+may
+{Undefined function or variable 'may'.
+} 
+mag
+
+mag(:,:,1) =
+
+    0.9289
+
+
+mag(:,:,2) =
+
+    0.9456
+
+
+mag(:,:,3) =
+
+    0.9645
+
+
+mag(:,:,4) =
+
+    0.9861
+
+
+mag(:,:,5) =
+
+    1.0107
+
+
+mag(:,:,6) =
+
+    1.0388
+
+
+mag(:,:,7) =
+
+    1.0710
+
+
+mag(:,:,8) =
+
+    1.1079
+
+
+mag(:,:,9) =
+
+    1.1502
+
+
+mag(:,:,10) =
+
+    1.1990
+
+
+mag(:,:,11) =
+
+    1.2554
+
+
+mag(:,:,12) =
+
+    1.3209
+
+
+mag(:,:,13) =
+
+    1.3973
+
+
+mag(:,:,14) =
+
+    1.4871
+
+
+mag(:,:,15) =
+
+    1.5934
+
+
+mag(:,:,16) =
+
+    1.6785
+
+
+mag(:,:,17) =
+
+    1.8087
+
+
+mag(:,:,18) =
+
+    1.9539
+
+
+mag(:,:,19) =
+
+    2.0731
+
+
+mag(:,:,20) =
+
+    2.1156
+
+
+mag(:,:,21) =
+
+    2.2958
+
+
+mag(:,:,22) =
+
+    2.4966
+
+
+mag(:,:,23) =
+
+    2.7204
+
+
+mag(:,:,24) =
+
+    2.9698
+
+
+mag(:,:,25) =
+
+    3.2473
+
+
+mag(:,:,26) =
+
+    3.5556
+
+
+mag(:,:,27) =
+
+    3.8967
+
+
+mag(:,:,28) =
+
+    4.2717
+
+
+mag(:,:,29) =
+
+    4.6797
+
+
+mag(:,:,30) =
+
+    5.1170
+
+
+mag(:,:,31) =
+
+    5.5754
+
+
+mag(:,:,32) =
+
+    6.0409
+
+
+mag(:,:,33) =
+
+    6.4933
+
+
+mag(:,:,34) =
+
+    6.9073
+
+
+mag(:,:,35) =
+
+    7.2555
+
+
+mag(:,:,36) =
+
+    7.5150
+
+
+mag(:,:,37) =
+
+    7.6721
+
+
+mag(:,:,38) =
+
+    7.7264
+
+
+mag(:,:,39) =
+
+    7.6620
+
+
+mag(:,:,40) =
+
+    7.4620
+
+
+mag(:,:,41) =
+
+    7.1298
+
+
+mag(:,:,42) =
+
+    6.6901
+
+
+mag(:,:,43) =
+
+    6.1809
+
+
+mag(:,:,44) =
+
+    5.6420
+
+
+mag(:,:,45) =
+
+    5.1065
+
+
+mag(:,:,46) =
+
+    4.5967
+
+
+mag(:,:,47) =
+
+    4.1252
+
+
+mag(:,:,48) =
+
+    3.6970
+
+
+mag(:,:,49) =
+
+    3.3127
+
+
+mag(:,:,50) =
+
+    2.9697
+
+
+mag(:,:,51) =
+
+    2.6646
+
+
+mag(:,:,52) =
+
+    2.3933
+
+
+mag(:,:,53) =
+
+    2.1517
+
+
+mag(:,:,54) =
+
+    1.9363
+
+
+mag(:,:,55) =
+
+    1.7437
+
+
+mag(:,:,56) =
+
+    1.5710
+
+
+mag(:,:,57) =
+
+    1.4156
+
+
+mag(:,:,58) =
+
+    1.3434
+
+
+mag(:,:,59) =
+
+    1.2105
+
+
+mag(:,:,60) =
+
+    1.0970
+
+
+mag(:,:,61) =
+
+    0.9990
+
+
+mag(:,:,62) =
+
+    0.9135
+
+w
+
+w =
+
+    1.0000
+    1.0662
+    1.1368
+    1.2121
+    1.2924
+    1.3780
+    1.4692
+    1.5665
+    1.6703
+    1.7809
+    1.8988
+    2.0246
+    2.1587
+    2.3016
+    2.4540
+    2.5650
+    2.7188
+    2.8712
+    2.9837
+    3.0215
+    3.1694
+    3.3143
+    3.4560
+    3.5941
+    3.7284
+    3.8586
+    3.9845
+    4.1062
+    4.2234
+    4.3362
+    4.4445
+    4.5483
+    4.6477
+    4.7426
+    4.8333
+    4.9197
+    5.0020
+    5.0857
+    5.1766
+    5.2756
+    5.3834
+    5.5010
+    5.6294
+    5.7700
+    5.9241
+    6.0932
+    6.2793
+    6.4843
+    6.7107
+    6.9614
+    7.2396
+    7.5490
+    7.8943
+    8.2806
+    8.7142
+    9.2025
+    9.7545
+   10.0589
+   10.7250
+   11.4353
+   12.1926
+   13.0000
+
+size(mag)
+
+ans =
+
+     1     1    62
+
+size(pahse)
+{Undefined function or variable 'pahse'.
+} 
+size(phase)
+
+ans =
+
+     1     1    62
+
+%% Frequency Response of a MIMO System:
+% We can do this in two ways: 
+% 1. Compute the freq response
+% 2. Compute the singular values 
+H = rss(2, 2, 2); 
+H.InputName = 'Control';
+H.OutputName = 'Temperature'; 
+[mag, phase, w] = bode(H(; 
+ [mag, phase, w] = bode(H(; 
+                          
+{Error: Invalid expression. When calling a function or indexing a variable, use parentheses. Otherwise,
+check for mismatched delimiters.
+} 
+[mag, phase, w] = bode(H());
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('InputOutputModel/subsref', '/Applications/MATLAB_R2018a.app/toolbox/shared/controllib/engine/@InputOutputModel/subsref.m', 43)" style="font-weight:bold">InputOutputModel/subsref</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2018a.app/toolbox/shared/controllib/engine/@InputOutputModel/subsref.m',43,0)">line 43</a>)
+Index exceeds array bounds.
+} 
+[mag, phase, w] = bode(H);
+size(mag)
+
+ans =
+
+     2     2   101
+
+% The first and second dim of the data array mag are the num of outputs and inputs of H
+% The third dimension is the number of points in the freq vector w.
+% mag(i, j, :) is the freq resp. from jth input of H to ith output, in absolute units
+% Let's plot the freq response of each input/output pair in H
+bode(H)
+% We can see the first column of plots show the response from the first input, Control(1) to each output
+% The second column shows the second input
+% Let's plot the singular value of H as a function of frequency 
+sigma(H)
+% Sigma plots the singular values of the MIMO system H as a function of frequency
+% The maximum singular value at a particular frequency is the max gain of the system over all linear combinations of inputs at that frequency
+% Singular values can provide a better indication of the overall response, stability, and conditioning of a MIMO system than a channel by channel Bode plot
+%% Numeric Values of Frequency-Domain Characteristics of SISO Model: 
+% We can obtain numeric values of several frequency domain characteristics of a SISO dynamic system model
+% This includes peak gain, dc gain, system bandwidth, and the frequencies at which system gain crosses a specified fewq
+H = tf([10, 21], [1, 1.4, 26])
+
+H =
+ 
+     10 s + 21
+  ----------------
+  s^2 + 1.4 s + 26
+ 
+Continuous-time transfer function.
+
+bodeplot(H)
+
+[gpeak, fpeak] = getPeakGain(H)
+
+gpeak =
+
+    7.7249
+
+
+fpeak =
+
+    5.0990
+
+gpeak_db = mag2db(gpeak)
+
+gpeak_db =
+
+   17.7579
+
+% Find the band within which the system gain exceeds 0 dB or 1 in absolute units
+wc = getGainCrossover(H, 1)
+
+wc =
+
+    1.2582
+   12.1843
+
+% The resulting wc vector shows that the system gain exceeds 0 dB between about 1.3 and 12.2 rad/s
+% Let's find the dcgain of H. The Bode response plot shows that the gain of H tends toward a finite value as frequency approaches 0
+% dcgain will find this value in abs units
+k = dcgain(H)
+
+k =
+
+    0.8077
+
+% Find the frequency at which the response of H rolls off to -10db relative to it's dc value
+fb = bandwidth(H, -10)
+
+fb =
+
+   39.8341
+
+% Returns the first frequency at which the system response drops below the dc gain by the specified value in dB
+%% Joint Time-Domain and Frequency-Domain Analysis
+diary off

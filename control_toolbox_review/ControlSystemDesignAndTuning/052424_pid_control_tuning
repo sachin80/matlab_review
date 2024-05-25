@@ -1,0 +1,384 @@
+%% PID Controller Design for Fast Reference Tracking
+% Given the following plant: 
+% sys = 1/(s + 1)^3, want design requirements for closed loop system to track reference input
+% Includes tracking a reference input with rise time less than 1.5s and settling time less than 6 s
+% Let's create a plant model and open PID Tuner to tune a PID Controller block
+sys = zpk([], [-1, -1, -1], 1);
+pidTuner(sys, 'pi')
+% When you open PID Tuner, it automatically designs a controller of the type you specify (PI)
+% The controller is a balance between performance (response time) and robustness(stability margins)
+% Let's examing the reference tracking rise time and settling time by right-click Characteristic->Rise Time
+% We see that the initial PI controller design provides a rise time of 2.35s and settling time of 10.7s
+% These are slower than the design req
+% Slide the "Response time" slider to right to improve loop performance 
+
+% We see that if move the slider to right to meet requirement for response time then it comes at cost of long settling time
+% To acheive faster response we must sacrifice some stability
+% Let's add a derivative action to the controller, giving the Tuner more freedom to achieve phase margin with desired response
+% If we change the controller type to PIDF then the rise time and settling time meet desing requirements
+% Let's also observer the closed-loop step response to disturbance at the plant input
+% Can do this by going to "Add Plot" and adding a "Input disturbance rejection"
+% Can finally export your final controller design to the Matlab workspace
+%% Analyze Design in PID Tuner
+% PID tuner provides system response plots and other tools for tuning PID controller for plants represented by LTI models
+% Please see documentation for more info on this!
+%% Tune PID Controller to Favor Reference Tracking or Disturbance Rejection (PID Tuner)
+% This example shows how to tune a PID controller to reduce overshoot in reference tracking or to improve disturbance rejection
+% We will use the PIDTuner to illustrate the tradeoff between reference tracking and disturbance rejection in PI and PID control systems
+% Given the following plant: 0.3/(s^2 + 0.1s)
+% Reference tracking is the response at y to signals at r. 
+% Disturbance rejections is a measure of the supression at y of signals at d.
+% Let's desing the initial PI controller
+% This PI controller will be an initial baseline against which you can compare results as you tune a PI controller 
+G = tf(0.3, [1, 0.1, 0]);
+C = pidtune(G, 'PI');
+pidTuner(G,C)
+% Add a step response plot of the input disturbance rejection
+% In this case, the controller yields some overshoot in reference-tracking response
+% The controller suppresses the input disturbance with longer settling time than the reference tracking, after the initial peak
+% We can alter the balance between reference tracking and disturbance rejection using Transient Behavior slider
+% The responses with the intial controller design are displayed as Baseline response
+% Lowering the transient-behavior coefficient to 0.45 speeds up disturbance rejection but also increase overshoot in reference tracking
+% Mover the transient behvior slider to right until the overshoot for reference in minimized
+% Increasing the transient-behavior coefficient nearly eliminates the overshoot, but results in sluggish disturbance rejection
+% So far the reponse time of the the control system has remained fixed while you have changed the transient behavior coefficient
+% These operations are equivalent to fixing bandwidth and varying the target minimum phase margin og the system
+% If you want to fix both the bandwidth and target phase margin you can still change the balance between tracking and distrubance rejection
+% To tune a controller that favors either disturbance rejection or tracking, you can change the desing focus of the PID tuning alg
+% Changing the design focuse is more effective the more tunable parameters there are in a control system
+% It does not have much effect on a PI, to see its effect let's change controller type to PIDF
+% Move the transient slider to 0.6 and save new desing as baseline desing 
+% Let's change the PID Tuner desing focuse to favor reference tracking without changing response time or transient-behavior coefficient
+% Click "Options" and pick the design focus for "Reference Tracking"
+% The plots show the new controller (solid line) has less overshoot and faster settling time but the disturbance rejection is worse
+% If we change the design focus to "Input Disturbance Rejection" then we have improved dist. reject. but increased transient response
+% Must use the design focus and the sliders together to acheive the best performance
+% This depends strongly on your plant - for some plants changing transient behavior or focus has little or no effect
+%% Tune 2-DOF PID Controller:
+% Let's tune a 2-DOF controller PID controller using PID Tuner
+% This example compares the 2-DOF controlller performance to performance acheived with a 1-DOF PID controller
+% 2-DOF PID controllers include setpoint weighting on the proportional and derivative terms.
+% compared to a 1-DOF PID controller, a 2-DOF PID controller can acheive better disturbance rejection without significant increase in overshoot in setpoint tracking
+% Please see notes for a picture of this control architecture
+% The 1-DOF controller for the plant is given by: 
+% G(s) = 1/(s^2 + 0.5s + 0.1)
+G = tf(1, [1, 0.5, 0.1]);
+pidTuner(G, 'PID')
+% Suppose we require a faster response, slide Response TIme slider to 2
+% The resulting response is fast but there is a lot of overshoot
+% Let's desing a 2-DOF controller to improve overshoot
+% First export the 1-DOF controller as the baseline controller for comparison
+% Now design the 2-DOF controller
+% The resulting controller has parameter displayed on bottom-right part of screen
+% These parameters include setpoint weights b and c to balance performance and robustness
+% We can see that adding a second degreee of freedom elimintates the overshoot in reference tracking response
+% Next add a step response to compare the disturbance rejection of the two controllers
+% Looks like the disturbance-rejection performance is identical with both controllers
+% Therefore, using a 2-DOF controller eliminates reference-tracking overshoot without any cost to dist. reject.
+% We can improve dist. rejection by changing the PID Tuner design focus
+% Let's first save the current design as baseline by exporting
+% PID tuner automatically retunes the controller coefficients with focus on dist. reject. performance
+% Witht he default balanced design focus, PID Tuner selects a b value between 0 and 1
+% With this focus on intial disturbance rejection, the PID Tuner sets b = 0 and c = 0
+% The PID Tuner with this focus will automatically generate a I-PD controller to optimize for dist. reject.
+% This new design improves the disturbance rejection with some decrease in reference-tracking perf., which is slower
+% Reference tracking still has no overshoot in this design, therefore the 2-DOF design improves dist. reject without sacrificing as much ref. tracking as 1-DOF control
+% These effects depend largely on your plant and speed of your controller
+%% PID Controller Design at Command Line:
+% Let's design a PID controller for the plant given by sys=1/(s+1)^3
+% At first pass let's create a model of the plant and design a simple PI controller
+sys = zpk([], [-1, -1, -1], 1);
+[C_pi, info] = pidtune(sys, 'PI')
+
+C_pi =
+ 
+             1 
+  Kp + Ki * ---
+             s 
+
+  with Kp = 1.14, Ki = 0.454
+ 
+Continuous-time PI controller in parallel form.
+
+
+info = 
+
+  <a href="matlab:helpPopup struct" style="font-weight:bold">struct</a> with fields:
+
+                Stable: 1
+    CrossoverFrequency: 0.5205
+           PhaseMargin: 60.0000
+
+% The info struct shows that tuning alg chooses open-loop crossover freq. of about 0.52 rad/s
+% Let's examine the closed-loop step response (ref. tracking) of the controlled system
+T_pi = feedback(C_pi*sys, 1);
+step(T_pi)
+% To improve response time, select a higher target crossover frequency than the one automatically selected
+% Let's increase crossover to 1.0
+[C_pi_fast, info] = pidtune(sys, 'PI', 1.0)
+
+C_pi_fast =
+ 
+             1 
+  Kp + Ki * ---
+             s 
+
+  with Kp = 2.83, Ki = 0.0495
+ 
+Continuous-time PI controller in parallel form.
+
+
+info = 
+
+  <a href="matlab:helpPopup struct" style="font-weight:bold">struct</a> with fields:
+
+                Stable: 1
+    CrossoverFrequency: 1
+           PhaseMargin: 43.9973
+
+% The new controller acheives higher crossover frequency at cost of reduced phase margin
+% Let's compare the closed-loop step response of the two controllers
+T_pi_fast = feedback(C_pi_fast*sys, 1);
+step(T_pi, T_pi_fast)
+axis([0, 30, 0, 1.4])
+legend('PI', 'PI, fast')
+% This reduction in performance results because the PI controller does not have enough degrees of freedom to acheive good phase margin at the crossover freq of 1 rad/s
+% Let's add a derivative term to improve the response
+[C_pidf_fast, info] = pidtune(sys, 'PIDF', 1.0)
+
+C_pidf_fast =
+ 
+             1            s    
+  Kp + Ki * --- + Kd * --------
+             s          Tf*s+1 
+
+  with Kp = 2.72, Ki = 0.985, Kd = 1.72, Tf = 0.00875
+ 
+Continuous-time PIDF controller in parallel form.
+
+
+info = 
+
+  <a href="matlab:helpPopup struct" style="font-weight:bold">struct</a> with fields:
+
+                Stable: 1
+    CrossoverFrequency: 1
+           PhaseMargin: 60.0000
+
+% Here the additioin of derivative action in controller desing allows algorithm to desing a more aggressive controller that acheives the target crossover freq and phase margin
+% Let's compare the closed-loop step response and dist. reject. for fast PI and PIDF controllers
+T_pidf_fast = feedback(C_pidf_fast*sys, 1);
+step(T_pi_fast, T_pidf_fast);
+axis([0, 30, 0, 1.4]);
+legenf('PI fast', 'PIDF, fast')
+{Undefined function or variable 'legenf'.
+} 
+legend('PI fast', 'PIDF, fast')
+% Let's compare the input (load) disturbance rejection of the controlled system with both controllers
+% To do so we must compare the response of the closed-loop transfer function from plant input to plant output
+S_pi_fast = feedback(sys, C_pi_fast)
+
+S_pi_fast =
+ 
+                        s
+  ---------------------------------------------
+  (s+2.411) (s+0.01306) (s^2 + 0.5762s + 1.572)
+ 
+Continuous-time zero/pole/gain model.
+
+S_pidf_fast = feedback(sys, C_pidf_fast);
+step(S_pi_fast, S_pidf_fast);
+axis([0, 50, 0, 0.4])
+legend('PI, fast', 'PIDF, fast')
+% The plot shows that the PIDF controller provides faster dist. rejection
+%% Tune PID Controller to Favor Reference Tracking or Disturbance Tracking (Command Line)
+% Setpoint tracking is the response at y to signals at r. Input disturbance rejection is the suppression of y of signals at d.
+% Create the model of the plant
+G = tf(0.3, [1, 0.1, 0]);
+% Desing the PI controller for this plant using bandwidth 0.03 rad/s
+wc = 0.03;
+[C1, info] = pidtune(G, 'PI', wc);
+% Examine the step-reference tracking and step-disturbance rejection of the control system using the default controller
+% The disturbance response from d to y is equivalent to the response of a closed loop given by feedback(G, C1)
+T1 = feedback(G*C1, 1);
+GS1 = feedback(G, C1);
+subplot(2,1,1);
+stepplot(T1)
+title('Reference Tracking')
+subplot(2, 1, 2);
+stepplot(GS1)
+title('Disturbance Rejection')
+% We change the balance between ref. tracking and dist. rejection by changing the phase margin of tuned system
+% The default controller returned by pidtune yields phase margin of 60 deg
+info.PhaseMargin
+
+ans =
+
+   60.0000
+
+% Let's desing controllers for phase margins 45 deg and 70 deg with same bandwidth
+% Let's compare reference tracking and dist. reject.
+opts2 = pidtuneOption('PhaseMargin', 45);
+{Undefined function or variable 'pidtuneOption'.
+} 
+opts2 = pidtuneOptions('PhaseMargin', 45);
+C2 = pidtune(G, 'PI', wc, opts2);
+T2 = feedback(G*C2, 1);
+GS2 = feedback(G, C2);
+opts3 = pidtuneOptions('PhaseMargin', 70);
+C3 = pidtune(G, 'PI', wc, opts3);
+T3 = feedback(G*C3, 1);
+GS3 = feedback(G, C3);
+subplot(2, 1, 1)
+stepplot(T1, T2, T3)
+legend('PM=60', 'PM=45', 'PM=70')
+title('Reference Tracking')
+subplot(2, 1, 2)
+stepplot(GS1, GS2, GS3)
+title('Disturbance Rejection')
+% Lowering the phase margin to 45 deg. speeds up disturbance rejection but also increase overshoot in tracking
+% Increasing the phase margin to 70 deg eliminates overshoot but results in extremely sluggish disturbance rejection
+% Can try different phase margin values until you find one that balances tracking and disturbance reject
+% The effect of phase margin on this balance depends on the plant model, for some plants the effect in not as large as in this example
+% If you want to fix both bandwidth and phase margin you can still change balance between reference tracking and dist. reject. using DesignFocuse
+% The DesignFocus option is more effective for control system with more tunable parameters
+% Therefore, it doesn't have much of an effct with a PI controller
+% To see it's effect design a PIDF controller for same bandwidth and default phase margin (60 deg) using DesignFocus
+opts4 = pidtuneOptions('DesignFocus', 'balanced');
+C4 = pidtune(G, 'PIDF', wc, opts4);
+T4 = feedback(G*C4, 1);
+GS4 = feedback(G, C4);
+opts5 = pidtuneOptions('DesignFocus', 'disturbance-rejection');
+C5 = pidtune(G, 'PIDF', wc, opts5);
+T5 = feedback(G*C5, 1);
+GS5 = feedback(G, C5);
+opts6 = pidtuneOptions('DesignFocus', 'reference-tracking');
+C6 = pidtune(G, 'PIDF', wc, opts6);
+T6 = feedback(G*C6, 1);
+GS6 = feedback(G, C6);
+subplot(2, 1, 1)
+stepplot(T4, T5, T6)
+legend('Balanced', 'Rejection', 'Tracking')
+title('Reference Tracking')
+subplot(2, 1, 2);
+stepplot(GS4, GS5, GS6)
+title('Disturbance Rejection')
+% When you use DesignFocus to favor either ref track or dist. reject in tuned control system, you can still adjust phase margin for further fine tuning of balance between two measures
+% Use DesignFocus and PhaseMargin together to acheive the perf that best balances
+% The effect of changing either options on system performance depends strongly on the properties of your plant
+%% Tune 2-DOF PID Controller (Command Line) - please see documentation!
+
+%% Designing Cascade Control System with PI Controllers:
+% Please see diagram in documentation!
+% Cascade control is used to acheive fast rejection of disturbance 
+% It involves two control loops: inner and outer
+% Controller C1 in the outer loop is the primary controller that regulates the primary controlled variable y1 by setting the set point of the inner loop
+% Controller C2 in the inner loop is a secondary controller that rejects distrubance d2 locally before it propagates to P1
+% For cascade control to function properly, the inner loop must respond much faster than the outer loop
+% We'll design a single loop control system with a PI controller and a cascade control system with two PI controllers
+% Inner loop plant is:
+P2 = zpk([], -2, 3);
+% Outer loop plant is: 
+P1 = zpk([], [-1, -1, -1], 10);
+% Use pidtune command to design PI controller in standard form for whole plant model P = P1 * P2
+% The desired open loop bandwidth is 0.2 rad/s, which roughly corresponds to response time of 10 seconds
+% The plan model is P = P1*P2
+P = P1 * P2;
+% Use a PID or PIDSTD object to define the desired controller structure 
+C = pidstd(1, 1);
+C
+
+C =
+ 
+             1      1 
+  Kp * (1 + ---- * ---)
+             Ti     s 
+
+  with Kp = 1, Ti = 1
+ 
+Continuous-time PI controller in standard form
+
+% Tune PI controller for target bandwidth of 0.2 rad/s 
+C = pidtune(P, C, 0.2)
+
+C =
+ 
+             1      1 
+  Kp * (1 + ---- * ---)
+             Ti     s 
+
+  with Kp = 0.0119, Ti = 0.849
+ 
+Continuous-time PI controller in standard form
+
+% The best practice is to design the inner loop controller C2 first and then design the outer loop controller C1 with the inner loop closed
+% The inner loop bandwidth is selected as 2 rad/s, which is ten times higher than the desired outer loop bandwidth
+% Let's tune the inner-loop controller C2 with open-loop bw at 2 rad/s
+C2 = pidtune(P2, pidstd(1, 1), 2);
+% Tune the outer-loop controller C1 with the same bandwidth as the single loop system
+% Inner loop system when the control loop is closed first
+clsys = feedback(P2*C2, 1)
+
+clsys =
+ 
+    0.73205 (s+7.464)
+  ----------------------
+  (s^2 + 2.732s + 5.464)
+ 
+Continuous-time zero/pole/gain model.
+
+% Plant seen by outer loop controller C1 is clsys*P1
+C1 = pidtune(clsys*P1, pidstd(1,1),0.2);
+C1
+
+C1 =
+ 
+             1      1 
+  Kp * (1 + ---- * ---)
+             Ti     s 
+
+  with Kp = 0.015, Ti = 0.716
+ 
+Continuous-time PI controller in standard form
+
+% Plot the step reference tracking responses for both control systems
+% Single loop system for reference tracking
+sys1 = feedback(P*C, 1);
+sys1.Name = 'Single Loop';
+% Cascade system for reference tracking
+sys2 = feedback(clsys*P1*C1, 1);
+sys2.Name = 'Cascade';
+% Plot step response
+figure;
+step(sys1, 'r', sys2, 'b')
+legend('show', 'location', 'southeast')
+title('Reference Tracking')
+% Let's plot the step dist. reject. responses of dd2 for both control systems
+% Single loop system for rejecting d2
+sysd1 = feedback(P1, P2*C);
+sysd1.Name = 'Single Loop';
+% Cascade syste for rejecting d2
+sysd2 = P1/(1 + P2*C2 + P2*P1*C1*C2);
+sysd2.Name = 'Cascade'
+
+sysd2 =
+ 
+                                                       
+                                 10 s^3 (s+2)^2 (s+1)^3
+                                                       
+  -------------------------------------------------------------------------------------
+                                                                                       
+  s (s+1)^3 (s+2) (s^2 + 2.524s + 1.634) (s^2 + 0.4516s + 0.126) (s^2 + 2.756s + 5.558)
+                                                                                       
+                                                                                       
+ 
+Name: Cascade
+Continuous-time zero/pole/gain model.
+
+% Plot step response
+figure;
+step(sysd1, 'r', sysd2, 'b')
+legend('show')
+title('Disturbance Rejection')
+% From these two response plots you can conclude that the cascade control system performs much better in rejecting the disturbance d2 while the set-point tracking performance almost identical
+diary off

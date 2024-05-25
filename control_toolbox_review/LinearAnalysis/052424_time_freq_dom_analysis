@@ -1,0 +1,251 @@
+%% Plot customization
+% We can customize plots by changing the plot properties. For example, you can change the plot units.
+% Can use the "Linear System Analyzer Preferences Editor" to set units, fonts, response plot characteristics
+% Let's try to customize response plots using the "Response Plots Property Editor"
+load ltiexamples
+step(sys_dc)
+% If you right-click the plot, select Properties from the context menu 
+
+% Here we see we can have various panes including the Labels, Limits, Units, Style, and Options panes
+% If you create more than one plot in a single figure window you can edit each plot individually
+% Lets create a firgure with two plots, a step and impulse with two randomly selected systems
+subplot(2, 1, 1)
+step(rss(2, 1))
+subplot(2, 1, 2)
+impulse(rss(1, 1))
+% We can also customize plots using plot tools
+sys_mimo = rss(3, 3, 3);
+stepplot(sys_mimo)
+% Finally, let's customize response plots from the command line
+% The command line is the most efficient way to customize a large number of plots
+% To customize plots, let's obtain a plot handle
+h = stepplot(sys)
+{Undefined function or variable 'sys'.
+} 
+sys = tf(4, [1, 0.5, 4]);
+h = stepplot(sys)
+
+h =
+
+	resppack.timeplot
+
+
+% To get the plot options handle for a given plot 
+p = getoptions(h);
+p
+
+p =
+
+                   Normalize: 'off'
+         SettleTimeThreshold: 0.0200
+              RiseTimeLimits: [0.1000 0.9000]
+                   TimeUnits: 'seconds'
+    ConfidenceRegionNumberSD: 1
+                  IOGrouping: 'none'
+                 InputLabels: [1×1 struct]
+                OutputLabels: [1×1 struct]
+                InputVisible: {'on'}
+               OutputVisible: {'on'}
+                       Title: [1×1 struct]
+                      XLabel: [1×1 struct]
+                      YLabel: [1×1 struct]
+                   TickLabel: [1×1 struct]
+                        Grid: 'off'
+                   GridColor: [0.1500 0.1500 0.1500]
+                        XLim: {[0 25]}
+                        YLim: {[0 1.8000]}
+                    XLimMode: {'auto'}
+                    YLimMode: {'auto'}
+
+% We can also use 'setoptions' along with the plot handle and plot options handle to access and modify may plot options
+% Let's change Bode Plot Units from the Command Line
+% We will change it from rad/s to Hz
+h = bodeplot(sys);
+% Let's change the units to Hz
+p = getoptions(h);
+p.FreqUnits = 'Hz';
+setoptions(h, p)
+% For more examples - see Examples of Customizing Plots from the Command Line
+% To programmatically interact with response plot, you need a plot handle. 
+% Once you have a handle, you can modify the plot properties using the "setoptions" and "getoptions" methods of plot objects
+% You can create default plot options handle by using functions in form of <responseplot>options
+p = bodeoptions;
+p
+
+p =
+
+                   FreqUnits: 'rad/s'
+                   FreqScale: 'log'
+                    MagUnits: 'dB'
+                    MagScale: 'linear'
+                  MagVisible: 'on'
+             MagLowerLimMode: 'auto'
+                  PhaseUnits: 'deg'
+                PhaseVisible: 'on'
+               PhaseWrapping: 'off'
+               PhaseMatching: 'off'
+           PhaseMatchingFreq: 0
+    ConfidenceRegionNumberSD: 1
+                 MagLowerLim: -Inf
+          PhaseMatchingValue: 0
+         PhaseWrappingBranch: -180
+                  IOGrouping: 'none'
+                 InputLabels: [1×1 struct]
+                OutputLabels: [1×1 struct]
+                InputVisible: {'on'}
+               OutputVisible: {'on'}
+                       Title: [1×1 struct]
+                      XLabel: [1×1 struct]
+                      YLabel: [1×1 struct]
+                   TickLabel: [1×1 struct]
+                        Grid: 'off'
+                   GridColor: [0.1500 0.1500 0.1500]
+                        XLim: {[1 10]}
+                        YLim: {[1 10]}
+                    XLimMode: {'auto'}
+                    YLimMode: {'auto'}
+
+% What properties can you modify? Use help <responseplot>options
+help bodeoptions
+ <strong>bodeoptions</strong> Creates option list for Bode plot.
+ 
+    P = <strong>bodeoptions</strong> returns the default options for Bode plots. This
+    list of options allows you to customize the Bode plot appearance
+    from the command line. For example
+          P = bodeoptions;
+          % Set phase visibility to off and frequency units to Hz in options 
+          P.PhaseVisible = 'off'; 
+          P.FreqUnits = 'Hz'; 
+          % Create plot with the options specified by P
+          h = bodeplot(tf(1,[1,1]),P);
+    creates a Bode plot with the phase plot visibility turned off and the
+    frequency units in Hz. 
+ 
+    P = <strong>bodeoptions</strong>('cstprefs') initializes the plot options with the
+    Control System and System Identification Toolbox preferences.
+ 
+    Available options include:
+       Title, XLabel, YLabel         Label text and style
+       TickLabel                     Tick label style
+       Grid   [off|on]               Show or hide the grid 
+       XlimMode, YlimMode            Limit modes
+       Xlim, Ylim                    Axes limits
+       IOGrouping                    Grouping of input-output pairs
+          [none|inputs|outputs|all] 
+       InputLabels, OutputLabels     Input and output label styles
+       InputVisible, OutputVisible   Visibility of input and output
+                                     channels
+       FreqUnits                     Frequency units
+       FreqScale [linear|log]        Frequency scale
+       MagUnits [dB|abs]             Magnitude units
+       MagScale [linear|log]         Magnitude scale
+       MagVisible [on|off]           Magnitude plot visibility
+       MagLowerLimMode [auto|manual] Enables a lower magnitude limit
+       MagLowerLim                   Specifies the lower magnitude limit
+       PhaseUnits [deg|rad]          Phase units
+       PhaseVisible [on|off]         Phase plot visibility
+       PhaseWrapping [on|off]        Enables phase wrapping
+       PhaseMatching [on|off]        Enables phase matching 
+       PhaseMatchingFreq             Frequency for matching phase
+       PhaseMatchingValue            The value to make the phase responses 
+                                     close to
+       ConfidenceRegionNumberSD      Number of standard deviations to
+                                     use when displaying the confidence
+                                     region characterisitc for identified 
+                                     models
+ 
+    See also <a href="matlab:help lti/bodeplot">lti/bodeplot</a>, <a href="matlab:help wrfc.setoptions">wrfc.setoptions</a>, <a href="matlab:help wrfc.getoptions">wrfc.getoptions</a>.
+
+% To manipulate plot option handles you can 1) use dot notation 2) use property value pairs
+sys = tf(1, [1, 1]);
+% Let's change the plot frequency of a Bode plot from rad/s to Hz
+h = bodeplot(sys);
+p = getoptions(h);
+p.FreqUnits = 'Hz';
+setoptions(h, p)
+% Alternatively, instead of extracting p, set the options of h directly
+setoptions(h, 'FreqUnits', 'Hz')
+% Can also use an existing plot options to customize a second plot
+h1 = bodeplot(sys);
+p1 = get(options(h1));
+{Undefined function or variable 'options'.
+} 
+p1 = getoptions(h1);
+h2 = bodeplot(sys, p1);
+% Or can do it this way 
+h1 = bodeplot(sys);
+h2 = bodeplot(sys2);
+{Undefined function or variable 'sys2'.
+} 
+h2 = bodeplot(sys);
+setoptions(h2, getoptions(h1))
+{Undefined function 'getoptions' for input arguments of type 'handle.handle'.
+} 
+setoptions(h2, p1)
+% Let's create a default plot options handle
+p = bodeoptions;
+% Let's change the freq units 
+p.FreqUnits = 'Hz';
+h = bodeplot(sys, p);
+% Can also use dot notation like a structure
+h1 = bodeplot(sys);
+p1 = getoptions(h1);
+p1.FreqUnits = 'Hz'
+
+p1 =
+
+                   FreqUnits: 'Hz'
+                   FreqScale: 'log'
+                    MagUnits: 'dB'
+                    MagScale: 'linear'
+                  MagVisible: 'on'
+             MagLowerLimMode: 'auto'
+                  PhaseUnits: 'deg'
+                PhaseVisible: 'on'
+               PhaseWrapping: 'off'
+               PhaseMatching: 'off'
+           PhaseMatchingFreq: 0
+    ConfidenceRegionNumberSD: 1
+                 MagLowerLim: 0
+          PhaseMatchingValue: 0
+         PhaseWrappingBranch: -180
+                  IOGrouping: 'none'
+                 InputLabels: [1×1 struct]
+                OutputLabels: [1×1 struct]
+                InputVisible: {'on'}
+               OutputVisible: {'on'}
+                       Title: [1×1 struct]
+                      XLabel: [1×1 struct]
+                      YLabel: [1×1 struct]
+                   TickLabel: [1×1 struct]
+                        Grid: 'off'
+                   GridColor: [0.1500 0.1500 0.1500]
+                        XLim: {[0.0100 100]}
+                        YLim: {2×1 cell}
+                    XLimMode: {'auto'}
+                    YLimMode: {2×1 cell}
+
+p1.Title.String = 'My Title';
+setoptions(h1, p1)
+% Instead of using dot notation let's set property pairs in setoptions 
+h1 = bodeplots(sys)
+{Undefined function or variable 'bodeplots'.
+} 
+h1 = bodeplot(sys)
+
+h1 =
+
+	resppack.bodeplot
+
+setoptions(h1, 'FreqUnits', 'Hz')
+% Let's verify that units have change from rad/s to Hz
+getoptions(h1, 'FreqUnits')
+
+ans =
+
+    'Hz'
+
+% Finally, the "Toolbox Preference Editor" will let set plot preferences that will persist from session to session
+ctrlpref
+% Please see the documentation
+diary off

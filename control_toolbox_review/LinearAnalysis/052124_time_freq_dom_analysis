@@ -580,3 +580,604 @@ GainMargins_dB =
    -9.3510   10.6091
 
 diary off
+ls
+051424_time_freq_dom_analysis	052124_time_freq_dom_analysis
+051624_time_freq_dom_analysis
+
+!git pull origin main
+From https://github.com/sachin80/matlab_review
+ * branch            main       -> FETCH_HEAD
+Already up to date.
+ls
+051424_time_freq_dom_analysis	052124_time_freq_dom_analysis
+051624_time_freq_dom_analysis
+
+type 052124_time_freq_dom_analysis
+
+% We can also compar multiple types of responses side by side including both time and freq domain response
+% We can use the Linear System Analyzer for this purpose 
+% Let's compare the 3rd order plant G and closed-loop responses of G with 2 different controllers C1, C2
+G = zpk([], [-5, -5, -10], 100);
+C1 = pid(0, 4.4);
+T1 = feedback(G*C1, 1);
+C2 = pid(2.9, 7.1);
+T2 = feedback(G*C2, 1); 
+% Let's open the Linear System Analyzer and examine the responses of the plant and closed-loop systems
+linearSystemAnalyzer(G, T1, T2)
+%% Analyzing MIMO Models: 
+% If you plot a MIMO system or LTI array containing multiple models you can right-click menu to group response plots by I/O pairs
+% Let's generate an array of two random 3 input, 3 output MIMO systems and view them using the Linear System Analyzer
+sys_mimo = stack(1, rss(3, 3, 3), rss(3, 3, 3));
+linearSystemAnalyzer(sys_mimo); 
+%% Analysis of Systems with Time Delays: 
+% Lets consider a system where the plant is modeled as a 1st-order plus dead time
+s = tf('s');
+P = 5 * exp(-3.4*s)/(s+1);
+C = 0.1 * (1 + 1/(5*s)); 
+T = feedback(P*C, 1);
+% T is state-space model with an internal delay 
+stepplot(T)
+% For more complicated interconnectiions we can name the input and output signals of each block and use 'connect' to take care of wiring
+% Suppose we want to add feed-forward
+F = 0.3/(s + 4); 
+P.InputNae = 'u'; 
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('InputOutputModel/subsasgn')" style="font-weight:bold">indexing</a>
+No property of the class "tf" matches the identifier "InputNae". Use
+PROPERTIES to get the list of properties for this class.
+} 
+P.InputName = 'u';
+P.OutputName = 'y';
+C.InputName = 'e' 
+
+C =
+ 
+  From input "e" to output:
+  0.5 s + 0.1
+  -----------
+      5 s
+ 
+Continuous-time transfer function.
+
+C.OutputName = 'uc';
+F.InputName = 'r'; 
+F.OutputName = 'uf';
+Sum1 = sumblk('e', 'r', 'y', '+-'); % e = r -y 
+Sum2 = sumblk('u', 'uf', 'uc', '++'); % u = uf + uc
+Tff = connect(P, C, F, Sum1, Sum2, 'r', 'y');
+Tff
+
+Tff =
+ 
+  A = 
+            x1       x2       x3
+   x1     -1.5     0.32      1.2
+   x2  -0.3125        0        0
+   x3        0        0       -4
+ 
+  B = 
+           r
+   x1    0.2
+   x2  0.125
+   x3    0.5
+ 
+  C = 
+       x1   x2   x3
+   y  2.5    0    0
+ 
+  D = 
+      r
+   y  0
+ 
+  (values computed with all internal delays set to zero)
+
+  Internal delays (seconds): 3.4 
+ 
+Continuous-time state-space model.
+
+% Compare feedback only, feedforward designs 
+stepplot(T, Tff)
+legend('No feedforward', 'Feedforward')
+%% Analyzing Control Systems with Delays: 
+% Many processes involve dead times also known as transport delays and time lags
+% Controlling such processes can be challenging because delays cause linear phase shifts that limit control bandwidth and affect closed-loop stability 
+% Can create accurate open or closed-loop models of control sysems with delays and analyze their stability and performance without approximation 
+s = tf('s'); 
+P = exp(-2.6*s)*(s+3)/(s^2+0.3*s+1);
+C = 0.06*(1 + 1/s);
+% To analyze the closed-loop response need to construct a model T of closed-loop tf ysp to y
+% There is a time delay in this feedback loop and convert P and C to state space 
+T = feedback(P*C, 1); 
+T
+
+T =
+ 
+  A = 
+          x1     x2     x3
+   x1  -0.36  -1.24  -0.18
+   x2      1      0      0
+   x3      0      1      0
+ 
+  B = 
+        u1
+   x1  0.5
+   x2    0
+   x3    0
+ 
+  C = 
+         x1    x2    x3
+   y1  0.12  0.48  0.36
+ 
+  D = 
+       u1
+   y1   0
+ 
+  (values computed with all internal delays set to zero)
+
+  Internal delays (seconds): 2.6 
+ 
+Continuous-time state-space model.
+
+% The result is a 3rd order model with an internal delay of 2.6 seconds 
+% Internally, the state-space object T tracks how the delay is couples with remaining dynamics 
+step(T)
+% The closed-loop oscillations are due to weak gain margin as seen from open-loop respoonse P*C:
+margin(P*C)
+% There is also a resonance in the close-loop frequency response: 
+bode(T)
+grid, title('Closed-loop frequency response')
+% To improve the design let's try to notch out the resonnance near 1 rad/s 
+notch = tf([1, 0.2, 1], [1, 0.8, 1]);
+C = 0.05 * (1 + 1/s);
+Tnotch = feedback(P*C*notch), 1);
+ Tnotch = feedback(P*C*notch), 1);
+                                ↑
+{Invalid expression. When calling a function or indexing a variable, use
+parentheses. Otherwise, check for mismatched delimiters.
+} 
+Tnotch = feedback(P*C*notch, 1);
+step(Tnotch), grid
+% Pade approximation of time delays - many control design algs can't handle time delays directly
+% Common workaround - replace delyas by their Pade approximation (all-pass filter)
+% This approximation is only good at low frequencies, need to choose the correct approximation order 
+% For PI control before, compare the exact closed-loop response T with the response obtained through a 1st order Pade approx of the delay
+T1 = pade(T, 1);
+step(T, 'b', T1, 'r', 100)
+grid, legend('Exact', 'First-Order Pade');
+% Approximation error is too large
+T2 = pade(T,2);
+step(T, 'b', T2, 'r', 100)
+grid, legend('Exact', 'Second-Order Pade');
+% The responses now match closely except for the non-minimum phase artifact introduced by Pade approx
+% Delays are rarely known accurately so it's important to understand how sensitive a control system is to delay value
+% Let's create 5 models from delay values ranging from 2.0 to 3.0 
+tau = linspace(2, 3, 5); 
+Tsens = repsys(Tnotch, [1, 1, 5]); 
+for j = 1:5
+Tsens(:, :, j).InternalDelay = tau(j);
+end
+Tsens
+
+Tsens(:,:,1,1) =
+ 
+  A = 
+           x1      x2      x3      x4      x5
+   x1   -1.15  -1.225   -0.67  -0.615   -0.15
+   x2       2       0       0       0       0
+   x3       0       1       0       0       0
+   x4       0       0       1       0       0
+   x5       0       0       0     0.5       0
+ 
+  B = 
+       u1
+   x1   1
+   x2   0
+   x3   0
+   x4   0
+   x5   0
+ 
+  C = 
+          x1     x2     x3     x4     x5
+   y1   0.05  0.105   0.12  0.115   0.15
+ 
+  D = 
+       u1
+   y1   0
+ 
+  (values computed with all internal delays set to zero)
+
+  Internal delays (seconds): 2 
+ 
+
+Tsens(:,:,2,1) =
+ 
+  A = 
+           x1      x2      x3      x4      x5
+   x1   -1.15  -1.225   -0.67  -0.615   -0.15
+   x2       2       0       0       0       0
+   x3       0       1       0       0       0
+   x4       0       0       1       0       0
+   x5       0       0       0     0.5       0
+ 
+  B = 
+       u1
+   x1   1
+   x2   0
+   x3   0
+   x4   0
+   x5   0
+ 
+  C = 
+          x1     x2     x3     x4     x5
+   y1   0.05  0.105   0.12  0.115   0.15
+ 
+  D = 
+       u1
+   y1   0
+ 
+  (values computed with all internal delays set to zero)
+
+  Internal delays (seconds): 2.25 
+ 
+
+Tsens(:,:,3,1) =
+ 
+  A = 
+           x1      x2      x3      x4      x5
+   x1   -1.15  -1.225   -0.67  -0.615   -0.15
+   x2       2       0       0       0       0
+   x3       0       1       0       0       0
+   x4       0       0       1       0       0
+   x5       0       0       0     0.5       0
+ 
+  B = 
+       u1
+   x1   1
+   x2   0
+   x3   0
+   x4   0
+   x5   0
+ 
+  C = 
+          x1     x2     x3     x4     x5
+   y1   0.05  0.105   0.12  0.115   0.15
+ 
+  D = 
+       u1
+   y1   0
+ 
+  (values computed with all internal delays set to zero)
+
+  Internal delays (seconds): 2.5 
+ 
+
+Tsens(:,:,4,1) =
+ 
+  A = 
+           x1      x2      x3      x4      x5
+   x1   -1.15  -1.225   -0.67  -0.615   -0.15
+   x2       2       0       0       0       0
+   x3       0       1       0       0       0
+   x4       0       0       1       0       0
+   x5       0       0       0     0.5       0
+ 
+  B = 
+       u1
+   x1   1
+   x2   0
+   x3   0
+   x4   0
+   x5   0
+ 
+  C = 
+          x1     x2     x3     x4     x5
+   y1   0.05  0.105   0.12  0.115   0.15
+ 
+  D = 
+       u1
+   y1   0
+ 
+  (values computed with all internal delays set to zero)
+
+  Internal delays (seconds): 2.75 
+ 
+
+Tsens(:,:,5,1) =
+ 
+  A = 
+           x1      x2      x3      x4      x5
+   x1   -1.15  -1.225   -0.67  -0.615   -0.15
+   x2       2       0       0       0       0
+   x3       0       1       0       0       0
+   x4       0       0       1       0       0
+   x5       0       0       0     0.5       0
+ 
+  B = 
+       u1
+   x1   1
+   x2   0
+   x3   0
+   x4   0
+   x5   0
+ 
+  C = 
+          x1     x2     x3     x4     x5
+   y1   0.05  0.105   0.12  0.115   0.15
+ 
+  D = 
+       u1
+   y1   0
+ 
+  (values computed with all internal delays set to zero)
+
+  Internal delays (seconds): 3 
+ 
+5x1 array of continuous-time state-space models.
+
+step(Tsens), grid, title('Closed-loop response for 5 delay values between 2.0 to 3.0')
+% We can see from the plot that the delay value has little effect on the closed loop response 
+% We can also eliminate some of the internal delays by setting the value to zero or use Pade with order zero 
+Tnotch0 = Tnotch; 
+Tnotch0.InternalDelay = 0; 
+bode(Tnotch, 'b', Tnotch0, 'r', {1e-2, 3})
+grid, legend('Delay = 2.6', 'No delay', 'Location', 'SouthWest')
+% Discretization methods include zoh, first-order hold, and Tustin
+% Note: for models with internal delays, zoh is not always exact
+% Or the continuous and discretized step responses may not match 
+Td = c2d(T, 1); 
+[Warning: Discretization is only approximate due to internal delays. Use
+faster sampling rate if discretization error is large.] 
+[> In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('ctrlMsgUtils.warning', '/Applications/MATLAB_R2022a.app/toolbox/shared/controllib/general/+ctrlMsgUtils/warning.m', 25)" style="font-weight:bold">ctrlMsgUtils.warning</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2022a.app/toolbox/shared/controllib/general/+ctrlMsgUtils/warning.m',25,0)">line 25</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('ltipack.ssdata/utDiscretizeZOH', '/Applications/MATLAB_R2022a.app/toolbox/shared/controllib/engine/+ltipack/@ssdata/utDiscretizeZOH.m', 136)" style="font-weight:bold">ltipack.ssdata/utDiscretizeZOH</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2022a.app/toolbox/shared/controllib/engine/+ltipack/@ssdata/utDiscretizeZOH.m',136,0)">line 136</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('ltipack.ssdata/c2d', '/Applications/MATLAB_R2022a.app/toolbox/shared/controllib/engine/+ltipack/@ssdata/c2d.m', 42)" style="font-weight:bold">ltipack.ssdata/c2d</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2022a.app/toolbox/shared/controllib/engine/+ltipack/@ssdata/c2d.m',42,0)">line 42</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('ltipack.SystemArray/c2d_', '/Applications/MATLAB_R2022a.app/toolbox/shared/controllib/engine/+ltipack/@SystemArray/c2d_.m', 10)" style="font-weight:bold">ltipack.SystemArray/c2d_</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2022a.app/toolbox/shared/controllib/engine/+ltipack/@SystemArray/c2d_.m',10,0)">line 10</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('DynamicSystem/c2d', '/Applications/MATLAB_R2022a.app/toolbox/shared/controllib/engine/@DynamicSystem/c2d.m', 105)" style="font-weight:bold">DynamicSystem/c2d</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2022a.app/toolbox/shared/controllib/engine/@DynamicSystem/c2d.m',105,0)">line 105</a>)] 
+step(T, 'b', Td, 'r')
+grid, legend('Continuous', 'ZOH Discretization')
+% To correct the discretization gap we need to reduce the samplin period until the continuous and discrete responses match
+Td = c2d(T, 0.05); 
+[Warning: Discretization is only approximate due to internal delays. Use
+faster sampling rate if discretization error is large.] 
+[> In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('ctrlMsgUtils.warning', '/Applications/MATLAB_R2022a.app/toolbox/shared/controllib/general/+ctrlMsgUtils/warning.m', 25)" style="font-weight:bold">ctrlMsgUtils.warning</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2022a.app/toolbox/shared/controllib/general/+ctrlMsgUtils/warning.m',25,0)">line 25</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('ltipack.ssdata/utDiscretizeZOH', '/Applications/MATLAB_R2022a.app/toolbox/shared/controllib/engine/+ltipack/@ssdata/utDiscretizeZOH.m', 136)" style="font-weight:bold">ltipack.ssdata/utDiscretizeZOH</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2022a.app/toolbox/shared/controllib/engine/+ltipack/@ssdata/utDiscretizeZOH.m',136,0)">line 136</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('ltipack.ssdata/c2d', '/Applications/MATLAB_R2022a.app/toolbox/shared/controllib/engine/+ltipack/@ssdata/c2d.m', 42)" style="font-weight:bold">ltipack.ssdata/c2d</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2022a.app/toolbox/shared/controllib/engine/+ltipack/@ssdata/c2d.m',42,0)">line 42</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('ltipack.SystemArray/c2d_', '/Applications/MATLAB_R2022a.app/toolbox/shared/controllib/engine/+ltipack/@SystemArray/c2d_.m', 10)" style="font-weight:bold">ltipack.SystemArray/c2d_</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2022a.app/toolbox/shared/controllib/engine/+ltipack/@SystemArray/c2d_.m',10,0)">line 10</a>)
+In <a href="matlab:matlab.internal.language.introspective.errorDocCallback('DynamicSystem/c2d', '/Applications/MATLAB_R2022a.app/toolbox/shared/controllib/engine/@DynamicSystem/c2d.m', 105)" style="font-weight:bold">DynamicSystem/c2d</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2022a.app/toolbox/shared/controllib/engine/@DynamicSystem/c2d.m',105,0)">line 105</a>)] 
+step(T, 'b', Td, 'r')
+grid, legend('Continuous', 'ZOH Discretization')
+% Internal delays remain internal to discretized model and don't inflate the model order
+order(Td)
+
+ans =
+
+     3
+
+Td.InternalDelay
+
+ans =
+
+    52
+
+%% Analyzing the Response of an RLC Circuit 
+% This is the parallel form of the RLC circuit
+% The transfer function from input ot output voltage is: 
+% G(s) = s/(RC)/(s + s/(RC) + 1/(LC))
+% Here LC controls teh bandpass freq while RC controls how narrow the passing band is
+% To build a bandpass filter tuned to frequency 1 rad/s, set L = C = 1, and use R to tune the filter band
+R = 1; L = 1; C = 1; 
+G = tf([1/(R*C), 0], [1, 1/(R*C), 1/(L*C)])
+
+G =
+ 
+       s
+  -----------
+  s^2 + s + 1
+ 
+Continuous-time transfer function.
+
+bode(G), grid
+% The RLC filter has max gain at 1 rad/s, however the attenuation is only -10db half a decade away from this freq
+% To get a narrower passing band, increase the values of R
+R1 = 5; G1 = tf([1/(R1*C), 0], [1, 1/(R1*C), 1/(L*C)])
+
+G1 =
+ 
+       0.2 s
+  ---------------
+  s^2 + 0.2 s + 1
+ 
+Continuous-time transfer function.
+
+R2 = 20; G2 = tf([1/(R2*C), 0], [1, 1/(R2*C), 1/(L*C)]);
+bode(G, 'b', G1, 'r', G2, 'g'), grid
+legend('R = 1', 'R = 5', 'R = 20')
+% The resistor value R = 20 gives a filter narrowly tuned around target frequency of 1 rad/s
+% Let's analyze the time response of the circuit
+% We can confirm the attenuation properties of circuit G2 (R=20) simulating how this filter transforms sine waves at 0.9, 1, 1.1rad/s
+t = 0:0.05:250;
+opt = timeoptions;
+opt.Title.FontWieght = 'Bold'
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('plotopts.PlotOptions/validateLabel')" style="font-weight:bold">plotopts.PlotOptions/validateLabel</a>
+"FontWieght" is an invalid field name for the "Title" property.
+
+Error in <a href="matlab:matlab.internal.language.introspective.errorDocCallback('plotopts.PlotOptions/set.Title', '/Applications/MATLAB_R2022a.app/toolbox/shared/controllib/graphics/+plotopts/@PlotOptions/PlotOptions.m', 64)" style="font-weight:bold">plotopts.PlotOptions/set.Title</a> (<a href="matlab: opentoline('/Applications/MATLAB_R2022a.app/toolbox/shared/controllib/graphics/+plotopts/@PlotOptions/PlotOptions.m',64,0)">line 64</a>)
+            this.Title = validateLabel(this,'Title',ProposedValue);
+} 
+opt.Title.FontWeight = 'Bold'
+
+opt =
+
+                   Normalize: 'off'
+         SettleTimeThreshold: 0.0200
+              RiseTimeLimits: [0.1000 0.9000]
+                   TimeUnits: 'seconds'
+    ConfidenceRegionNumberSD: 1
+                  IOGrouping: 'none'
+                 InputLabels: [1×1 struct]
+                OutputLabels: [1×1 struct]
+                InputVisible: {'on'}
+               OutputVisible: {'on'}
+                       Title: [1×1 struct]
+                      XLabel: [1×1 struct]
+                      YLabel: [1×1 struct]
+                   TickLabel: [1×1 struct]
+                        Grid: 'off'
+                   GridColor: [0.1500 0.1500 0.1500]
+                        XLim: {[1 10]}
+                        YLim: {[1 10]}
+                    XLimMode: {'auto'}
+                    YLimMode: {'auto'}
+
+subplot(311), lsim(G2, sin(t), t, opt), title('w=1')
+subplot(312), lsim(G2, sin(0.9*t), t, opt), title('w=0.9')
+subplot(313), lsim(G2, sin(1.1*t), t, opt), title('w=1.1')
+% We can see at 0.9 and 1.1 rad/s the waves are attenuated
+% The wave at 1 rad/s is unchanged once transients die off
+% The long transients result from poorly dampled poles of filters, which are required for narrow passing band
+damp(pole(G2))
+                                                                        
+         Pole              Damping       Frequency       Time Constant  
+                                       (rad/TimeUnit)     (TimeUnit)    
+                                                                        
+ -2.50e-02 + 1.00e+00i     2.50e-02       1.00e+00          4.00e+01    
+ -2.50e-02 - 1.00e+00i     2.50e-02       1.00e+00          4.00e+01    
+%%% Stability Analysis
+%% Pole and Zero Locations
+% We can examine pole and zero locations using pzplot and numerically using pole and zero
+% Examining the pole and zero locations can be useful for tasks like stability analysis or identifying near-canceling pole-zero pairs for model simplification
+% Let's create dynamic system models with two closed-loop systems 
+G = zpk([], [-5, -5, -10], 100);
+C1 = pid(2.9, 7.1);
+CL1 = feedback(G*C1, 1); 
+C2 = pid(29.7, 7.1);
+CL2 = feedback(G*C2, 1);
+% C2 has a mich higher proportional gain otherwise the two closed loop systems CL1 and Cl2 are the same
+pzplot(CL1, CL2), gird
+{Unrecognized function or variable 'gird'.
+} 
+pzplot(CL1, CL2), grid
+% plots poles as 'x' and zeros as 'o'
+% The poles/zeros of CL1 are blue and CL2 are red
+% Shows that all poles of CL1 are in the left half-plane so CL1 is stable
+% Radial grid marking on plot you can read the damping of the oscillating complex plots is approx. 0.45
+% The poles of CL2 are in the right-half plane, therefore unstable
+% Let's compute the numerical values of the pole and zero locations of CL2
+z = zero(CL2)
+
+z =
+
+   -0.2391
+
+p = pole(CL2)
+
+p =
+
+ -21.1955 + 0.0000i
+   0.7089 +12.2536i
+   0.7089 -12.2536i
+  -0.2223 + 0.0000i
+
+%% Assessing Gain and Phase Margins
+% Stability generally means all the internal signals remain bounded
+% This is the standard requirement for control systems to avoid loss of control and damage equipment
+% For linear feedback systems, stability can be assessed by looking at the poles of closed-loop transfer function
+% For a unit loop gain k, you can compute the closed loop transfer function T:
+G = tf([.5, 1.3], [1, 1.2, 1.6, 0]);
+T = feedback(G, 1);
+poles(T)
+{Check for incorrect argument data type or missing argument in call to
+function 'poles'.
+} 
+pole(T)
+
+ans =
+
+  -0.2305 + 1.3062i
+  -0.2305 - 1.3062i
+  -0.7389 + 0.0000i
+
+% For feedback loop k = 1 is stable since all poles have negative real parts
+% Checking the closed-loop poles gives us a binary assessent of the stability 
+% IN practice, it's more useful to know how robust stability is. 
+% One indication of robustness is how much loop gain can change before stability is lost 
+% Can use root locus plot to estimate the range of K values for which the loop is stable
+rlocus(G)
+% If we click on the point where the locus intersects the y axis then the feedback loop is stable for
+% 0 < k < 2.7
+% This shows that with k = 1, the loop gain can increase 270% before you lose stability 
+% Changes in loop gain are only one aspect of robust stability
+% Generally, imperfect plant modeling means both gain and phase are not known exectly
+% Because modeling errors are most damaging near the gain crossover freq (freq where open-loop gain is 0db) 
+% So it matters how much phase variation can be tolerated at this frequency
+% The phase margin measures how much variation is needed at the gain crossover freq to lose stability
+% Similarily, the gain margin measures what the relative gain variation is needed at gain crossover frequency to lose stability
+% Together, these 2 numbers give an estimate of "safety margin" for closed-loop stability
+% Smaller stability margins, more fragile system is
+bode(G), grid
+% Then right-click anywhere on plot and select Characteristics -> Minimum Stability Margins
+% Indicate a gain margin of about 9dB and phase margin of about 45 degress
+% The corresponding closed-loop step respnse exhibhits about 20% overshoot and some oscillations 
+step(T), title('Closed-loop response for k =1')
+% Increase the gain k=2, the stability margins are reduced 
+[Gm, Pm] = margin(2*G);
+GmdB = 20*log10(Gm)
+
+GmdB =
+
+    2.7435
+
+Pm
+
+Pm =
+
+    8.6328
+
+% The closed loop response has poorly damped oscillation, a sign of near instability
+step(feedback(2*G, 1)), title('Closed-loop response for k=2')
+% Systems with Multiple Gain or Phase Crossing
+% This leads to multiple gain or phase margin values 
+G = tf(20, [1, 7]) * tf([1, 3.2, 7.2], [1, -1.2, 0.8]) * tf([1 -8 400],[1 33 700]);
+T = feedback(G, 1);
+step(T), title('Closed-loop resoonse for k = 1')
+bode(G), grid)
+ bode(G), grid)
+              ↑
+{Invalid expression. When calling a function or indexing a variable, use
+parentheses. Otherwise, check for mismatched delimiters.
+} 
+bode(G), grid
+% There are two 180 degree crossing with corresponding gain margins of -9.35 db and +10.6db
+% Negative gain margins indicates that stability is lost by decreasing the gain
+% Positive gain margins indicates that stability is lost by increasing the gain
+% This can be verfied by plotting a closed-loop step response for +/- 6dB gain variation about k=1
+k1 = 2; T1 = feedback(G*k1, 1);
+k2 = 1/2; T2 = feedback(G*k2, 1);
+step(T, 'b', T1, 'r', T2, 'g', 12), legend('k=1', 'k=2', 'k=0.5')
+% We can see increased oscillation for both smaller and larger gains values 
+% Let's look at allmargins - note that gain margins are expressed as gain ratios not dB
+m = allmargin(G)
+
+m = 
+
+  <a href="matlab:helpPopup struct" style="font-weight:bold">struct</a> with fields:
+
+     GainMargin: [0.3408 3.3920]
+    GMFrequency: [1.9421 16.4807]
+    PhaseMargin: 68.1140
+    PMFrequency: 7.0776
+    DelayMargin: 0.1680
+    DMFrequency: 7.0776
+         Stable: 1
+
+% Convert to dB
+GainMargins_dB = mag2db(m.GainMargin)
+
+GainMargins_dB =
+
+   -9.3510   10.6091
+
+diary off
+ls
+051424_time_freq_dom_analysis	052124_time_freq_dom_analysis
+051624_time_freq_dom_analysis
+
+diary 052424_time_freq_dom_analysis

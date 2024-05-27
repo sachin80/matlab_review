@@ -1,0 +1,281 @@
+%% Tune 2-DOF PID Controller
+% Sorry, already went over this example 
+%% PID Tuning Algorithm:
+% The typical PID tuning objectives include...
+% Closed-loop stability - The closed-loop system output remains bounded for bounded input
+% Adequate performance - The closed-loop system tracks reference changes and suppresses disturbances as rapidly as possible
+% - The larger the loop bandwidth(the frequency of unit open-loop gain), the faster the controller responds to changes in reference or disturbances in the loop
+% Adequate robusteness - The loop design has enough gain margin and phase margin to allow for modeling errors and variations in system dynamics 
+% Matlab algorithm for tuning PID controllers meets these objectives by tuning PID gains to acheive a good balance between performance and robustness. 
+% By default the algorithm chooses a crossover frequency (loop bandwidth) based on the plant dynamics, and designs for a target phase of 60 deg. 
+% You can interactively change the response time, bandwidth, transient response, or phase margin using the PID Tuner, which computes new PID gains 
+% For a givien robusteness (min phase margin) the tuning algorithm chooses the controller design that balances the 2 measures of perfromance, ref. traking, and disturbance rejection
+% Can change the desing focus to favor one of these performance measures
+% The more tunable parameters there are in the system, the more likely it is that the PID algorithm can acheive the desired design focus without sacrificing robustness
+%% Example: Designing PID for Disturbance Rejection with PID Tuner: 
+% This example shows how to design a PI controller with good disturubanve rejection performance using the PID Tuner tool 
+% The example also uses the ISA-PID controller for good disturbance rejection and good ref. tracking.
+% G(s) = (6(s + 5)e^-s)/((s+1)(s+2)(s+2)(s+4))
+G = zpk(-5, [-1, -2, -3, -4], 6, 'OutputDelay', 1);
+G.InputName = 'u';
+G.OutputName = 'y';
+% Launch the PID Tuner to desing a PI controller in parallel form for plant G
+pidtool(G, 'pi')
+% The PID Tuner will automatically desing an initial PI controller
+% Because the attenuation of low frequency disturbance is inversely proportional to integral gain Ki, then maximizing the integral gain is a usefull heuristic to obtain a PI controller with good disturbance rejection
+% See chapter 4 of "Advanced PID Control" by Astrom
+% If we increase to Ki gain to it's max value of 0.3 then the peak deviation is reduced to about 0.9 with about a 10% improvement and it settles to less than 0.1 in about 6.7 seconds (25% improvement)
+% Because we increased the bandwidth the step reference tracking response becomes more oscillatory, this overshoot exceeds 15%, which is high
+% This trade-off occurs because a single PID controller is not able to satisfy both design goals at the same time
+% Let's create an ISA-PID controller 
+% We can manually create such a controller using the pid command where we can directly specify Kp and Ki gains
+% Using the gains from the PID tuner 
+C = pid(0.64362, 0.30314); 
+C.InputName = 'e'
+
+C =
+ 
+             1 
+  Kp + Ki * ---
+             s 
+
+  with Kp = 0.644, Ki = 0.303
+ 
+Continuous-time PI controller in parallel form.
+
+C.OutputName = 'u';
+C
+
+C =
+ 
+             1 
+  Kp + Ki * ---
+             s 
+
+  with Kp = 0.644, Ki = 0.303
+ 
+Continuous-time PI controller in parallel form.
+
+% A simple solution to make a PI controller to perform well for both reference tracking and distubance reject is to upgrade to an ISA-PID controller
+
+% It improves both ref. tracking by provding additional turning params b
+% This tuning parameter b allows independent control of the impact of the ref. signal on the prop. action
+% In the ISA-PID structure, there is a feedback controller C and a feed-forward filter F
+% C is a regular PI controller in parallel form that is: 
+% C(s) = Kp + Ki/s
+% F is a pre-filter that involves Kp and Ki gains from C plus the setpoint weight b:
+% F(s) = bKps + Ki/(Kps + Ki)
+% F(s) = (bKps + Ki)/(Kps + Ki)
+% The ISA-PID controller has two inputs (r and y) and one output (u)
+% Set-point weight b is a real number between 0 and 1
+% When it decreases the overshoot in the ref. tracking response is reduced.
+% We choose b = 0.7
+b = 0.7;
+% Let's contstuct the ISA-PID from F and C
+F = tf([pb*C.Kp, C.Ki], [C.Kp, C.Ki]);
+{Unrecognized function or variable 'pb'.
+} 
+F = tf([b*C.Kp, C.Ki], [C.Kp, C.Ki]);
+F
+
+F =
+ 
+  0.4505 s + 0.3031
+  -----------------
+  0.6436 s + 0.3031
+ 
+Continuous-time transfer function.
+
+F.InputName = 'r';
+F.OutputName = 'uf';
+Sum = sumblk(
+ Sum = sumblk(
+              ↑
+{Invalid expression. When calling a function or indexing a variable, use
+parentheses. Otherwise, check for mismatched delimiters.
+} 
+Sum = sumblk('e', 'uf', 'y', '+-');
+ISAPID = connect(C, F, Sum, {'r', 'y'}, 'u')
+
+ISAPID =
+ 
+  A = 
+           x1      x2
+   x1       0  0.2826
+   x2       0  -0.471
+ 
+  B = 
+         r    y
+   x1  0.7   -1
+   x2  0.5    0
+ 
+  C = 
+          x1      x2
+   u  0.3031  0.1819
+ 
+  D = 
+            r        y
+   u   0.4505  -0.6436
+ 
+Continuous-time state-space model.
+
+tf(ISAPID)
+
+ans =
+ 
+  From input "r" to output "u":
+  0.4505 s^2 + 0.5153 s + 0.1428
+  ------------------------------
+          s^2 + 0.471 s
+ 
+  From input "y" to output "u":
+  -0.6436 s - 0.3031
+  ------------------
+          s
+ 
+Continuous-time transfer function.
+
+% Let's compare the performance
+% The ref. tracking response with ISA-PID Controller has much less overshoot because setpoint weight b reduces overshoot
+% Closed-loop system with PI controller for reference tracing 
+sys1 = feedback(G*C, 1);
+% Closed-loop system with ISA-PID controller 
+sys2 = connect(ISAPID, G, {'r', 'u'}, 
+ sys2 = connect(ISAPID, G, {'r', 'u'}, 
+                                       ↑
+{Invalid expression. When calling a function or indexing a variable, use
+parentheses. Otherwise, check for mismatched delimiters.
+} 
+sys2 = connect(ISAPID, G, {'r', 'u'}, 'y');
+% Compare responses
+step(sys1, 'r-', sys2(1), 'b.');
+legend('show', 'location', 'southeast')
+title('Reference Tracking')
+% The disturbacne rejection responses are the same because the setpoint weight b only affects reference tracking:
+% Closed-loop system with PI controllerr for disturbance rejection 
+sys1 = feedback(G, C);
+% Compare response 
+step(sys1, 'r-', sys2(2), 'b.');
+title('Disturbance Rejection')
+ type opampdemo_annotate
+
+function opampdemo_annotate(flag)
+% Annotations for opampdemo
+
+%  Copyright 1986-2005 The MathWorks, Inc.
+switch flag
+    case 1
+        CC = [1 0 1];
+        line('Parent',gca,'LineWidth',2,'Color',CC,'XData',[2e3 2e3],'YData',[25 95]);
+        patch('Parent',gca,'EdgeColor',CC,'FaceColor',CC,'XData',[1.6e3 2e3 2.5e3],'YData',[40 25 40]);
+        line('Parent',gca,'LineWidth',2,'Color',CC,'XData',[2e3 1e7],'YData',[10 10]);
+        patch('Parent',gca,'EdgeColor',CC,'FaceColor',CC,'XData',[7e6 1e7 7e6],'YData',[2 10 18]);
+        text('Parent',gca,'Position',[2e3 82],'String',' Reduced LF gain',...
+            'Hor','left','Ver','top');
+        text('Parent',gca,'Position',[1.3e5 24],'String','Increased system bandwidth',...
+            'Hor','center','Ver','bottom');
+        
+    case 2
+        text('Parent',gca,'Position',[2.4e-6 15],'String','Excessive ringing  \rightarrow  poor phase margin',...
+            'Hor','left','Ver','middle');
+    case 3
+        CC = [1 0 1];
+        ln = line('LineStyle','-','Color',CC,...
+            'XData',[.25e-6 .32e-6],'YData',[12 5]);
+        patch('EdgeColor',CC,'FaceColor',CC,...
+            'XData',[.32e-6 .29e-6 .34e-6],'YData',[5 5.6 5.8]);
+        text('Position',[.32e-6 4.9], 'String','   Increasing C',...
+            'Color',CC,'Hor','center','Ver','top');
+        text('Position',[.20e-6 13.2],'String','0 pF',...
+            'Color',CC,'Hor','right','Ver','middle');
+        text('Position',[.34e-6 12],  'String','1 pF',...
+            'Color',CC,'Hor','center','Ver','bottom');
+        text('Position',[.38e-6 7.8], 'String','3 pF',...
+            'Color',CC,'Hor','left','Ver','top');
+        set(gca,'Ylim',[0 14]);
+        
+    case 4
+        text('Position',[2.2 58],'String','\leftarrow Peak Phase Margin @ C = 2pF',...
+            'Hor','left','Ver','middle');
+        
+end
+!git add .
+fatal: not a git repository (or any of the parent directories): .git
+!git add.
+git: 'add.' is not a git command. See 'git --help'.
+
+The most similar command is
+	add
+!git add .
+fatal: not a git repository (or any of the parent directories): .git
+!git status
+fatal: not a git repository (or any of the parent directories): .git
+cd ..
+ls
+BalancedTruncationModelReductionInTheLiveEditorExample
+isapiddemo
+
+cd
+
+/Users/sachinagrawal/Documents/MATLAB/Examples/R2022a/control
+
+ls
+BalancedTruncationModelReductionInTheLiveEditorExample
+isapiddemo
+
+cd ..
+ls
+control
+
+cd ..
+ls
+R2022a
+
+cd ..
+ls
+Examples
+
+cd 
+
+/Users/sachinagrawal/Documents/MATLAB
+
+ls
+Examples
+
+cd ..
+ls
+MATLAB
+
+cd ..
+ls
+Applications			Pictures
+Desktop				Public
+Documents			Working
+Downloads			hs_error_pid15951.log
+Library				matlab_crash_dump.81487-1
+MATLAB-Drive			miniforge3
+Movies				scikit_learn_data
+Music				seaborn-data
+
+cd Working/
+ls
+book			finance			mle_udacity
+data_science		handson-ml2		optimal_control
+dl_review		interview_kickstart	previous_work
+dog_app_files		machine-learning-book	robotics
+ds_algorithms_review	matlab_review		school
+env			ml_review		vscode_review
+
+cd matlab_review/
+ls
+MatlabExamplesBook.zip		control_toolbox_review
+MatlabStyle2 book.zip		getting_started_with_matlab
+
+cd control_toolbox_review/
+ls
+042324_getting_started		DynamicSystemModels
+ControlSystemDesignAndTuning	LinearAnalysis
+
+git add .
+{Unrecognized function or variable 'git'.
+} 

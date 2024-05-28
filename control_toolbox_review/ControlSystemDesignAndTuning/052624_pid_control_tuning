@@ -373,3 +373,1435 @@ Untracked files:
 
 no changes added to commit (use "git add" and/or "git commit -a")
 diary off
+type 052624_pid_control_tuning
+
+%% Tune 2-DOF PID Controller
+% Sorry, already went over this example 
+%% PID Tuning Algorithm:
+% The typical PID tuning objectives include...
+% Closed-loop stability - The closed-loop system output remains bounded for bounded input
+% Adequate performance - The closed-loop system tracks reference changes and suppresses disturbances as rapidly as possible
+% - The larger the loop bandwidth(the frequency of unit open-loop gain), the faster the controller responds to changes in reference or disturbances in the loop
+% Adequate robusteness - The loop design has enough gain margin and phase margin to allow for modeling errors and variations in system dynamics 
+% Matlab algorithm for tuning PID controllers meets these objectives by tuning PID gains to acheive a good balance between performance and robustness. 
+% By default the algorithm chooses a crossover frequency (loop bandwidth) based on the plant dynamics, and designs for a target phase of 60 deg. 
+% You can interactively change the response time, bandwidth, transient response, or phase margin using the PID Tuner, which computes new PID gains 
+% For a givien robusteness (min phase margin) the tuning algorithm chooses the controller design that balances the 2 measures of perfromance, ref. traking, and disturbance rejection
+% Can change the desing focus to favor one of these performance measures
+% The more tunable parameters there are in the system, the more likely it is that the PID algorithm can acheive the desired design focus without sacrificing robustness
+%% Example: Designing PID for Disturbance Rejection with PID Tuner: 
+% This example shows how to design a PI controller with good disturubanve rejection performance using the PID Tuner tool 
+% The example also uses the ISA-PID controller for good disturbance rejection and good ref. tracking.
+% G(s) = (6(s + 5)e^-s)/((s+1)(s+2)(s+2)(s+4))
+G = zpk(-5, [-1, -2, -3, -4], 6, 'OutputDelay', 1);
+G.InputName = 'u';
+G.OutputName = 'y';
+% Launch the PID Tuner to desing a PI controller in parallel form for plant G
+pidtool(G, 'pi')
+% The PID Tuner will automatically desing an initial PI controller
+% Because the attenuation of low frequency disturbance is inversely proportional to integral gain Ki, then maximizing the integral gain is a usefull heuristic to obtain a PI controller with good disturbance rejection
+% See chapter 4 of "Advanced PID Control" by Astrom
+% If we increase to Ki gain to it's max value of 0.3 then the peak deviation is reduced to about 0.9 with about a 10% improvement and it settles to less than 0.1 in about 6.7 seconds (25% improvement)
+% Because we increased the bandwidth the step reference tracking response becomes more oscillatory, this overshoot exceeds 15%, which is high
+% This trade-off occurs because a single PID controller is not able to satisfy both design goals at the same time
+% Let's create an ISA-PID controller 
+% We can manually create such a controller using the pid command where we can directly specify Kp and Ki gains
+% Using the gains from the PID tuner 
+C = pid(0.64362, 0.30314); 
+C.InputName = 'e'
+
+C =
+ 
+             1 
+  Kp + Ki * ---
+             s 
+
+  with Kp = 0.644, Ki = 0.303
+ 
+Continuous-time PI controller in parallel form.
+
+C.OutputName = 'u';
+C
+
+C =
+ 
+             1 
+  Kp + Ki * ---
+             s 
+
+  with Kp = 0.644, Ki = 0.303
+ 
+Continuous-time PI controller in parallel form.
+
+% A simple solution to make a PI controller to perform well for both reference tracking and distubance reject is to upgrade to an ISA-PID controller
+
+% It improves both ref. tracking by provding additional turning params b
+% This tuning parameter b allows independent control of the impact of the ref. signal on the prop. action
+% In the ISA-PID structure, there is a feedback controller C and a feed-forward filter F
+% C is a regular PI controller in parallel form that is: 
+% C(s) = Kp + Ki/s
+% F is a pre-filter that involves Kp and Ki gains from C plus the setpoint weight b:
+% F(s) = bKps + Ki/(Kps + Ki)
+% F(s) = (bKps + Ki)/(Kps + Ki)
+% The ISA-PID controller has two inputs (r and y) and one output (u)
+% Set-point weight b is a real number between 0 and 1
+% When it decreases the overshoot in the ref. tracking response is reduced.
+% We choose b = 0.7
+b = 0.7;
+% Let's contstuct the ISA-PID from F and C
+F = tf([pb*C.Kp, C.Ki], [C.Kp, C.Ki]);
+{Unrecognized function or variable 'pb'.
+} 
+F = tf([b*C.Kp, C.Ki], [C.Kp, C.Ki]);
+F
+
+F =
+ 
+  0.4505 s + 0.3031
+  -----------------
+  0.6436 s + 0.3031
+ 
+Continuous-time transfer function.
+
+F.InputName = 'r';
+F.OutputName = 'uf';
+Sum = sumblk(
+ Sum = sumblk(
+              ↑
+{Invalid expression. When calling a function or indexing a variable, use
+parentheses. Otherwise, check for mismatched delimiters.
+} 
+Sum = sumblk('e', 'uf', 'y', '+-');
+ISAPID = connect(C, F, Sum, {'r', 'y'}, 'u')
+
+ISAPID =
+ 
+  A = 
+           x1      x2
+   x1       0  0.2826
+   x2       0  -0.471
+ 
+  B = 
+         r    y
+   x1  0.7   -1
+   x2  0.5    0
+ 
+  C = 
+          x1      x2
+   u  0.3031  0.1819
+ 
+  D = 
+            r        y
+   u   0.4505  -0.6436
+ 
+Continuous-time state-space model.
+
+tf(ISAPID)
+
+ans =
+ 
+  From input "r" to output "u":
+  0.4505 s^2 + 0.5153 s + 0.1428
+  ------------------------------
+          s^2 + 0.471 s
+ 
+  From input "y" to output "u":
+  -0.6436 s - 0.3031
+  ------------------
+          s
+ 
+Continuous-time transfer function.
+
+% Let's compare the performance
+% The ref. tracking response with ISA-PID Controller has much less overshoot because setpoint weight b reduces overshoot
+% Closed-loop system with PI controller for reference tracing 
+sys1 = feedback(G*C, 1);
+% Closed-loop system with ISA-PID controller 
+sys2 = connect(ISAPID, G, {'r', 'u'}, 
+ sys2 = connect(ISAPID, G, {'r', 'u'}, 
+                                       ↑
+{Invalid expression. When calling a function or indexing a variable, use
+parentheses. Otherwise, check for mismatched delimiters.
+} 
+sys2 = connect(ISAPID, G, {'r', 'u'}, 'y');
+% Compare responses
+step(sys1, 'r-', sys2(1), 'b.');
+legend('show', 'location', 'southeast')
+title('Reference Tracking')
+% The disturbacne rejection responses are the same because the setpoint weight b only affects reference tracking:
+% Closed-loop system with PI controllerr for disturbance rejection 
+sys1 = feedback(G, C);
+% Compare response 
+step(sys1, 'r-', sys2(2), 'b.');
+title('Disturbance Rejection')
+ type opampdemo_annotate
+
+function opampdemo_annotate(flag)
+% Annotations for opampdemo
+
+%  Copyright 1986-2005 The MathWorks, Inc.
+switch flag
+    case 1
+        CC = [1 0 1];
+        line('Parent',gca,'LineWidth',2,'Color',CC,'XData',[2e3 2e3],'YData',[25 95]);
+        patch('Parent',gca,'EdgeColor',CC,'FaceColor',CC,'XData',[1.6e3 2e3 2.5e3],'YData',[40 25 40]);
+        line('Parent',gca,'LineWidth',2,'Color',CC,'XData',[2e3 1e7],'YData',[10 10]);
+        patch('Parent',gca,'EdgeColor',CC,'FaceColor',CC,'XData',[7e6 1e7 7e6],'YData',[2 10 18]);
+        text('Parent',gca,'Position',[2e3 82],'String',' Reduced LF gain',...
+            'Hor','left','Ver','top');
+        text('Parent',gca,'Position',[1.3e5 24],'String','Increased system bandwidth',...
+            'Hor','center','Ver','bottom');
+        
+    case 2
+        text('Parent',gca,'Position',[2.4e-6 15],'String','Excessive ringing  \rightarrow  poor phase margin',...
+            'Hor','left','Ver','middle');
+    case 3
+        CC = [1 0 1];
+        ln = line('LineStyle','-','Color',CC,...
+            'XData',[.25e-6 .32e-6],'YData',[12 5]);
+        patch('EdgeColor',CC,'FaceColor',CC,...
+            'XData',[.32e-6 .29e-6 .34e-6],'YData',[5 5.6 5.8]);
+        text('Position',[.32e-6 4.9], 'String','   Increasing C',...
+            'Color',CC,'Hor','center','Ver','top');
+        text('Position',[.20e-6 13.2],'String','0 pF',...
+            'Color',CC,'Hor','right','Ver','middle');
+        text('Position',[.34e-6 12],  'String','1 pF',...
+            'Color',CC,'Hor','center','Ver','bottom');
+        text('Position',[.38e-6 7.8], 'String','3 pF',...
+            'Color',CC,'Hor','left','Ver','top');
+        set(gca,'Ylim',[0 14]);
+        
+    case 4
+        text('Position',[2.2 58],'String','\leftarrow Peak Phase Margin @ C = 2pF',...
+            'Hor','left','Ver','middle');
+        
+end
+!git add .
+fatal: not a git repository (or any of the parent directories): .git
+!git add.
+git: 'add.' is not a git command. See 'git --help'.
+
+The most similar command is
+	add
+!git add .
+fatal: not a git repository (or any of the parent directories): .git
+!git status
+fatal: not a git repository (or any of the parent directories): .git
+cd ..
+ls
+BalancedTruncationModelReductionInTheLiveEditorExample
+isapiddemo
+
+cd
+
+/Users/sachinagrawal/Documents/MATLAB/Examples/R2022a/control
+
+ls
+BalancedTruncationModelReductionInTheLiveEditorExample
+isapiddemo
+
+cd ..
+ls
+control
+
+cd ..
+ls
+R2022a
+
+cd ..
+ls
+Examples
+
+cd 
+
+/Users/sachinagrawal/Documents/MATLAB
+
+ls
+Examples
+
+cd ..
+ls
+MATLAB
+
+cd ..
+ls
+Applications			Pictures
+Desktop				Public
+Documents			Working
+Downloads			hs_error_pid15951.log
+Library				matlab_crash_dump.81487-1
+MATLAB-Drive			miniforge3
+Movies				scikit_learn_data
+Music				seaborn-data
+
+cd Working/
+ls
+book			finance			mle_udacity
+data_science		handson-ml2		optimal_control
+dl_review		interview_kickstart	previous_work
+dog_app_files		machine-learning-book	robotics
+ds_algorithms_review	matlab_review		school
+env			ml_review		vscode_review
+
+cd matlab_review/
+ls
+MatlabExamplesBook.zip		control_toolbox_review
+MatlabStyle2 book.zip		getting_started_with_matlab
+
+cd control_toolbox_review/
+ls
+042324_getting_started		DynamicSystemModels
+ControlSystemDesignAndTuning	LinearAnalysis
+
+git add .
+{Unrecognized function or variable 'git'.
+} 
+%% Example: Temparature Control in a Heat Exchanger -
+heatex_plotdata
+title("Measured response to step change in steam valve voltage")
+% The plot shows the first-order-plus-deadtime model of the heat exchanger
+% We inject a step disturbance in valve voltage V and record the effect of tank temp. T over T
+!git add .
+!git commit -m "added temperature control in heat exchanger example"
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    ../../getting_started_with_matlab/chp6_Graphics/).mat
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	../../UCLA_GNC_Lectures-20240319T091041Z-001.zip
+	../../UCLA_GNC_Lectures/
+	../DynamicSystemModels/042724_lin_sys_rep_basic_models
+	../DynamicSystemModels/042924_lin_sys_rep_tunable_models
+	../DynamicSystemModels/050724_lin_sys_rep_models_delays
+	../DynamicSystemModels/051324_model_reduction_basics
+	../DynamicSystemModels/051424_model_reduction_more
+	../../getting_started_with_matlab/chp6_Graphics/chp6_041824
+	../../license.txt
+
+no changes added to commit (use "git add" and/or "git commit -a")
+ls
+052424_pid_control_tuning	052624_pid_control_tuning
+
+!git push origin main
+Everything up-to-date
+!git status
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    ../../getting_started_with_matlab/chp6_Graphics/).mat
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	../../UCLA_GNC_Lectures-20240319T091041Z-001.zip
+	../../UCLA_GNC_Lectures/
+	../DynamicSystemModels/042724_lin_sys_rep_basic_models
+	../DynamicSystemModels/042924_lin_sys_rep_tunable_models
+	../DynamicSystemModels/050724_lin_sys_rep_models_delays
+	../DynamicSystemModels/051324_model_reduction_basics
+	../DynamicSystemModels/051424_model_reduction_more
+	../../getting_started_with_matlab/chp6_Graphics/chp6_041824
+	../../license.txt
+
+no changes added to commit (use "git add" and/or "git commit -a")
+ls
+052424_pid_control_tuning	052624_pid_control_tuning
+
+cd ..
+ls
+042324_getting_started		DynamicSystemModels
+ControlSystemDesignAndTuning	LinearAnalysis
+
+ls
+042324_getting_started		DynamicSystemModels
+ControlSystemDesignAndTuning	LinearAnalysis
+
+cd ControlSystemDesignAndTuning/
+ls
+052424_pid_control_tuning	052624_pid_control_tuning
+
+!git status
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	deleted:    ../../getting_started_with_matlab/chp6_Graphics/).mat
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	../../UCLA_GNC_Lectures-20240319T091041Z-001.zip
+	../../UCLA_GNC_Lectures/
+	../DynamicSystemModels/042724_lin_sys_rep_basic_models
+	../DynamicSystemModels/042924_lin_sys_rep_tunable_models
+	../DynamicSystemModels/050724_lin_sys_rep_models_delays
+	../DynamicSystemModels/051324_model_reduction_basics
+	../DynamicSystemModels/051424_model_reduction_more
+	../../getting_started_with_matlab/chp6_Graphics/chp6_041824
+	../../license.txt
+
+no changes added to commit (use "git add" and/or "git commit -a")
+diary off
+% Let's re-load the model
+heatex_plotdata
+title('Measure response to step change in steam valve voltage")
+ title('Measure response to step change in steam valve voltage")
+       ↑
+{Error: Character vector is not terminated properly.
+} 
+title('Measure response to step change in steam valve voltage')
+% We can see in the plot t1 and t2 are where the response attains 28.3% and 63.2% of its final value 
+% Can use these values to estimate the time constant tau and dead time theta 
+t1 = 21.8;
+t2 = 36.0;
+tau = 3/2 * (t2 - t1);
+theta = t2 - tau
+
+theta =
+
+   14.7000
+
+% We can verify these calculations by comparing the first-order-plus-deadtime response with measure response
+s = tf('s');
+Gp = exp(-theta * s)/(1 + tau*s)
+
+Gp =
+ 
+                     1
+  exp(-14.7*s) * ----------
+                 21.3 s + 1
+ 
+Continuous-time transfer function.
+
+hold on, step(Gp), hold off
+title('Experimanetal vs. simulated response to step change')
+% The model response and experimental data are in good argreement
+% Can do a similar bump test experiment to estimate first-order response to step dist. in inflow temp
+% We can form a block diagram representation of the open-loop process 
+% The transfer function is Gp(s) = (e^(-14.7s)/(21.3s + 1)) for the heat exchanger model. This models how a change in voltage V driving the steam valve opening affects the tank temp. T
+% The transfer function Gd(s) = (e^(-35s))/(25s + 1) models how a change in d in inflow temp affects T
+% We can use a PI controller to regulate T around a given setpoint Tsp
+% The PI controller is C(s) = Kc(1 + 1/(tau*s))
+% We can use ITAE formulas to pic adequate values for the controller parameters
+Kc = 0.859*(theta/tau)^(-0.977)
+
+Kc =
+
+    1.2341
+
+tauc = (tau/0.674)*(theta/tau)^0.680
+
+tauc =
+
+   24.5582
+
+% Let's see how well this controller performs by closing the loop and simulate the response to a setpoint change
+Tfb = feedback(ss(Gp*C), 1);
+step(Tfb), grid on
+Gp
+
+Gp =
+ 
+                     1
+  exp(-14.7*s) * ----------
+                 21.3 s + 1
+ 
+Continuous-time transfer function.
+
+C = Kc *(1 + 1/(tauc*s));
+Tfb = feedback(ss(Gp*C), 1);
+step(Tfb), grid on
+title(
+ title(
+       ↑
+{Invalid expression. When calling a function or indexing a variable, use
+parentheses. Otherwise, check for mismatched delimiters.
+} 
+title('Response to step change in temperature setpoint T_{sp}')
+ylabel('Tank temp')
+% The response is fairly fast with some overshoot, let's confirm with stabiliy margins plot
+margin(Gp*C), grid
+% We can see that the gain margin is weak
+% Reducing the proportional gain Kc strengthems stability at the expense of performance
+C1 = 0.9 * (1 + 1/(tauc*s));
+margin(Gp*C1), grid
+step(Tfb, 'b', feedback(ss(Gp*C1), 1), 'r')
+% Changes in the inflow temp are the main source of temp fluctuations in tank
+% To reject disturbances an alternative to feedback control is feedforward arch.
+% The feedforward controller F uses measurements of inflow temp. to adjust steam valve opening (voltage V)
+% Therefore, feedforwad control anticipates and preempts the effect of inflow tem changes
+% The overall transfer from temperaturedisturbance d to tank temp T is: T = (Gp*F + Gd)d
+% Perfect disturbance rejection requires GpF + Gd = 0 -> F = -Gd/Gp = ((21.3s + 1)*e^(-20.3s))/(25s + 1)
+% Modeling inaccuracies preven exact disturbance rejectioni but feedforward control will help minimize temperature fluctuations due to inflow disturbance
+% To see how feedforward perfroms increase the ideal feedforward delay by 5 seconds and simulate a response to a step change in inflow temperature
+Gd = exp(-35*s)/(25*s + 1);
+F = -(21.3*s + 1)/(25*s +1) * exp(-25*s);
+Tff = Gp * ss(F) + Gd % d->T transfer with feedforward
+
+Tff =
+ 
+  A = 
+             x1        x2        x3
+   x1  -0.04695  -0.02368         0
+   x2         0     -0.04         0
+   x3         0         0     -0.04
+ 
+  B = 
+           u1
+   x1  -0.213
+   x2  0.0625
+   x3    0.25
+ 
+  C = 
+           x1      x2      x3
+   y1  0.1878       0    0.16
+ 
+  D = 
+       u1
+   y1   0
+ 
+  (values computed with all internal delays set to zero)
+
+  Output delays (seconds): 14.7 
+  Internal delays (seconds): 25  20.3 
+ 
+Continuous-time state-space model.
+
+step(Tff), grid
+title('Effect of a step disturbance in inflow temperature')
+ylabel('Tank temperature')
+% In general, feedback control is good for setpoint tracking, while feedforward control can help with rejection of measured disturbance
+% Let's combine both schemes
+% Let's use 'connect' to build the corresponding closel-loop model from Tsp, d to T.
+% Let's first name the input and output channels of each block
+Gd.u = 'd'; 
+Gd.y = 'Td';
+Gp.u = 'V';
+Gp.y = 'Tp';
+F.u = 'd';
+F.y = 'Vf';
+C.u = 'e';
+C.y = 'Vc';
+Sum1 = sumblk('e = Tsp = T')
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('sumblk')" style="font-weight:bold">sumblk</a>
+Invalid summing junction formula. The "=" sign is misplaced.
+} 
+Sum1 = sumblk('e = Tsp - T')
+
+Sum1 =
+ 
+  From input "Tsp" to output "e":
+  1
+ 
+  From input "T" to output "e":
+  -1
+ 
+Static gain.
+
+Sum2 = sumblk('V = Vf + Vc');
+Sum3 = sumblk('T=Tp+Td');
+Tffb = connect(Gp, Gd, C, F, Sum1, Sum2, Sum3, {'Tsp', 'd'}, 'T');
+% Let's compare the closed-loop resosonse with and without feedforward control
+% We can do this calculating the closed-loop transfer function for the feedback only config
+C.u = 'e'; C.y = 'V';
+Tfb = connect(Gp, Gd, C, Sum1, Sum3, {'Tsp', 'd'}, 'T');
+step(Tfb, 'b', Tffb, 'r--'), grid
+title('Closed-loop response to setpoint and dist. step')
+ylabel('Tank temperature')
+legened('Feedback only', 'Feedforward + feedback')
+{Unrecognized function or variable 'legened'.
+} 
+legend('Feedback only', 'Feedforward + feedback')
+% The two designs have identical performance for setpoint tracking but addition of feedforward control is beneficila to disturbance rejection
+% Let's look at the closed-loop Bode plot of both systems
+bodemag(Tfb, 'b', Tffb, 'r--', {1e-3, 1e1})
+legend('Feedback only', 'Feedforward + feedback')
+% What is the bouncing phenomena at the end of Bode plot for feedforward? Look at this more
+%% Control of Processes with Long Dead Time: The Smith Predictor
+
+
+%% Example: Control of Processes with Long Dead Time: The Smith Predictor
+% This example shows the limitation of PI control for process with long dead time and illustrates the benefits of the Smith Predictor
+% Examle is inspired by paper "Robust Tuning Procedure of Dead-Time Compensating Controllers" by Hagglund et. al
+% The process open-loop response is modeled as a first order plus dead time with 40.2 second time constant and 93.9 second time delay
+s = tf('s');
+P = exp(-93.9*s) * 5.6/(40.2*s + 1);
+P.InputName = 'u';
+P.OutputName = 'y';
+P
+
+P =
+ 
+  From input "u" to output "y":
+                    5.6
+  exp(-93.9*s) * ----------
+                 40.2 s + 1
+ 
+Continuous-time transfer function.
+
+% The delay is more than twice the time constant
+step(P), grid on
+% Let's design a PI controllers with a open loop bandwidth of 0.006 rad/s
+Cpi = pidtune(P, pidstd(1, 1), 0.006);
+Cpi
+
+Cpi =
+ 
+             1      1 
+  Kp * (1 + ---- * ---)
+             Ti     s 
+
+  with Kp = 0.0501, Ti = 47.3
+ 
+Continuous-time PI controller in standard form
+
+% Let's eval the PI controller perfromance
+% Simulate step responses to step changes in reference signal ysp and output dist. signal d
+% Because of the deleay in feedback path, it's necessary to convert P or Cpi to state-space rep
+Tpi = feedback([P*Cpi, 1], 1, 1, 1) % closed-loop model [ysp;d]->y
+
+Tpi =
+ 
+  A = 
+              x1         x2
+   x1   -0.03186  -0.004726
+   x2    0.03125          0
+ 
+  B = 
+           u1      u2
+   x1   0.125  -0.125
+   x2       0       0
+ 
+  C = 
+           x1       x2
+   y  0.05588  0.03781
+ 
+  D = 
+      u1  u2
+   y   0   1
+ 
+  (values computed with all internal delays set to zero)
+
+  Internal delays (seconds): 93.9 
+ 
+Continuous-time state-space model.
+
+Tpi.InputName = {'ysp', 'd'};
+step(Tpi), grid on
+% The closed-loop repsone has acceptable overshoot but it somewhat sluggish since it settles in about 600 seconds
+% Increasing the proportional gain Kp speeds up the response but also will significantly increase overshoot that will lead to unstability
+Kp3 = [0.06; 0.08;0.1]; % try three increasing values of Kp
+help repmat
+ <strong>repmat</strong> Replicate and tile an array.
+    B = <strong>repmat</strong>(A,M,N) or B = <strong>repmat</strong>(A,[M,N]) creates a large matrix B 
+    consisting of an M-by-N tiling of copies of A. If A is a matrix, 
+    the size of B is [size(A,1)*M, size(A,2)*N].
+ 
+    B = <strong>repmat</strong>(A,N) creates an N-by-N tiling.  
+    
+    B = <strong>repmat</strong>(A,P1,P2,...,Pn) or B = <strong>repmat</strong>(A,[P1,P2,...,Pn]) tiles the array 
+    A to produce an n-dimensional array B composed of copies of A. The size 
+    of B is [size(A,1)*P1, size(A,2)*P2, ..., size(A,n)*Pn].
+    If A is m-dimensional with m > n, an m-dimensional array B is returned.
+    In this case, the size of B is [size(A,1)*P1, size(A,2)*P2, ..., 
+    size(A,n)*Pn, size(A, n+1), ..., size(A, m)].
+ 
+    <strong>repmat</strong>(A,M,N) when A is a scalar is commonly used to produce an M-by-N
+    matrix filled with A's value and having A's CLASS. For certain values,
+    you may achieve the same results using other functions. Namely,
+       <strong>repmat</strong>(NAN,M,N)           is the same as   NAN(M,N)
+       <strong>repmat</strong>(SINGLE(INF),M,N)   is the same as   INF(M,N,'single')
+       <strong>repmat</strong>(INT8(0),M,N)       is the same as   ZEROS(M,N,'int8')
+       <strong>repmat</strong>(UINT32(1),M,N)     is the same as   ONES(M,N,'uint32')
+       <strong>repmat</strong>(EPS,M,N)           is the same as   EPS(ONES(M,N))
+ 
+    Example:
+        repmat(magic(2), 2, 3)
+        repmat(uint8(5), 2, 3)
+ 
+    Class support for input A:
+       float: double, single
+       integer: uint8, int8, uint16, int16, uint32, int32, uint64, int64
+       char, logical
+ 
+    See also <a href="matlab:help bsxfun -displayBanner">bsxfun</a>, <a href="matlab:help meshgrid -displayBanner">meshgrid</a>, <a href="matlab:help ones -displayBanner">ones</a>, <a href="matlab:help zeros -displayBanner">zeros</a>, <a href="matlab:help nan -displayBanner">nan</a>, <a href="matlab:help inf -displayBanner">inf</a>.
+
+    <a href="matlab:doc repmat">Documentation for repmat</a>
+    <a href="matlab:matlab.internal.language.introspective.overloads.displayOverloads('repmat')">Other functions named repmat</a>
+
+magic(2)
+
+ans =
+
+     1     3
+     4     2
+
+repmat(magic(2), 2, 3)
+
+ans =
+
+     1     3     1     3     1     3
+     4     2     4     2     4     2
+     1     3     1     3     1     3
+     4     2     4     2     4     2
+
+Cpi
+
+Cpi =
+ 
+             1      1 
+  Kp * (1 + ---- * ---)
+             Ti     s 
+
+  with Kp = 0.0501, Ti = 47.3
+ 
+Continuous-time PI controller in standard form
+
+type Cpi
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('type')" style="font-weight:bold">type</a>
+File 'Cpi' not found.
+} 
+type(Cpi)
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('type')" style="font-weight:bold">type</a>
+Arguments must be character vectors or strings
+} 
+class(Cpi)
+
+ans =
+
+    'pidstd'
+
+type pidstd
+
+classdef (InferiorClasses = {? matlab.graphics.axis.Axes, ? matlab.ui.control.UIAxes}) pidstd < ltipack.AbstractPID
+   %PIDSTD  Create a PID controller in standard form.
+   %
+   %  Construction:
+   %    SYS = PIDSTD(Kp,Ti,Td,N) creates a continuous-time PID controller
+   %    in standard form with a first order derivative filter:
+   %
+   %                        1          Td*s
+   %           Kp * ( 1 + ------ + ------------ )
+   %                       Ti*s     (Td/N)*s+1
+   %
+   %    When Kp, Ti, Td and N are scalar, the output SYS is a PIDSTD
+   %    object that represents a single-input-single-output PID
+   %    controller. The following rules apply to construct a valid PID
+   %    controller in standard form:
+   %
+   %       Kp (proportional gain) must be real and finite
+   %       Ti (integral time) must be real and positive
+   %       Td (derivative time) must be real, finite and non-negative
+   %       N (filter divisor) must be real and positive
+   %
+   %    The default values are Kp=1, Ti=Inf, Td=0 and N=Inf. If a
+   %    parameter is omitted, its default value is used.  For example:
+   %
+   %       PIDSTD(Kp) returns a proportional only controller
+   %       PIDSTD(Kp,Ti) returns a PI controller
+   %       PIDSTD(Kp,Ti,Td) returns a PID controller
+   %       PIDSTD(Kp,Ti,Td,N) returns a PID controller with derivative filter
+   %
+   %    SYS = PIDSTD(Kp,Ti,Td,N,Ts) creates a discrete-time PID
+   %    controller with sample time Ts (a positive real value). A discrete
+   %    time PID controller is obtained by discretizing the integrators
+   %    with numerical integration methods:
+   %
+   %        The above continuous-time PID formula can be rewritten in
+   %        an equivalent expression that contains two integrators:
+   %
+   %                       1     1          Td
+   %           Kp * ( 1 + --- * --- + --------------- )
+   %                       Ti    s       Td     1
+   %                                    ---- + ---
+   %                                      N     s
+   %
+   %         When the PID controller is discretized, the two integrators
+   %         are replaced by the discretizers that are defined in the
+   %         "IFormula" and "DFormula" properties respectively.  The
+   %         supported numerical integration methods are:
+   %
+   %           'ForwardEuler':     replace 1/s with Ts/(z-1)
+   %           'BackwardEuler':    replace 1/s with Ts*z/(z-1)
+   %           'Trapezoidal':      replace 1/s with (Ts/2)*(z+1)/(z-1)
+   %
+   %        The default method for both integrators is ForwardEuler. When
+   %        the PID controller is in continuous time, 'IFormula' and
+   %        'DFormula' are ignored.
+   %
+   %    The following combinations of discrete-time PID settings are
+   %    not allowed because they generate unstable PID controllers:
+   %
+   %      (1) Type='PID' and DFormula='Trapezoidal'
+   %      (2) Type='PIDF' and DFormula='ForwardEuler' and Ts>=2*Td/N
+   %
+   %    In all syntax above, the input list can be followed by pairs
+   %       'PropertyName1', PropertyValue1, ...
+   %    that set the various properties of PIDSTD systems. Type
+   %    "properties(pidstd)" for a complete list of PIDSTD properties, and type
+   %        help pidstd.<PropertyName>
+   %    for help on a particular property.
+   %
+   %    You can create arrays of PIDSTD objects by using N-dimension
+   %    double arrays for Kp, Ti, Td and N parameters.  For example, if Kp
+   %    and Ti are arrays of size [3 4], then
+   %
+   %       SYS = PIDSTD(Kp,Ti)
+   %
+   %    creates a 3-by-4 array of PIDSTD objects.  You can also use
+   %    indexed assignment and STACK to build PIDSTD arrays:
+   %
+   %       SYS = PIDSTD(zeros(2,1))          % create 2x1 array of PID controllers
+   %       SYS(:,:,1) = PIDSTD(1)            % assign 1st PID controller
+   %       SYS(:,:,2) = PIDSTD(2,3)          % assign 2st PID controller
+   %       SYS = STACK(1,SYS,PIDSTD(4,5,6))  % add 3rd PID controller to array
+   %
+   %  Conversion:
+   %    PIDSYS = PIDSTD(SYS) converts the dynamic system SYS to a PIDSTD
+   %    object. An error is thrown when SYS cannot be expressed as a
+   %    PID controller in standard form. If SYS is a LTI array, PIDSYS is
+   %    an array of PIDSTD objects.
+   %
+   %    PIDSYS = PIDSTD(SYS,'IFormula',Value1,'DFormula',Value2) converts
+   %    SYS to PIDSYS with specified discrete-time formulas for the
+   %    integrator and derivative terms.
+   %
+   %  See also PID, PIDSTD2, PID2, TF.
+   
+   %   Author(s): R. Chen
+   %   Copyright 2009-2011 The MathWorks, Inc.
+   
+   % Public properties with restricted values
+   properties (Access = public, Dependent)
+      % Proportional gain
+      %
+      % The "Kp" property stores the proportional gain of a PID
+      % controller. Kp must be real and finite. For an array of PIDSTD
+      % objects, Kp has the same size as the array size. For example,
+      %   Kp = 1;
+      %   Ti = 2;
+      %   Td = 3;
+      %   N = 4;
+      %   C = pidstd(Kp,Ti,Td,N);
+      % creates a PID controller in standard form.
+      Kp
+      % Integral time
+      %
+      % The "Ti" property stores the integral time of a PID controller.
+      % Ti must be real and greater than 0. For an array of PID objects,
+      % Ti has the same size as the array size. For example,
+      %   Kp = 1;
+      %   Ti = 2;
+      %   Td = 3;
+      %   N = 4;
+      %   C = pidstd(Kp,Ti,Td,N);
+      % creates a PID controller in standard form.
+      Ti
+      % Derivative time
+      %
+      % The "Td" property stores the derivative time of a PID controller.
+      % Td must be real, finite, greater than or equal to 0. For an array
+      % of PID objects, td has the same size as the array size. For
+      % example,
+      %   Kp = 1;
+      %   Ti = 2;
+      %   Td = 3;
+      %   N = 4;
+      %   C = pidstd(Kp,Ti,Td,N);
+      % creates a PID controller in standard form.
+      Td
+      % Derivative filter divisor
+      %
+      % The "N" property stores the derivative filter divisor of a PID
+      % controller. N must be real and greater than 0. For an array of
+      % PID objects, N has the same size as the array size. For example,
+      %   Kp = 1;
+      %   Ti = 2;
+      %   Td = 3;
+      %   N = 4;
+      %   C = pidstd(Kp,Ti,Td,N);
+      % creates a PID controller in standard form.
+      N
+   end
+   
+   % TYPE MANAGEMENT IN BINARY OPERATIONS
+   methods (Static, Hidden)
+      
+      function T = superiorTypes()
+         T = {'pidstd','pid','tf','zpk','ss'};
+      end
+      
+      function boo = isClosed(op)
+         boo = strcmp(op,'stack');
+      end
+      
+      function T = toClosed(binop)
+         if strcmp(binop,'connect')
+            T = 'ss';
+         else
+            T = 'tf';
+         end
+      end
+      
+      function A = getAttributes(A)
+         % Override default attributes
+         A.Structured = false;
+         A.FRD = false;
+      end
+      
+      function T = toStructured(uflag)
+         if uflag
+            T = 'uss';
+         else
+            T = 'genss';
+         end
+      end
+      
+      function T = toFRD(~)
+         T = 'frd';
+      end
+      
+      
+      function T = toSparse(~)
+         T = 'sparss';
+      end
+   end
+   
+   % Public methods
+   methods
+      
+      function sys = pidstd(varargin)
+         
+         % String support, revisit
+         varargin = controllib.internal.util.hString2Char(varargin);
+         
+         ni = nargin;
+         
+         % Handle conversion PIDSTD(SYS) where SYS is also a PIDSTD object
+         if ni>0 && isa(varargin{1},'pidstd')
+            sys0 = varargin{1};
+            if ni==1
+               sys = sys0; % Optimization for SYS of class @pidstd
+            else
+               % convert with options.  For example, from one formula to another formula
+               try
+                  Options = ltipack.AbstractPID.getConversionOptions(varargin(2:end),'pidstd');
+                  sys = copyMetaData(sys0,pidstd_(sys0,Options));
+               catch ME
+                  throw(ME)
+               end
+            end
+            return
+         end
+         
+         % Dissect input list
+         DataInputs = 0;
+         PVStart = ni+1;
+         for ct=1:ni
+            nextarg = varargin{ct};
+            if ischar(nextarg)
+               PVStart = ct;
+               break
+            else
+               DataInputs = DataInputs+1;
+            end
+         end
+         
+         % Handle bad calls
+         if PVStart==1
+            % only ni==0 is allowed
+            if ni==1
+               % Bad conversion
+               ctrlMsgUtils.error('Control:ltiobject:construct3','pidstd')
+            elseif ni>0
+               % not allowed
+               ctrlMsgUtils.error('Control:general:InvalidSyntaxForCommand','pidstd','pidstd')
+            end
+         elseif DataInputs>5
+            ctrlMsgUtils.error('Control:general:InvalidSyntaxForCommand','pidstd','pidstd')
+         end
+         
+         % Process parameters Kp, Ti, Td, N and sample time Ts.  If any
+         % PIDSTD parameters is omitted or empty, default value is used.
+         try
+            Params = {1 inf 0 inf};  % defaults
+            Params(1:DataInputs) = varargin(1:DataInputs);
+            Kp = checkParameterData(sys,'Kp',Params{1});
+            Ti = checkParameterData(sys,'Ti',Params{2});
+            Td = checkParameterData(sys,'Td',Params{3});
+            N = checkParameterData(sys,'N',Params{4});
+            % Sample time
+            if DataInputs==5
+               Ts = ltipack.utValidateTs(varargin{5});
+            else
+               Ts = 0;
+            end
+         catch ME
+            throw(ME)
+         end
+         
+         % Determine I/O and array size
+         if ni>0
+            ArraySize = ltipack.getLTIArraySize(0,Kp,Ti,Td,N);
+            if isempty(ArraySize)
+               ctrlMsgUtils.error('Control:ltiobject:pids1')
+            end
+         else
+            ArraySize = [1 1];
+         end
+         Nsys = prod(ArraySize);
+         sys.IOSize_ = [1 1];
+         
+         % Create @piddataS object array
+         % RE: Inlined for optimal speed
+         if Nsys==1
+            Data = ltipack.piddataS(Kp,Ti,Td,N,Ts);
+         else
+            Data = ltipack.piddataS.array(ArraySize);
+            Delay = ltipack.utDelayStruct(1,1,false);
+            for ct=1:Nsys
+               Data(ct).Kp = Kp(min(ct,end));
+               Data(ct).Ti = Ti(min(ct,end));
+               Data(ct).Td = Td(min(ct,end));
+               Data(ct).N = N(min(ct,end));
+               Data(ct).Ts = Ts;
+               Data(ct).Delay = Delay;
+            end
+         end
+         sys.Data_ = Data;
+         
+         % Process additional settings and validate system
+         % Note: Skip when just constructing empty instance for efficiency
+         if ni>0
+            try
+               
+               % User-defined properties
+               Settings = varargin(:,PVStart:ni);
+               
+               % Apply settings
+               if ~isempty(Settings)
+                  sys = fastSet(sys,Settings{:});
+               end
+               
+               % Consistency check: parameters
+               sys = checkConsistency(sys);
+               
+            catch ME
+               throw(ME)
+            end
+         end
+      end
+      
+      %% Conversion
+      function PIDS2 = make2DOF(PIDS,varargin)
+         %%MAKE2DOF converts a 1-DOF PID controller to a 2-DOF PID
+         %controller
+         %
+         % C2 = make2DOF(C) returns a PIDSTD2 object C2 when C is a
+         % PIDSTD object. By default, setpoint weights b and c are set
+         % to 1.
+         %
+         % C2 = make2DOF(C,b) specifies the setpoint weight for
+         % proportional term
+         %
+         % C2 = make2DOF(C,b,c) specifies the setpoint weights for both
+         % proportional and derivative terms
+         
+         if nargin > 3
+            error(message('MATLAB:narginchk:tooManyInputs'));
+         end
+         
+         b = 1; c = 1;
+         try
+            if nargin >= 2
+               b = checkParameterData(PIDS,'b',varargin{1});
+            end
+            if nargin >= 3
+               c = checkParameterData(PIDS,'c',varargin{2});
+            end
+         catch E
+            throw(E)
+         end
+         
+         Data = PIDS.Data_;
+         pidData = ltipack.piddataS2.array(size(Data));
+         for ct=1:numel(Data)
+            pidData(ct) = make2DOF(Data(ct),b,c);
+         end
+         PIDS2 = pidstd2.make(pidData,PIDS.IOSize_);
+         PIDS2.TimeUnit_ = PIDS.TimeUnit_;
+         PIDS2.SamplingGrid_ = PIDS.SamplingGrid_;
+      end
+      
+      %% get methods
+      function Value = get.Kp(sys)
+         % GET method for Kp
+         Value = getParameter(sys,'Kp');
+      end
+      
+      function Value = get.Ti(sys)
+         % GET method for Ti
+         Value = getParameter(sys,'Ti');
+      end
+      
+      function Value = get.Td(sys)
+         % GET method for Td
+         Value = getParameter(sys,'Td');
+      end
+      
+      function Value = get.N(sys)
+         % GET method for N
+         Value = getParameter(sys,'N');
+      end
+      
+      %% set methods
+      function sys = set.Kp(sys,Value)
+         % SET method for Kp
+         sys = setParameter(sys,'Kp',Value);
+      end
+      
+      function sys = set.Ti(sys,Value)
+         % SET method for Ti
+         sys = setParameter(sys,'Ti',Value);
+      end
+      
+      function sys = set.Td(sys,Value)
+         % SET method for Td
+         sys = setParameter(sys,'Td',Value);
+         if sys.CrossValidation_ && sys.Ts>0
+            sys = checkFilterStability(sys);
+         end
+      end
+      
+      function sys = set.N(sys,Value)
+         % SET method for N
+         sys = setParameter(sys,'N',Value);
+         if sys.CrossValidation_ && sys.Ts>0
+            sys = checkFilterStability(sys);
+         end
+      end
+      
+   end
+   
+   %% DATA ABSTRACTION INTERFACE
+   methods (Access=protected)
+      
+      %% BINARY OPERATIONS
+      function boo = hasCustomScalarMultiply_(~)
+         % Supported for PIDSTD and PIDSTD2
+         boo = true;
+      end
+      
+      function sys = leftMultiplyByScalar_(sys,A)
+         % Multiplies PIDSTD by matrix
+         s = size(A);  s = [s ones(1,4-numel(s))];
+         Data = sys.Data_;
+         if numel(A)==1 || isequal(s(3:end),size(Data))
+            for ct=1:numel(Data)
+               Data(ct).Kp = A(min(ct,end)) * Data(ct).Kp;
+            end
+            sys.Data_ = Data;
+         else
+            error(message('Control:combination:IncompatibleModelArrayDims'))
+         end
+      end
+      
+      function sys = rightMultiplyByScalar_(sys,A)
+         % Multiplies PIDSTD by matrix
+         sys = leftMultiplyByScalar_(sys,A);
+      end
+      
+      %% INDEXING
+      function sys = indexasgn_(sys,indices,rhs,ioSize,ArrayMask)
+         % Data management in SYS(indices) = RHS.
+         % ioSize is the new I/O size and ArrayMask tracks which
+         % entries in the resulting system array have been reassigned.
+         
+         % Construct template initial value for new entries in system array
+         D0 = ltipack.piddataS(0,inf,0,inf,getTs_(sys));
+         % Update data
+         sys.Data_ = ltipack.reassignData(sys.Data_,indices,rhs.Data_,ioSize,ArrayMask,D0);
+         % Update sampling grid
+         if numel(indices)>2 && ~(isempty(sys.SamplingGrid_) && isempty(rhs.SamplingGrid_))
+            sys.SamplingGrid_ = reassign(sys.SamplingGrid_,indices(3:end),rhs.SamplingGrid_,size(sys.Data_));
+         end
+      end
+      
+   end
+   
+   %% PROTECTED METHODS
+   methods (Access=protected)
+      
+      function value = checkParameterData(~, type, value)
+         % Checks parameter is properly formatted
+         if isempty(value)
+            value = ones(size(value));
+         else
+            switch type
+               case 'Kp'
+                  if ~isempty(value) && isnumeric(value) && isreal(value) && all(isfinite(value(:)))
+                     value = double(full(value));
+                  else
+                     ctrlMsgUtils.error('Control:ltiobject:pidSet1',type);
+                  end
+               case 'Td'
+                  if ~isempty(value) && isnumeric(value) && isreal(value) && all(isfinite(value(:)))
+                     value = double(full(value));
+                     if any(value(:)<0)
+                        ctrlMsgUtils.error('Control:ltiobject:pidSet2','Td');
+                     end
+                  else
+                     ctrlMsgUtils.error('Control:ltiobject:pidSet1',type);
+                  end
+               case 'b'
+                  if isnumeric(value) && isreal(value) && all(isfinite(value(:)))
+                     value = double(full(value));
+                     if any(value(:)<0)
+                        ctrlMsgUtils.error('Control:ltiobject:pidSet2',type);
+                     end
+                  else
+                     ctrlMsgUtils.error('Control:ltiobject:pidSet1',type);
+                  end
+               case 'c'
+                  if isnumeric(value) && isreal(value) && all(isfinite(value(:)))
+                     value = double(full(value));
+                     if any(value(:)<0)
+                        ctrlMsgUtils.error('Control:ltiobject:pidSet2',type);
+                     end
+                  else
+                     ctrlMsgUtils.error('Control:ltiobject:pidSet1',type);
+                  end
+               otherwise
+                  if ~isempty(value) && isnumeric(value) && isreal(value) && all(value(:)>0)
+                     value = double(full(value));
+                  else
+                     ctrlMsgUtils.error('Control:ltiobject:pidSet3',type);
+                  end
+            end
+         end
+      end
+      
+      function sys = checkFilterStability(sys)
+         % Ensure derivative filter pole in discrete time to be stable
+         Data = sys.Data_;
+         for ct=1:numel(Data)
+            D = Data(ct);
+            Td = D.Td;
+            if Td>0
+               N = D.N;
+               if isinf(N) && D.DFormula == 'T'
+                  ctrlMsgUtils.error('Control:ltiobject:pidNoTrapezoidal')
+               elseif ~isinf(N) && D.DFormula == 'F' && sys.Ts>=2*Td/N
+                  ctrlMsgUtils.error('Control:ltiobject:pidUnstableFilterPolePIDSTD')
+               end
+            end
+         end
+      end
+      
+   end
+   
+   %% STATIC METHODS
+   methods(Static, Hidden)
+      
+      function sys = loadobj(s)
+         % Load filter for @pidstd objects
+         if isa(s,'pidstd')
+            % MCOS
+            sys = DynamicSystem.updateMetaData(s);
+            % replace unstable pole for R2010b PID object
+            if sys.Version_==10 && sys.Ts>0
+               Data = sys.Data_;
+               for ct=1:numel(Data)
+                  if Data(ct).Td~=0
+                     if isinf(Data(ct).N) && Data(ct).DFormula=='T'
+                        Data(ct).DFormula='F';
+                        ctrlMsgUtils.warning('Control:ltiobject:pidLoadReplaceTrapezoidal')
+                     elseif ~isinf(Data(ct).N) && Data(ct).DFormula=='F' && Data(ct).Ts>=2*Data(ct).Td/Data(ct).N
+                        Data(ct).N = Data(ct).Td/Data(ct).Ts;
+                        ctrlMsgUtils.warning('Control:ltiobject:pidLoadReplaceN')
+                     end
+                  end
+               end
+               sys.Data_ = Data;
+            end
+            sys.Version_ = ltipack.ver();
+         end
+      end
+      
+      function sys = make(D,~)
+         % Constructs PIDSTD model from ltipack.piddataS instance
+         sys = pidstd;
+         sys.Data_ = D;
+      end
+      
+      function sys = convert(X)
+         % Safe conversion to PIDSTD.
+         if isnumeric(X) || isa(X,'StaticModel')
+            sys = pidstd(double(X));
+         else
+            sys = pidstd(X);
+         end
+      end
+      
+   end
+   
+end
+help ltipack
+  LTI object foundation. 
+ 
+  Undocumented and subject to change without notice.
+
+  LTI system foundation.
+
+Ti3
+{Unrecognized function or variable 'Ti3'.
+} 
+Ti3 = repmat(Cpi, Ti, 3, 1)
+{Unrecognized function or variable 'Ti'.
+} 
+Ti3 = repmat(Cpi, Ti, 3, 1)
+{Unrecognized function or variable 'Ti'.
+} 
+Ti3 = repmat(Cpi.Ti, 3, 1)
+
+Ti3 =
+
+   47.2913
+   47.2913
+   47.2913
+
+C3 = pidstd(Kp3, Ti3);
+T3 = feedback(P*C3, 1);
+T3.InputName = 'ysp';
+step(T3)
+title('Losss of stability when incresing Kp')
+% We can see that the PI controller is limited by the long dead time
+% This is because the PI controller has no knowledge of the dead time and reacts too "impatiently" when actual output y doesn't match desired stepoint ysp
+% This is a similar situatioin when in showers the water temperature take a long time to adjust
+% The 'impatientance' leads to alternate scolding by burniing hot and freezing cold water
+% Bettwe strategy is waiting for a change in teperature setting to take effect before making further adjustments
+% Once we have learned what knob setting it delivers our favorite temperature, we can get to the right temp in just the time it takes the shower to react
+% This is the 'optimal' control strategy behind the Smith Predictor scheme
+% Smith predictor: uses an internal model GP to predict the delay free response yp of the process
+% This is the same as what knob setting will deliver a given temp
+% It will then decide what adjustments needed (control, u) by comparing yp to ysp
+% To prevent drifiting and reject external distrubances, the Smith predictor also compares the actual process output with a prediction y1 that takes the dead time into account
+% The gap dy = y - y1 is fed back through filter F and contirbutes to overall error signal e
+% dy is the perceived temp. mismatch after waiting long enough for the shower to react
+% Using a Smith predictor requires: 
+% - A model Gp of the process dynamics and estimate tau of process dead time
+% - Adequate seting for compensator and filter dynamics (C and F0
+% For F, use a 1st order filter with 20 second time to capture low frequency distubance
+F = 1/(20*s + 1);
+F.InputName = 'dy';
+F.OutputName = 'dp';
+% For C we can re-design PI controller with the overall plant seen by PI
+% Includes P, Gp, F, and dead time'
+% Using the Smith Predictor we can increase the open-loop bandwidth to acheive faster response and increase phase margin to reduce overshoot
+% Process
+P = exp(-93.9*s) * 5.6/(40.2*s + 1);
+P.InputName = 'u';
+P.OutputName = 'y0';
+% Prediction Model 
+Gp = 5.6/(40.2*s + 1);
+Gp.InputName = 'u'
+
+Gp =
+ 
+  From input "u" to output:
+     5.6
+  ----------
+  40.2 s + 1
+ 
+Continuous-time transfer function.
+
+Gp.OutputName = 'yp'
+
+Gp =
+ 
+  From input "u" to output "yp":
+     5.6
+  ----------
+  40.2 s + 1
+ 
+Continuous-time transfer function.
+
+% Dead-time
+Dp = exp(-93.9*s);
+Dp.InputName = 'yp'; OutputName = 'y1';
+
+% Overall plant
+S1 = sumblk('ym = yp + dp');
+S2 = sumblk('dy = y0 - y1')
+
+S2 =
+ 
+  From input "y0" to output "dy":
+  1
+ 
+  From input "y1" to output "dy":
+  -1
+ 
+Static gain.
+
+Plant = connect(P, Gp, Dp, F, S1, S2, 'u', 'ym');
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('DynamicSystem/connect')" style="font-weight:bold">DynamicSystem/connect</a>
+Input argument 3 is not a dynamic system or has some unspecified I/O
+names.
+} 
+Dp
+
+Dp =
+ 
+  From input "yp" to output:
+  exp(-93.9*s) * (1)
+ 
+Continuous-time transfer function.
+
+Dp.InputName = 'yp'; Dp.OutputName = 'y1'
+
+Dp =
+ 
+  From input "yp" to output "y1":
+  exp(-93.9*s) * (1)
+ 
+Continuous-time transfer function.
+
+Plant = connect(P, Gp, Dp, F, S1, S2, 'u', 'ym');
+
+% Design the PI controller with 0.08 rad/s bandwidth and 90 deg phase 
+Options = pidtuneOptions('PhaseMargin', 90);
+C = pidtune(Plant, pidstd(1, 1), 0.08, Options);
+C.InputName = 'e'
+
+C =
+ 
+             1      1 
+  Kp * (1 + ---- * ---)
+             Ti     s 
+
+  with Kp = 0.574, Ti = 40.2
+ 
+Continuous-time PI controller in standard form
+
+C.OutputName = 'u';
+C
+
+C =
+ 
+             1      1 
+  Kp * (1 + ---- * ---)
+             Ti     s 
+
+  with Kp = 0.574, Ti = 40.2
+ 
+Continuous-time PI controller in standard form
+

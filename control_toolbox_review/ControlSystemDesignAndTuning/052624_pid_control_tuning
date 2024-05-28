@@ -1805,3 +1805,145 @@ C =
  
 Continuous-time PI controller in standard form
 
+% Let's compare PI Control with Smith Predictor 
+% Derive the closed loop tf form ysp, d to y for the Smith Predictor 
+Sum1 = sumblk('e=ysp-yp-dp');
+Sum2 = sumblk('y=y0 + d');
+!git add .
+!git commit -m "added example on control processes with long dead time"
+[main 80f2cc4] added example on control processes with long dead time
+ 1 file changed, 1439 insertions(+)
+!git push origin main
+Enumerating objects: 9, done.
+Counting objects:  11% (1/9)Counting objects:  22% (2/9)Counting objects:  33% (3/9)Counting objects:  44% (4/9)Counting objects:  55% (5/9)Counting objects:  66% (6/9)Counting objects:  77% (7/9)Counting objects:  88% (8/9)Counting objects: 100% (9/9)Counting objects: 100% (9/9), done.
+Delta compression using up to 10 threads
+Compressing objects:  20% (1/5)Compressing objects:  40% (2/5)Compressing objects:  60% (3/5)Compressing objects:  80% (4/5)Compressing objects: 100% (5/5)Compressing objects: 100% (5/5), done.
+Writing objects:  20% (1/5)Writing objects:  40% (2/5)Writing objects:  60% (3/5)Writing objects:  80% (4/5)Writing objects: 100% (5/5)Writing objects: 100% (5/5), 14.23 KiB | 14.23 MiB/s, done.
+Total 5 (delta 3), reused 0 (delta 0), pack-reused 0
+remote: Resolving deltas:   0% (0/3)        remote: Resolving deltas:  33% (1/3)        remote: Resolving deltas:  66% (2/3)        remote: Resolving deltas: 100% (3/3)        remote: Resolving deltas: 100% (3/3), completed with 3 local objects.        
+To https://github.com/sachin80/matlab_review.git
+   5dc88f3..80f2cc4  main -> main
+ls
+052424_pid_control_tuning	052624_pid_control_tuning
+
+diary 052624_pid_control_tuning
+Sum3 = sumblk('dy = y - y1');
+T = connect(P, Gp, Dp, C, F, Sum1, Sum2, Sum3, {'ysp', 'd'}, 'y');
+% Let's step to compare the Smith Predictor (blue) with PI controller (red):
+steo(T, 'b', Tbi, 'r--'), grid on, legene('Smith Predictor', 'PI Controller')
+{Unrecognized function or variable 'Tbi'.
+} 
+steo(T, 'b', Tpi, 'r--'), grid on, legend('Smith Predictor', 'PI Controller')
+{Unrecognized function or variable 'steo'.
+} 
+step(T, 'b', Tpi, 'r--'), grid on, legend('Smith Predictor', 'PI Controller')
+% The Smith Predictor provides much faster response with no overshoot
+% Difference is also visible in freq domain by plotting closed-loop Bode response from ysp to y
+% Note the higher bandwidth for the Smith Predictor
+bode(T(1, 1), 'b', Tpi(1, 1), 'r--', {1e-3, 1})
+grid on, legend('Smith Predictor', 'PI Controller')
+% In the previous analysis the internal model is: Gp(s)*e^(-tau*s)
+% This matches the process model P exactly, and the internal model in practical situations is only an approximatoin of the true process dynamics
+% Therefore, it's importnat to understand how robust the Smith Predictor is to uncertainty on process dynamics and dead time
+% Let's consider two perturbed plant models representative of the range of uncertainty on the process parameters
+P1 = exp(-90*s) * 5/(38*s + 1);
+P2 = exp(-100*s) * 6/(42*s + 1);
+bode(P, P1, P2), grid on, title('Nominal and Perturbed Process Models')
+% To analyze robustness, collect the nominal and perturbed models into an array of process models and rebuild the closed-loop transfer functions for PI and Smith Predictor designs
+Plants = stack(1, P, P1, P2); % array of process models
+T1 = connect(Plants, Gp, Dp, C, F, Sum1, Sum2, Sum3, {'ysp', 'd'}, 'y'); % Smith
+Tpi = feedback([Plants*Cpi, 1], 1, 1, 1); % PI
+step(T1, 'b', Tpi, 'r--'), grid on, legend('Smith Predictor 1', 'PI Controller')
+% Both designs are sensitive to model mismatch, confirmed by closed-loop Bode plots
+bode(T(1, 1), 'b', Tpi(1, 1), 'r--'), grid on, legend('Smith Predictor 1', 'PI Controller')
+% To reduce Smith's Predictor's sensitivity to modeling errors, check the stability for the inner and outer loops
+% The inner loop C has open-loop transfer C * Gp so the stability margin is
+margin(C * Gp)
+title('Stability Margins for the Inner Loop (C)')
+% The inner loop has comfortable gain and phase margins so focus on the outer loop
+% Let's use Connect to derive open-loop transfer function L from ysp to dp with inner loop closed
+Sum1o = sumblk('e=ysp-yp'); % open the loop at dp
+L = connect(P, Gp, Dp, C, F, Sum1o, Sum2, Sum3, {'ysp', 'd'}, 'dp');
+bodemag(L(1, 1))
+% Here we see the transfer function is essentially zero, which is to be expected when the process and prediction models match exactly
+% Let's get insight by working with one of the perturbed models, P1
+H = connect(Plants(:, :, 2), Gp, Dp, C, Sum1o, Sum2, Sum3, {'ysp', 'd'},'dy');
+H = H(1, 1);  % open-loop transfer ysp->dy
+L = F * H;
+margin(L)
+title('Stability Margins for Outer Loop (F)')
+grid on, xlim([1e-2, 1])
+% The gain curve has a hump near 0.04 rad/s that lowers the gain margin and increases the hump in the closed-loop step responnse
+% To fix this issue let's pick a filter, F, that rolls off earlier and more quickly
+F = (1 + 10*s)/(1 + 100*s);
+F.InputName = 'dy'
+
+F =
+ 
+  From input "dy" to output:
+  10 s + 1
+  ---------
+  100 s + 1
+ 
+Continuous-time transfer function.
+
+F.OutputName = 'dp'
+
+F =
+ 
+  From input "dy" to output "dp":
+  10 s + 1
+  ---------
+  100 s + 1
+ 
+Continuous-time transfer function.
+
+% Let's verify that the gain margin has improved near 0.04 rad/s phase crossing
+L = F * H;
+margin(L)
+title('Stability Margins for the Outer Loop with Modified F')
+grid on
+xlim([1e-2, 1])
+% Finally, simulate the closed-loop responses with the modified filter:
+T2 = connect(Plants, Gp, Dp, C, F, Sum1, Sum2, Sum3, {'ysp', 'd'}, 'y');
+step(T2, 'b', Tpi, 'r--')
+grid on
+legend('Smith Predictor 2', 'PI Controller')
+% The modified design provides more consistent performance at the expense of a slightly slower nominal response
+% Formulas for the closed-loop transfer function from d to y show that the optimal choice for F is: 
+% F(s) = e^(tau*s)
+% tau is the internal model's dead time
+% This choice acheives a perfect disturbance rejection regardless of mismatch between P and Gp
+% Unfortunately, such a negative delay is not casual and cannot be implemented
+% in the paper authors suggest using: e^(tau*s) = (1 + B(s))/(1 + B(s)*e^(-tau*s))
+% B is a low-pass filter with the same time constant as the internal model Gp
+B = 0.05/(40*s + 1);
+tau = totaldelay(Dp);
+F = (1 + B)/(1 + B*exp(-tau*s));
+F.InputName = 'dy';
+F.OutputName = 'dp';
+% Redesign PI controller with reduced bandwidth
+Plant = connect(P, Gp, Dp, F, S1, S2, 'u', 'ym');
+C = pidtune(Plant, pidstd(1, 1), 0.02, pidtuneOptions('PhaseMargin', 90));
+C.InputName = 'e';
+C.OutputName = 'u';
+C
+
+C =
+ 
+             1      1 
+  Kp * (1 + ---- * ---)
+             Ti     s 
+
+  with Kp = 0.144, Ti = 40.1
+ 
+Continuous-time PI controller in standard form
+
+% Compute the closed-loop model T3
+T3 = connect(Plants, Gp, Dp, C, F, Sum1, Sum2, Sum3, {'ysp', 'd'}, 'y');
+% compar T3 with T2 and Tpi
+step(T2, 'b', T3, 'g', Tpi, 'r--')
+grid on
+legend('Smith Predictor 2', 'Smith Predictor 3', 'PI Controller')
+% Shows that out last desing speeds up disturbance rejection at the expense of slower setpoint tracking
+diary off

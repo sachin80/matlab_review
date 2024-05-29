@@ -1,0 +1,19 @@
+%% Choosing a Control Desing Approach: 
+% Architecture - PID loops with unit feedback (1-DOF and 2-DOF)
+% - control systems having SISO controllers in single-loop or multiliip configs
+% - any architecture including SISO or MIMO feedback loops 
+% Control Design Approach: 
+% - automatically tune PID gains to balance performance and robustness
+% - graphically tune poles and zeros on design plots, such as Bode, rlocus, and Nichosl 
+% - automatically tune compensators using response optimizaiton like LQG synthesis, IMC tuning 
+% - automatically tune controller parameters to meet design req. you specify like setpoint tracking, stability margins, disturbance rejection, and loop shaping
+% Analysis of Control System Performance: 
+% - Time and frequency response for reference tracking and distrubance rejection
+% - Any combination of system responses
+% Interface: 
+% - Graphical tuning using PID Tuner "Designing PID Controllers with PID Tuner"
+% - Programmatic tuning using pidtune "PID Controller Design at the Comand Line" 
+% - Graphical tuning using Control System Designer 
+% - Graphical tuning using Control System Tuner 
+% Programmatric tunin using 'systune'
+diary off

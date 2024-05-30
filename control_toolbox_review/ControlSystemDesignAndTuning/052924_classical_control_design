@@ -1,19 +1,215 @@
-%% Choosing a Control Desing Approach: 
-% Architecture - PID loops with unit feedback (1-DOF and 2-DOF)
-% - control systems having SISO controllers in single-loop or multiliip configs
-% - any architecture including SISO or MIMO feedback loops 
-% Control Design Approach: 
-% - automatically tune PID gains to balance performance and robustness
-% - graphically tune poles and zeros on design plots, such as Bode, rlocus, and Nichosl 
-% - automatically tune compensators using response optimizaiton like LQG synthesis, IMC tuning 
-% - automatically tune controller parameters to meet design req. you specify like setpoint tracking, stability margins, disturbance rejection, and loop shaping
-% Analysis of Control System Performance: 
-% - Time and frequency response for reference tracking and distrubance rejection
-% - Any combination of system responses
-% Interface: 
-% - Graphical tuning using PID Tuner "Designing PID Controllers with PID Tuner"
-% - Programmatic tuning using pidtune "PID Controller Design at the Comand Line" 
-% - Graphical tuning using Control System Designer 
-% - Graphical tuning using Control System Tuner 
-% Programmatric tunin using 'systune'
+%% Control System Designer Tuning Methods:
+% Graphical Tuning Methods - 
+% 1. Bode Editor: Tune your compensator to acheive a specific open-loop freq. response (loop shaping).
+% The Bode Editor is useful for adjusting the open-loop bandwidth and designing to gain and phase margin specs.
+
+% 2. Closed-Loop Bode Editor: Tune your prefilter to improve closed-loop system system response.
+% The Closed-Loop Bode Editor is useful for improving ref. tracking, input dist reject., and noise rejection
+
+% 3. Root-Locus Editor: Tune your compensator to produce closed-loop pole locations that satisfy your design specifications.
+% It's useful for designing time-domain specifications such as max overshoot and noise rejection. 
+
+% 4. Nichols Editor: Tune your compensator to acheive open-loop response (loop shaping), combining gain and phase information on a Nichols plot
+% Useful for adjusting open-loop bandwidth and designing to gain and phase margin specifications
+
+% A common design approach is to roughly tune your compensator using the editor plots, then use the compensator editor to fine-tune the compensator parameters
+% These methods are not mutually exclusive, can tune your compensator using both Bode and Root Locus simultaneously. Can be useful for designing in both the freq and time domain
+
+% Automated Tuning Methods -
+% 1. PID Tuning: Automatically tune PID gain to balance performance and robustness or tune controllers using classical PID tuning formulas
+% The requirements and limitations is that classical PID tuning formulas require a stable or integrating effective plant. 
+
+% 2. Optimization Based Tuning: Optimize compensator parameters using desing req. specified in graphical tuning and analysis plots.
+% The requirements and limitations is that it requires Simulink Design Optimization, tunes parameters of previously defined controller structure.
+
+% 3. LQG Synthesis: Design a full-order stabilizing feedback controllers as a LQG tracker. 
+% The requirements and limitations are the maximum controller depends on the effective plant dynamics. 
+
+% 4. Loop Shaping: Find a full-order stabilizing feedback controller with a specified open-loop bandwidth or shape. 
+% Requires Robust Control Toolbox and the maximum controller depends on the effective plant dynamics. 
+
+% 5. Internal Model Control (IMC) Tuning: Obtain a full-order stabilizing feedback controller using the IMC design method.
+% Assumes that your control system uses an IMC architecture that contains a predictive model of your plant dynamics. 
+% Max controller order depends on the effective plant dynamics. 
+
+% A commong desing approach is to generate an initial compensator using PID tuning, LQG Synthesis, loop shaping, IMC. Then can improve performance with optimization based tuning or graphical tuning. 
+
+% Effective Plant for Tuning -
+% An effective plant is the system controlled by a compensator that can help you understand what methods work for tuning your system
+% For example, some automated tuning methods only apply to compensators whose open loops, L = CP, have stable effective plants P
+% Also, for tuning methods like IMC and loop shaping, the max controllers order depends on the dynamics of the effective plant
+% In the Control System Designer, we can select from these different tuning methods 
+
+%% Feedback Control Architectures: 
+% When you open Control System Designer you can select one of six possible control architecture configs
+% Please see docs for more information
+% If your control application doesn't match one of the supported architectures, you can use block diagram algebra to convert the system to match an architecture
+% Such an example is for "Design Multiloop Control System" section.
+
+%% Design Requirements: 
+% There are time-domain and freq-domain requirements available in Control System Designer
+% Each requirement defines an exclusion region, indicated by yellow shaded area
+% To satisfy a requirement, a response plot must remain outside of the associated exclusion region
+% Can add design requirements either directly to existing plots or when using optimization based tuning
+% Please see docs for more information.
+
+%% Bode Diagram Design: 
+% The Bode diagram design is graphical method of modifying a compensator to acheive a specific open-loop response (loop shaping).
+% We can adjust the open-loop bandwidth and design to gain and phase margin specs. 
+% To adjust loop shape, you can add poles and zeros to your compensator and adjust values in the Bode Editor
+% Tune Compensator for DC Motor Using Bode Diagram Graphical Tuning - 
+% Plant and Model Requirements are G = 1.5/(s^2 + 14s + 40.02)
+% The design requirements are a rise time < 0.5 sec, sserror < 5%, overshoot < 10%, gain margin > 20dB, phase margin > 40 degs
+% Create the transfer function model of the plant
+G = tf(1.5, [1, 14, 40.02]);
+% Open Control System Designer in Bode Editor configuration
+controlSystemDesigner('bode', G);
+% The app imports G as the plant model for the default control architecture, Configuration 1
+% The following response plots are shown:
+% - open-loop Bode Editor for the LoopTransfer_C response, which is the open-loop transfer function GC, where C is the compensator and G is the plant
+% - step response for the IOTransfer_r2y response, this response is input-output transfer function for the overall closed-loop system
+% Since the design requires a rise time less than 0.5 seconds, set the open-loop DC crossover frequency to about 3 rad/s
+% To a first approx this open-loop DC crossover frequency corresponds to a time constant of 0.33 seconds
+% Let's also meet the 5% steady-state error requirement and eliminate steady-state error from the closed-loop step response by adding an integrator to your compensator
+% Adding an integrator produces zero steady-state error but the it also changes the crossover freq, increasing rise time. Let's reduce rise time, and increase the crossover frequency to around 3 rad/s.
+% In the Compensator Editor dialog box after right-clicking the Bode plot, we specified the gain to 99
+% The resulting rise time is around 0.4 secs, satisfies design req. 
+% However, peak overshoot is around 32%, therefore the compensator requires additional dynamics
+% Also, in the Bode Editor, the gain margin and phase margin requirements are not being met
+% To increase stability margins, let's add a lead network to the compensator
+% We added a lead compensator by right-clicking on Bode Editor, we are till not meeting the gain margin
+% Let's tune the lead network pole and zero
+% We can do this in the Compensator Editor, where we have slowed down the real zero to almost where the slowest left-most pole of the DC motor plant and then increased the real pole
+% We also decrease the compensator gain to 84.5 to add robustness to the system
+% Finally, we have met all the requirements
+
+%% Root Locus Design:
+% Root locus is a common control system design technique where you can edit gains, poles, zeros in a root-locus diagram
+% If P(s) is the plant, H(S) is the sensor dynamics, and k is the adjustable scalar gain the closed-loop poles are the roots of: 
+% q(s) = 1 + kP(s)H(s)
+% The root locus technique consists of plotting the closed-loop pole trajectories in the complex plan as k varies.
+% We can use this plot to identify the gain value associated with desired set of closed-loop poles. 
+% The example we'll use is for a electrohydraulic servomechanism
+% For this example tune the compensator C(s) to meet the following closed-loop step response req: 
+% 1. 2% Settling time is less than 0.05 sec
+% 2. The max overshoot is less than 5%
+load ltiexamples Gservo
+controlSystemDesigner('rlocus', Gservo);
+% The default control architecture is Configuration 1
+% The rise time in the closed-loop step response is about 2 seconds, which does not meet requirements
+% Change the axis limits on the rlocus plot editor by right-clicking and going to properties
+% Let's first increase the compensator gain to create a faster response
+% Change to k = 20, we can see the resulting pole locations and see the closed-loop response doesn't satisfy the settling time req and exhibhits unwanted ringing
+% Therefore, increasing the gain make the system underdamped and increases lead to instability
+% Therefore, must specify additional compensator dynamics
+% Let's add a complex poles by right-clicking to Add Pole/Zero
+% We add it near -140 +/- 260i
+% Let's add zeros to the compensator or complex zero pair
+% It automatically adds a complex zero, let's change the location to -170 +/- 430
+% The plot for settling time is about 0.1 seconds, which does not satisfy requirements
+% The compensator design process can involve some trial and error
+% One possible compensator design that satisfies requirements: 
+% - Gain of 10 
+% - Complex poles at -110 +/- 140i
+% - Complex zeros at -70 +/- 270i
+% The step response plot the settling time is around 0.05 secs
+% The setting time has also decreased as well, which satisfies design req
+
+%% Nichols Plot Design
+% Is a graphical method of modifying a compensator to acheive a specific open-loop response (loop shaping).
+% Unlike Bode, Nichols plots combine gain and phase information into a single plot, which is useful when designing to gain and phase margins specs
+% Let's design a compensator for a DC motor using Nichols plot
+% Plant model is G = 1.5/(s^2 + 14s + 40.02) where the design requirements are
+% 1. Riset time less than 0.5 seconds
+% 2. Steady-state error of less than 5%
+% 3. Overshoot of less than 10% 
+% 4. Gain margin greater than 20 dB
+% 5. Phase margin greater than 40 deg
+G = tf(1.5, [1, 14, 40.02]);
+controlSystemDesigner('nichols', G);
+% This app opens and imports G as the plant model for default architecture, Configuration 1
+% -gives us the open-loop Nichols Editor for the LoopTransfer_C response, which is the open-loop transfer function GC
+% -step response for input-output transfer function for the overall closed-loop system
+% Adjust the bandwidth since the design requries a rise time less than 0.5 secs
+% Set the open-loop DC crossover freq. to about 3 rad/s, the first-order approx is about a time constant of 0.33 seconds
+% Drag the Nichols plot upwards until the crossover freq is about 3 rad/s
+% The rise time on step response is about 0.231 which satisfies design req.
+% The peak overshoot is around 3.5%
+% Let's add an integrator to meet the 5% steady state req., eliminating sserror from the closed-loop step response
+% Again, once we have added an integrator we have eliminated the sserror we have also changed the crossover frequency increasing the rise time
+% Let's again increase the crossover freq to 3 rad/s
+% The rise time is around 0.4 seconds, which satisfies design req but the peak overshoot is around 32%
+% Also, our design does not meet gain margin and phase margin requirements
+% Let's add a lead network
+% Can drag aroung on the Nichols plot
+% As an initial estimate drag zero to -7 and pole to location around -11
+% The phase margin is met but the gain margin is still too low
+% Let's edit the compensator 
+% The real zero is at -4.3 which is near the slowest (left-most) pole of the DC motor plant
+% The real pole is at -28
+% Edit gain to 20.5
+% No, meant the gain margin is now 20.5 barely meeting gain margin
+% Can lower the compensator gain to 84.5, and the gain margin increases to 21.8
+% Now we meet all the design requirements
+
+%% Edit Compensator Dynamics
+% Can manually edit compensator dynamics to acheive your design goals, can adjust the compensator gain and can add the following compensator dynamics
+% -real and complex poles, including integrators 
+% -real and complex zeros, including differentiators
+% -lead and lag networks
+% -notch filters 
+% Please see documentation to see what kind of poles/zeros you can add
+% Lead network - one pole and one zero on the negative axis, which zero having lower natural frequency
+% Lead network is used to increase stability margins, increase system bandwidth, reduce rise time
+% Lag network - one pole and one zero one the negative real axis, which pole having lower natural frequency
+% Lag network is used to reduce high-frequency gain, increase phase margin, and improve steady-state accuracy
+% Lead-Lag network is used to combine effects of lead and lag networks
+% To configure lead or lag network for a compensator, can use one of the following options
+% -specify the pole and zero locations, placing the pole and zero further apart increases the amount of phase angle change
+% -specify the max amount of phase angle change and frequency at which this occurs, the app automatically computes pole and zero locations
+% Notch filters - if you know that your system has disturbances at a particular frequency, you can add a notch filter to attenuate the gain of the system at that frequency
+% The notch filter transfer function is (s^2 + 2*zeta1*wn*s + wn^2)/(s^2 + 2*zeta2*wn*s + wn^2)
+% wn is the natural frequency of the notch and zeta2/zeta1 sets the depth of the notch
+% Please see docs on how to adjust the width and depth of the notch filter
+
+%% Design Compensator Using Automated Tuning Methods: 
+% Can use automated tuning using Control System Designer
+% The following tuning methods are: PID tuning, Optimization Based Tuning, LQG Synthesis, Loop Shaping, Internal Model Control Tuning
+% Can select the compensator and loop to tune
+% PID Tuning - 
+% Can tune the following PID controller types: P, I, PI, PD, PDF (low-pass filter on derivative term), PID, PIDF
+% Robust response time algotihms automatically tunes PID parameters to balance performance and robustness
+% Using this you can: 1) Tune all parameters for any type of PID controller, 2) Design for plants that are stable, unstable, integrating
+% Tip: Adding derivative action to the controller gives the algorithms more freedom to acheive both adequate phase margin and faster response time
+% In the Design mode can specify the controller performance using time domain parameters like Response Time, Transient Behavior
+% Response Time means slower or faster controller response time
+% Transient Behavior means making the controller more aggressive at disturbance rejection or more robust against plant uncertainty
+% Frequency - specify controller performance using frequency-domain parameters
+% Can specify the closed-loop bandwidth of the system, to produce faster response time, increase the bandwidth. To modify by factor of 10 move right or left
+% Can specify the target phase margin for the system, to reduce overshoot and create more robust controller increase the phase margin
+% Classical Design Formulas - you can use classical PID design formulas to tune P, PI, PID, PIDF controllers
+% These design formulas require a stable or integrating plant 
+% These design formulas cannot tune the derivative filter, if you select PIDF, then the classical design methods set the filter time constant to Td/10, when Td is tuned derivative time
+% The Classical design formulas include: Approximate MIGo frequcny response, Chien-Hrones-Reswick, Skogestad IMC, Ziegler-Nichols frequency response, Ziegler-Nichols step resp
+% Optimization-Based Tuning - 
+% Can only use this if you have Simulink which you can use to design control systems for LTI models
+% Usually you define the structure of the compensators you want to tune, and design an initial controller manually or using a different automated tuning method
+% Please see documentation for more info
+% LQG Synthesis - 
+% Technique for designing optimal dynamic regulators and setpoint trackers, allowing you to tradeoff performance and control effort, and to take into account disturbances and measurement noise
+% Generates a full-order feedback controller that gurantees closed-loop stability, the designed controller contains an integrator, which gurantees zero steady state error for plants without a free differentiator
+% Please see docs for more infor. 
+% Loop Shaping - 
+% Loop shaping generates a stabilizing feedback controller to match, as closely as possible, a target loop shape
+% Can specify this loop shape as a bandwidth or open-loop frequency response
+% This requires the Robust Control Toolbox
+% Please see docs
+% Internal Model Control Tuning - 
+% IMC uses a predictive model of the plant dynamics to compute control actions
+% IMC gurantess closed-loop stability when there is no model error
+% The tuned compensator also contains an integrator, which gurantees steady-state offset for plants without a free differentiator 
+% Can use this method to tune both stable and unstable plants
+% Please see docs for more info and references!
+
+% TODO: Systems with Special Characteristics
 diary off

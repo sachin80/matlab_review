@@ -1,0 +1,271 @@
+%% Compensator for a set of plants
+% Typcially, the controller, C, is designed to satisfy some perfromance objective
+% The dynamics of the plant G, are not exactly know and can vary based on operating conditions
+% For example: 
+% 1. Due to manufacturing tolerances that are defined as a range about a nominal value. For example, resistors have a specified tolerance range like 5ohms +- 1%
+% 2. Operating conditions. For example, the aircraft dynamics change based on altitude and speed. 
+% When designing controllers the performance objectives must be satisfied for all variations of the system. 
+% You can model system as a set of LTI models stored in an LTI array then use the Control System Designer to design a controller for a nominal plant from the array and then analyze the controller design for the entire set of plants
+% Create the LTI Array: 
+% G(s) = wn^2/(s^2 + 2*zeta*wn*s + wn^2), where wn = (1, 1.5, 2) and zeta = (.2, .5, .8)
+wn = [1, 1.5, 2]; 
+zeta = [.2, .5, .8];
+ct = 1; 
+for ct1 = 1:length(wn)
+for ct2 = 1:length(zeta)
+zetai = zeta(ct2);
+wni = wn(ct1);
+G(1, 1, ct) = tf(wni^2, [1, 2*zetai*wni, wni^2]);
+ct = ct + 1;
+end
+end
+size(G)
+9x1 array of zero-pole-gain models.
+Each model has 1 outputs and 1 inputs.
+controlSystemDesigner(G)
+% The app opens with the BOde and open-loop editors open along with a step response plot
+% By default, the nominal model used for design is the first element in the LTI array
+% 1. The root locus editor displays the rlocus for the nominal model and the closed-loop pole locations associated with the set of plants. 
+% 2. Bode editor displays the nominal model response and responses of the set of plants 
+% Can use the Multimodel Configuration to select the fifth model in the array as the nominal model by selecting it. The app response plots update automatically. 
+% The options for plotting responses include individual responses and bonuds to view the envelope that encapsulates all the responses. 
+%% Multimodel Control Design: 
+% To design a controller for a system with varying dynamics: 
+% 1. Sample the variations 
+% 2. Create an LTI model for each sample 
+% 3. Create an array of sampled LTI models. 
+% 4. Design a controller for nominal representative model from the array. 
+% 5. Analyze the controller design for all models in the array. 
+% 6. If the controller desgin does not satisfy the req. for all models, specify a different nominal model and redesign the controller. 
+% Can specify multiple models for any plant or sensor using an array of LTI models
+% If we specify model arrays for more than one plant or sensor, the lengths of the arrays must match 
+% Specify the model parameters 
+m = 3; 
+b = 0.5; 
+k = 8:1:10; 
+T = 0.1:.05:.2;
+% Create an array of LTI models. 
+for ct = 1:length(k); 
+G(:, :, ct) = tf(1, [m, b, k(ct)]);
+end
+% Can also do this using the stack (although can take longer)
+G1 = tf(1, [1, 1, 8]); 
+G2 = tf(1, [1, 1, 9]); 
+G3 = tf(1, [1, 1, 10]);
+% Combine models in an array. 
+G = stack(1, G1, G2, G3); 
+% Can perform batch linearizations at multiple operating points. Then we can export the computed LTI models to create an array of LTI models.
+% See example for "Reference Tracking of DC Motor with Parameter Variations"
+% We can import model array to the Control System Designer - please see docs
+% Nominal model - is a representative model in the array of LTI models that you use to design the controller
+% Can select any model in the array as your nominal model, for example can choose: 
+% -represents the expected nominal operating point of your system 
+% -is an average of the models in the array 
+% -represents a worst-case plant
+% -lies closest to the stability point. 
+% For each plant and sensor that's defined as a model array, the app selects the model at specified index as nominal odel
+% Therefore, G and H are both 3-element array and the nominal model index is 2, the 
+%... software uses the second element in both the array to compute the nominal model. 
+% Frequency grid - is the frequency response of the system is computed at a series of frequency values, called freq. grid. 
+% Specify a custom freq. grid when: 
+% 1. The automatic grid has more points than you require, to improve computational efficiency, specify a less dense grid spacing
+% 2. The automatic grid is not sufficiently dense within a particular freq range, therefore if the response doesn't capture the resonant peak dynamics of the underdampled system, specify a more dense grid around the corner freq. 
+% 3. You are only interested in the response within a sepcific freq. ranges, to improve computational efficiency, specify a grdi that covers only the freq. ranges of interest
+% Let's design a controller for multiple plant models: 
+% Create an array of plant models 
+G1 = tf(1, [1, 1, 8]); 
+G2 = tf(1, [1, 1, 9]); 
+G3 = tf(1, [1, 1, 10]); 
+G = stack(1, G1, G2, G3); 
+% Let's create an array of sensor models 
+H1 = tf(1, [1/0.1, 1]);
+H2 = tf(1, [1/0.15, 1]);
+H3 = tf(1, [1/0.2, 1]); 
+H = stack(1, H1, H2, H3);
+controlSystemDesigner(G, 1, H)
+% The app has opened an imported the plants and sensor
+% The app has opened an imported the plants and sensor model arrays
+% If we select a different nominal model, that corresponds to the average system response
+% We can select a different nominal model, like index 2, that corresponds to the average system response
+% To design the compensator we can use any of the automatic tuning methods but we can also do it manually 
+% Using the compensator editor let's add an integrator 
+% Also add a 0.4 gain to the integrator
+% We can see from the step response plot The tuned controller produces a step response with minimal overshoot for the nominal models and a worst-case overshoot less than 10%.
+
+
+% Design Compensator for Plant Model with Time Delays - 
+% When working with time delay systems it's advantageous to work with analysis and design tools that support time delays
+% Lots of control design techniques can't handle time delays directly, common workaround is to replace delays with Pade approximation(all-pass filters)
+% This approximatiion is only valid at low frequencies, so we need to choose the correct approx order and check approx validity
+% Given the following plant model G(s) = e^(-0.5s)/(s + 1)
+G = tf(1, [1, 1], 'InputDelay', 0.5); 
+% The following tools that support time delays are: 
+% Bode/Nichols editors
+% Time response plots 
+% Frequency response plots 
+controlSystemDesigner({'bode'}, G)
+% The phase response of the Bode plots shows the roll-off effect from the exact representation of the delay
+% The beginning of the step response shows an exact representation of 0.5 sec delay
+% Let's plot the Nyquist of the open-loop response called 'LoopTransfer_C' then Plot->Nyquist
+% We see the Nyquist response wrapping around the origin in a spiral fashion is result of exact representation of the time delay
+% When using approximations the results are not exact and depend on the approximation 
+% Let's open the root locus editor for the open-loop response, let's change the approx. setting and in the time delays tab specify Pade approx to be 4
+% The higher-order Pade approximation adds poles and zeros to the root locus plot.
+
+
+%% This example shows how to design a compensator for a plant model defined by frequency response data (FRD) using Control System Designer.
+
+%% Desing Compensator for Systems Represented by Frequency Response Data: This example shows how to design a compensator for a plant model defined by frequency response data (FRD) using Control System Designer.
+% See docs
+
+%% Design Multiloop Control System
+% If you have to design an inner loop and outer loop you can use Control System Designer to design compensators for both loops
+% Typically, you design the inner loop first, by isolating the inner loop from the rest of the control system
+% Once the inner loop is tuned, then tune the outer loop to achieve your desired closed-loop response
+% Let's design a position control system for a DC motor, where the single-loop angular velocity controller is designed in Bode
+% Then we design an outer loop with an integrtor
+% Let's define a state-space model with motor parameters
+R = 2.0; 
+L = 0.5; 
+Km = .015;
+Kb = .015;
+Kf = 0.2; 
+J = 0.02;
+A = [-R/L, -Kb/L; Km/J, -Kf/J]
+
+A =
+
+   -4.0000   -0.0300
+    0.7500  -10.0000
+
+B = [1/L; 0]
+
+B =
+
+     2
+     0
+
+C = [0, 1]; 
+D = [0]; 
+sys_dc = ss(A, B, C, D)
+
+sys_dc =
+ 
+  A = 
+          x1     x2
+   x1     -4  -0.03
+   x2   0.75    -10
+ 
+  B = 
+       u1
+   x1   2
+   x2   0
+ 
+  C = 
+       x1  x2
+   y1   0   1
+ 
+  D = 
+       u1
+   y1   0
+ 
+Continuous-time state-space model.
+
+% The design objectives are to: 
+% 1. Minimize closed-loop step response settling time
+% 2. Inner-loop phase margin of at least 65 degrees
+% 3. Maximum inner-loop bandwidth
+% Let's use configuration 4, which has an inner and outer control loop
+% Note, this config 4 doesn't exactly match the DC motor position control loop bu we can modify it so that it looks like Config 4
+% We can modify the system model by adding: 
+% - An integrator to the motor output to get the angular displacement
+% - A differentiator to the inner-loop feedback path
+% Let's add the integrator to the motor plant model 
+plant = sys_dc * tf(1, [1, 0]);
+% Let's create the initial model of the inner-loop compensator that contains a feedback differentiator
+Cdiff = tf('s');
+% Open Control System Designer
+controlSystemDesigner
+% From "Edit Architecture" select the foutrh configuration
+% Import the plant and controller models from the Matlab workspace by specifying the 'Value' field
+
+controlSystemDesigner
+% Tune the inner loop first by opening the loop. Please see docs on how to do this. 
+% Then once the loop is opened, the Bode plot updates to the the new opened loop. This new Bode doesn't have the outer loop present. Let's increase the gain and phase margin for this until we have a phase margin of 65 deg. 
+% Then we can tune the outer loop to reduce closed-loop settling time. Please see docs for additional info. 
+
+%% Analyze Designs Using Response Plots: 
+% There are two types of plots in Control System Designer plots: 
+% Analysis plots - Use these plots to visulize your system performance and display response characteristics
+% Editor plots - Use these plots to visulize your system performance and interactively tune your compensator dynamics using graphical methods
+% We can select an existing response to plot from the Data Browser or select and new response to plot
+% Editor plots let you visulaize and interactively tune your compensator dynamics using graphical tuning methods 
+% Can also add graphical representation of design requirements to any editor to analysis plots 
+% These requirements will define an excluded shaded region - please see docs on how to do this. 
+
+%% Compare Performance of Multiple Designs: 
+% Can "Store" a design and it will show up in the Data Browser
+% We can compare the performances of 2 different controls system designs and can see the effects of different turning methods or compensation structures 
+% Please see docs for more info
+
+%% Export Design to Matlab Workspace: 
+% After designing your controller in Control System Designer, you can export your design to Matlab Workspace for further analysis or design
+% Please see docs for more info!
+
+
+%% Examples!!!!
+% Will use Goodnotes to write out equation and follow along with documentation
+
+%% Example 1 - Design Internal Model Controller for Chemical Reactor Plant
+% Plant model 
+s = tf('s'); 
+G1 = (13.3259*s + 3.2239)/(8.2677*s+1)^2;
+G2 = G1; 
+Gd = 0.4480/(8.2677*s + 1)^2;
+% G! is the real plant used in controller evaluation
+% G2 is the approximation of the real plant and used as a predictive model in IMC structure
+% Note that G2 = G1 means that there is no model mismatch
+% Gd is disturbance model. 
+controlSystemDesigner
+% Load config 5 for IMC and load G1, G2, Gd
+[Warning: The frequency response has poor relative
+accuracy. This may be because the response is
+nearly zero or infinite at all frequencies, or
+because the state-space realization is ill
+conditioned. Use the "prescale" command to
+investigate further.] 
+[Warning: The frequency response has poor relative
+accuracy. This may be because the response is
+nearly zero or infinite at all frequencies, or
+because the state-space realization is ill
+conditioned. Use the "prescale" command to
+investigate further.] 
+% Plote the open-loop step response of G1
+step(G1)
+% The rise time is about 25 seconds and want to tune IMC compensator to acheive faster closed-loop response time
+% Since there is model mismatches between G1 and G2 let's examine the control performance at command line in presenc of setppoint change and load dist. 
+% Export IMC Compensator to workspace
+C
+
+C =
+ 
+  2.5647 (s+0.121)^2
+  ------------------
+  (s+0.2419) (s+0.5)
+ 
+Name: C
+Continuous-time zero/pole/gain model.
+
+% Let's convert the IC structure to classic feedback control structure with controller in the feedforward path and unit feedback 
+C = zpk([-0.121 -0.121],[-0.242, -0.466],2.39);
+
+C_new = feedback(C,G2,+1)
+
+C_new =
+ 
+                2.39 (s+0.121)^4
+  ---------------------------------------------
+  (s-0.0001594) (s+0.121) (s+0.1213) (s+0.2419)
+ 
+Continuous-time zero/pole/gain model.
+

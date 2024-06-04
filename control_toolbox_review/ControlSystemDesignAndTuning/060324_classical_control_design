@@ -643,3 +643,343 @@ setoptions(h,'PhaseVisible','off','FreqUnits','Hz','Grid','on', ...
 {Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('ngrid')" style="font-weight:bold">ngrid</a>
 Too many output arguments.
 } 
+[z2,w2,z3,w3] = ndgrid([.5*z2,1.5*z2],[.9*w2,1.1*w2],[.5*z3,1.5*z3],[.8*w3,1.2*w3]);
+for j=1:16, 
+Gf21(:, :, j) = tf(w2(j)*[a2, b2*w2(j)], [1, 2*z2(j)*w2(j), w2(j)^2]);
+Gf31(:, :, j) = tf(w3(j)*[a3, b3*w3(j)], [1, 2*z3(j)*w3(j), w3(j)^2]);
+end
+G1 = Gr * (ss(Gf1) + Gf21 + Gf31 + Gf4);
+% Let's discretize these 16 models at onces and see how the parameter variations affect the open-loop response, you can click on any curve to id the underlying model 
+Gd = c2d(G1, Ts);
+h = bodeplot(Gd * C2);
+title('Open-loop response - Monte Carlo analysis')
+setoptions(h,'XLimMode','manual','XLim',{[8e2 8e3]},'YLimMode','auto',...
+    'FreqUnits','Hz','MagUnits','dB','PhaseUnits','deg','Grid','on');
+% Let's plot the step disturbance rejection performance of these 16 models
+stepplot(feedback(Gd, C2))
+title('Step dist. rejection - Monte Carlo analysis')
+% We see that all 16 responses are nearly identical so our servo design is robust!
+
+%% Example - Yaw Damper Design for a 747 Jet Aircraft
+!git add .
+!git commit -m "added new example designs for classical control section"
+[main a3d38dc] added new example designs for classical control section
+ 6 files changed, 713 insertions(+)
+ create mode 100644 control_toolbox_review/ControlSystemDesignAndTuning/060324_classical_control_design
+ create mode 100644 control_toolbox_review/ControlSystemDesignAndTuning/scdDCMotor.slxc
+ create mode 100644 control_toolbox_review/ControlSystemDesignAndTuning/slprj/sim/varcache/scdDCMotor/checksumOfCache.mat
+ create mode 100644 control_toolbox_review/ControlSystemDesignAndTuning/slprj/sim/varcache/scdDCMotor/tmwinternal/simulink_cache.xml
+ create mode 100644 control_toolbox_review/ControlSystemDesignAndTuning/slprj/sim/varcache/scdDCMotor/varInfo.mat
+!git push origin main
+Enumerating objects: 19, done.
+Counting objects:   5% (1/19)Counting objects:  10% (2/19)Counting objects:  15% (3/19)Counting objects:  21% (4/19)Counting objects:  26% (5/19)Counting objects:  31% (6/19)Counting objects:  36% (7/19)Counting objects:  42% (8/19)Counting objects:  47% (9/19)Counting objects:  52% (10/19)Counting objects:  57% (11/19)Counting objects:  63% (12/19)Counting objects:  68% (13/19)Counting objects:  73% (14/19)Counting objects:  78% (15/19)Counting objects:  84% (16/19)Counting objects:  89% (17/19)Counting objects:  94% (18/19)Counting objects: 100% (19/19)Counting objects: 100% (19/19), done.
+Delta compression using up to 10 threads
+Compressing objects:   9% (1/11)Compressing objects:  18% (2/11)Compressing objects:  27% (3/11)Compressing objects:  36% (4/11)Compressing objects:  45% (5/11)Compressing objects:  54% (6/11)Compressing objects:  63% (7/11)Compressing objects:  72% (8/11)Compressing objects:  81% (9/11)Compressing objects:  90% (10/11)Compressing objects: 100% (11/11)Compressing objects: 100% (11/11), done.
+Writing objects:   6% (1/15)Writing objects:  13% (2/15)Writing objects:  20% (3/15)Writing objects:  26% (4/15)Writing objects:  33% (5/15)Writing objects:  40% (6/15)Writing objects:  46% (7/15)Writing objects:  53% (8/15)Writing objects:  60% (9/15)Writing objects:  66% (10/15)Writing objects:  73% (11/15)Writing objects:  80% (12/15)Writing objects:  86% (13/15)Writing objects:  93% (14/15)Writing objects: 100% (15/15)Writing objects: 100% (15/15), 13.04 KiB | 13.04 MiB/s, done.
+Total 15 (delta 4), reused 0 (delta 0), pack-reused 0
+remote: Resolving deltas:   0% (0/4)        remote: Resolving deltas:  25% (1/4)        remote: Resolving deltas:  50% (2/4)        remote: Resolving deltas:  75% (3/4)        remote: Resolving deltas: 100% (4/4)        remote: Resolving deltas: 100% (4/4), completed with 4 local objects.        
+To https://github.com/sachin80/matlab_review.git
+   ff35162..a3d38dc  main -> main
+clc
+%% Example - Yaw Damper Design for a 747 Jet Aircraft
+% Simplest trim model of the aircraft during cruise flight
+% xdot = Ax + Du, y = Cx + Du
+% Has 4 states: beta (sideslip angle), phi (bank angle), yaw rate, roll rate
+% has 2 inputs: rudder and aileraon deflections 
+% All angles and angular velocities in radiana and radians/sec
+% Let's create the state-space model given A, B, C, D from the trim model 
+A=[-.0558 -.9968 .0802 .0415;
+     .598 -.115 -.0318 0;
+    -3.05 .388 -.4650 0;
+        0 0.0805 1 0];
+
+B=[ .00729  0;
+   -0.475   0.00775;
+    0.153   0.143;
+     0      0];
+
+C=[0 1 0 0;
+   0 0 0 1];
+
+D=[0 0;
+   0 0];
+sys = ss(A, B, C, D);
+% Let's label the inputs, outputs, and states: 
+set(sys, 'inputname', {'rudder' 'aileron'},...
+         'outputname', {'yaw rate' 'bank angle'},...
+         'statename', {'beta' 'yaw' 'roll' 'phi'});
+axis(gca, 'normal')
+h = pzplot(sys);
+setoptions(h, 'FreqUnits', 'rad/s', 'Grid', 'off');
+% Here the model has a pair of lightly damped poles which correspond to the Dutch roll model
+% We need to design a compensator that increases the damping of these two poles 
+% Let's start with some open loop analysis to determine possible control strategis
+% We can confirm the presence of lightly damped modes by looking at the impulse response
+impulseplot(sys)
+% Let's inspect over a smaller time-frame of 20 seconds 
+impulseplot(sys, 20)
+% Let's look at the plot from aileron to bank angle phi, to show this plot only, right click and choose "I/O selector" then click (2,2) entry 
+% Typically yaw dampers are designed using yaw rate as the sensed output and rudder as the input inspect the frequency response for this I/) pair 
+sys11 = sys('yaw', 'rudder')
+
+sys11 =
+ 
+  A = 
+            beta      yaw     roll      phi
+   beta  -0.0558  -0.9968   0.0802   0.0415
+   yaw     0.598   -0.115  -0.0318        0
+   roll    -3.05    0.388   -0.465        0
+   phi         0   0.0805        1        0
+ 
+  B = 
+          rudder
+   beta  0.00729
+   yaw    -0.475
+   roll    0.153
+   phi         0
+ 
+  C = 
+             beta   yaw  roll   phi
+   yaw rate     0     1     0     0
+ 
+  D = 
+             rudder
+   yaw rate       0
+ 
+Continuous-time state-space model.
+
+h = bodeplot(sys11);
+% We have selected I/O pair abouve from rudder to yaw
+setoptiions(h, 'FreqUnits', 'rad/s', 'MagUnits', 'dB', 'PhaseUnits', 'deg');
+{Unrecognized function or variable 'setoptiions'.
+} 
+setoptions(h, 'FreqUnits', 'rad/s', 'MagUnits', 'dB', 'PhaseUnits', 'deg');
+% The plot of the Bode shows that the rudder has a lot of authority around lightly dampled Dutch roll mode (1 rad/s)
+% A reasonable design objective is to provide a damping ratio zeta > 0.35 with natural frequency wn < 0.1 rad/s
+% The simplest compensator is a gain, use root locus technique to select an adequate feedback gain value 
+h = rlocus(sys11)
+
+h =
+
+   1.0e+02 *
+
+  Columns 1 through 3
+
+  -0.0003 + 0.0095i  -0.0003 + 0.0095i  -0.0003 + 0.0095i
+  -0.0003 - 0.0095i  -0.0003 - 0.0095i  -0.0003 - 0.0095i
+  -0.0056 + 0.0000i  -0.0056 + 0.0000i  -0.0056 + 0.0000i
+  -0.0001 + 0.0000i  -0.0001 + 0.0000i  -0.0001 + 0.0000i
+
+  Columns 4 through 6
+
+  -0.0003 + 0.0095i  -0.0003 + 0.0095i  -0.0003 + 0.0095i
+  -0.0003 - 0.0095i  -0.0003 - 0.0095i  -0.0003 - 0.0095i
+  -0.0056 + 0.0000i  -0.0056 + 0.0000i  -0.0056 + 0.0000i
+  -0.0001 + 0.0000i  -0.0001 + 0.0000i  -0.0001 + 0.0000i
+
+  Columns 7 through 9
+
+  -0.0003 + 0.0095i  -0.0003 + 0.0095i  -0.0003 + 0.0095i
+  -0.0003 - 0.0095i  -0.0003 - 0.0095i  -0.0003 - 0.0095i
+  -0.0056 + 0.0000i  -0.0056 + 0.0000i  -0.0056 + 0.0000i
+  -0.0001 + 0.0000i  -0.0001 + 0.0000i  -0.0001 + 0.0000i
+
+  Columns 10 through 12
+
+  -0.0003 + 0.0095i  -0.0003 + 0.0095i  -0.0003 + 0.0095i
+  -0.0003 - 0.0095i  -0.0003 - 0.0095i  -0.0003 - 0.0095i
+  -0.0056 + 0.0000i  -0.0056 + 0.0000i  -0.0056 + 0.0000i
+  -0.0000 + 0.0000i  -0.0000 + 0.0000i  -0.0000 + 0.0000i
+
+  Columns 13 through 15
+
+  -0.0003 + 0.0095i  -0.0003 + 0.0095i  -0.0002 + 0.0095i
+  -0.0003 - 0.0095i  -0.0003 - 0.0095i  -0.0002 - 0.0095i
+  -0.0056 + 0.0000i  -0.0056 + 0.0000i  -0.0056 + 0.0000i
+  -0.0000 + 0.0000i  -0.0000 + 0.0000i  -0.0000 + 0.0000i
+
+  Columns 16 through 18
+
+  -0.0002 + 0.0095i  -0.0002 + 0.0095i  -0.0002 + 0.0095i
+  -0.0002 - 0.0095i  -0.0002 - 0.0095i  -0.0002 - 0.0095i
+  -0.0056 + 0.0000i  -0.0056 + 0.0000i  -0.0056 + 0.0000i
+  -0.0000 + 0.0000i   0.0000 + 0.0000i   0.0000 + 0.0000i
+
+  Columns 19 through 21
+
+  -0.0002 + 0.0095i  -0.0001 + 0.0095i  -0.0001 + 0.0095i
+  -0.0002 - 0.0095i  -0.0001 - 0.0095i  -0.0001 - 0.0095i
+  -0.0056 + 0.0000i  -0.0056 + 0.0000i  -0.0056 + 0.0000i
+   0.0000 + 0.0000i   0.0001 + 0.0000i   0.0001 + 0.0000i
+
+  Columns 22 through 24
+
+  -0.0001 + 0.0095i  -0.0000 + 0.0095i   0.0000 + 0.0095i
+  -0.0001 - 0.0095i  -0.0000 - 0.0095i   0.0000 - 0.0095i
+  -0.0056 + 0.0000i  -0.0056 + 0.0000i  -0.0056 + 0.0000i
+   0.0001 + 0.0000i   0.0001 + 0.0000i   0.0002 + 0.0000i
+
+  Columns 25 through 27
+
+   0.0001 + 0.0095i   0.0002 + 0.0095i   0.0002 + 0.0095i
+   0.0001 - 0.0095i   0.0002 - 0.0095i   0.0002 - 0.0095i
+  -0.0056 + 0.0000i  -0.0056 + 0.0000i  -0.0056 + 0.0000i
+   0.0002 + 0.0000i   0.0003 + 0.0000i   0.0003 + 0.0000i
+
+  Columns 28 through 30
+
+   0.0003 + 0.0095i   0.0005 + 0.0095i   0.0006 + 0.0094i
+   0.0003 - 0.0095i   0.0005 - 0.0095i   0.0006 - 0.0094i
+  -0.0055 + 0.0000i  -0.0055 + 0.0000i  -0.0055 + 0.0000i
+   0.0004 + 0.0000i   0.0005 + 0.0000i   0.0005 + 0.0000i
+
+  Columns 31 through 33
+
+   0.0007 + 0.0094i   0.0009 + 0.0094i   0.0011 + 0.0093i
+   0.0007 - 0.0094i   0.0009 - 0.0094i   0.0011 - 0.0093i
+  -0.0055 + 0.0000i  -0.0055 + 0.0000i  -0.0055 + 0.0000i
+   0.0007 + 0.0000i   0.0008 + 0.0000i   0.0009 + 0.0000i
+
+  Columns 34 through 36
+
+   0.0014 + 0.0092i   0.0017 + 0.0091i   0.0020 + 0.0089i
+   0.0014 - 0.0092i   0.0017 - 0.0091i   0.0020 - 0.0089i
+  -0.0054 + 0.0000i  -0.0054 + 0.0000i  -0.0054 + 0.0000i
+   0.0011 + 0.0000i   0.0014 + 0.0000i   0.0017 + 0.0000i
+
+  Columns 37 through 39
+
+   0.0024 + 0.0086i   0.0027 + 0.0082i   0.0029 + 0.0080i
+   0.0024 - 0.0086i   0.0027 - 0.0082i   0.0029 - 0.0080i
+  -0.0054 + 0.0000i  -0.0053 + 0.0000i  -0.0053 + 0.0000i
+   0.0021 + 0.0000i   0.0026 + 0.0000i   0.0029 + 0.0000i
+
+  Columns 40 through 42
+
+   0.0031 + 0.0077i   0.0033 + 0.0073i   0.0033 + 0.0070i
+   0.0031 - 0.0077i   0.0033 - 0.0073i   0.0033 - 0.0070i
+  -0.0053 + 0.0000i  -0.0053 + 0.0000i  -0.0053 + 0.0000i
+   0.0034 + 0.0000i   0.0040 + 0.0000i   0.0043 + 0.0000i
+
+  Columns 43 through 45
+
+   0.0033 + 0.0068i   0.0033 + 0.0066i   0.0033 + 0.0063i
+   0.0033 - 0.0068i   0.0033 - 0.0066i   0.0033 - 0.0063i
+  -0.0053 + 0.0000i  -0.0053 + 0.0000i  -0.0053 + 0.0000i
+   0.0047 + 0.0000i   0.0053 + 0.0000i   0.0059 + 0.0000i
+
+  Columns 46 through 48
+
+   0.0032 + 0.0061i   0.0031 + 0.0059i   0.0029 + 0.0057i
+   0.0032 - 0.0061i   0.0031 - 0.0059i   0.0029 - 0.0057i
+  -0.0053 + 0.0000i  -0.0053 + 0.0000i  -0.0053 + 0.0000i
+   0.0066 + 0.0000i   0.0074 + 0.0000i   0.0083 + 0.0000i
+
+  Columns 49 through 51
+
+   0.0027 + 0.0055i   0.0024 + 0.0053i   0.0022 + 0.0052i
+   0.0027 - 0.0055i   0.0024 - 0.0053i   0.0022 - 0.0052i
+  -0.0053 + 0.0000i  -0.0052 + 0.0000i  -0.0052 + 0.0000i
+   0.0092 + 0.0000i   0.0111 + 0.0000i   0.0131 + 0.0000i
+
+  Columns 52 through 54
+
+   0.0019 + 0.0051i   0.0016 + 0.0050i   0.0013 + 0.0050i
+   0.0019 - 0.0051i   0.0016 - 0.0050i   0.0013 - 0.0050i
+  -0.0052 + 0.0000i  -0.0052 + 0.0000i  -0.0052 + 0.0000i
+   0.0150 + 0.0000i   0.0191 + 0.0000i   0.0237 + 0.0000i
+
+  Columns 55 through 57
+
+   0.0010 + 0.0049i   0.0009 + 0.0049i   0.0007 + 0.0049i
+   0.0010 - 0.0049i   0.0009 - 0.0049i   0.0007 - 0.0049i
+  -0.0052 + 0.0000i  -0.0051 + 0.0000i  -0.0051 + 0.0000i
+   0.0288 + 0.0000i   0.0347 + 0.0000i   0.0414 + 0.0000i
+
+  Columns 58 through 60
+
+   0.0006 + 0.0049i   0.0005 + 0.0049i   0.0004 + 0.0049i
+   0.0006 - 0.0049i   0.0005 - 0.0049i   0.0004 - 0.0049i
+  -0.0051 + 0.0000i  -0.0051 + 0.0000i  -0.0051 + 0.0000i
+   0.0491 + 0.0000i   0.0581 + 0.0000i   0.0686 + 0.0000i
+
+  Columns 61 through 62
+
+  -0.0001 + 0.0049i  -0.0001 + 0.0049i
+  -0.0001 - 0.0049i  -0.0001 - 0.0049i
+  -0.0050 + 0.0000i  -0.0050 + 0.0000i
+   1.3710 + 0.0000i      Inf + 0.0000i
+
+h = rlocusplot(sys11)
+
+h =
+
+	resppack.rlplot
+
+setoptions(h, 'FreqUnits', 'rad/s')
+% Oops! Looks like we need positive feedback! 
+h = rlocusplot(-sys11);
+setoptions(h, 'FreqUnits', 'rad/s')
+% Looks better, clic on the blue curvve and move the black square to track the gain and dampling values 
+% The best achievable closed-loop damping is about 0.45 for a gain of K = 2.85
+k = 2.85
+
+k =
+
+    2.8500
+
+cl11 = feedback(sys11, -k);
+% Note: feedback assumes negative feedback by default 
+impulseplot(sys11, 'b--', cl11, 'r')
+legend('open loop', 'closed loop', 'Location', 'SouthEast')
+% The response looks pretty good
+% Let's now close the loop around the full MIMO model and see how the response from the airelon looks
+% The feedback involves input 1 and output 1 of the plant
+cloop = feedback(sys, -k, 1, 1);
+impulseplot(sys, 'b-', cloop, 'r', 20)
+% The yaw rate is now well damped!
+% However, the system no longer continues to bank like a normal aircraft 
+impulseplot(cloop('bank angle', 'airelon'), 'r', 18)
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('InputOutputModel/subsref')" style="font-weight:bold">indexing</a>
+The name "airelon" does not match any channel or group.
+} 
+impulseplot(cloop('bank angle', 'aileron'), 'r', 18)
+% We have over-stabilized the spiral model. The spiral model is typically a very slow mode that allows the aircraft to bank and turn without constant aileron input
+% Pilots are used to the spiral mode and will not like a design that does not fly normally 
+% Therefore we need to make sure that the spiral mode does not move farther into the left-half plan when we close the loop 
+% One way that control designers have fixed this problem is using a washout filter 
+% Washout filter is H(s) = ks/(s + a)
+% Using the SISO design tool you can graphically tune the parameters k and a to find the best combination
+% In this exmaple we choose a = 0.2 and time constant of 5 seconds 
+% Let's form the washout filter for a = 0.2, k = 1
+H = zpk(0, -0.2, 1);
+% Connect to your model in series and use the root locus to determine the filter gain k
+oloop = H * (-sys11);
+h = rlocusplot(oloop);
+setoptions(h, 'FreqUnits', 'rad/s')
+sgrid
+% The best damping is now about zeta = 0.305 and k = 2.34
+k = 2.34
+
+k =
+
+    2.3400
+
+% washout compensator 
+wof = -k * H;
+cloop = feedback(sys, wod, 1, 1);
+{Unrecognized function or variable 'wod'.
+} 
+cloop = feedback(sys, wof, 1, 1);
+impulseplot(sys, 'b--', cloop, 'r', 20)
+% Here the washout filter has restored the normal bank and turn behavior as seen by looking at the impulse response from airelon to bank angle 
+impulseplot(sys(2, 2), 'b--', cloop(2,2), 'r', 20)
+legend('open loop', 'closed loop', 'Location', 'SouthEast')
+% Although it doesn't quite meet the requirements, this design substantially increases the damping while allowing the pilot to fly the aircraft normally
+
+%% Example - Feedback Amplifier
+!git add 
+Nothing specified, nothing added.
+hint: Maybe you wanted to say 'git add .'?
+hint: Turn this message off by running
+hint: "git config advice.addEmptyPathspec false"

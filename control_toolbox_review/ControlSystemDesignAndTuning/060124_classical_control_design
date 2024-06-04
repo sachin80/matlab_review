@@ -269,3 +269,44 @@ C_new =
  
 Continuous-time zero/pole/gain model.
 
+% Let's define the follwoing plant model mismatches 
+% No model mismatch: 
+G1p = (13.3259*s+3.2239)/(8.2677*s+1)^2;
+
+% G1 time constant change by 5%
+G1t = (13.3259*s+3.2239)/(8.7*s+1)^2;
+% G1 gain increased by 3 times 
+G1g = 3*(13.3259*s+3.2239)/(8.2677*s+1)^2;
+% Let's now eval the setpoint tracking performance
+step(feedback(G1p*C_new,1),feedback(G1t*C_new,1),feedback(G1g*C_new,1))
+step(feedback(G1p*C_new,1),feedback(G1t*C_new,1),feedback(G1g*C_new,1))
+legend('No Model Mismatch','Mismatch in Time Constant','Mismatch in Gain')
+
+% Eval the dist. rejection too
+step(Gd*feedback(1,G1p*C_new),Gd*feedback(1,G1t*C_new),Gd*feedback(1,G1g*C_new))
+legend('No Model Mismatch','Mismatch in Time Constant','Mismatch in Gain')
+
+% This shows that the controller is fairly robust to uncertainties in plant parameters
+!git add .
+!git commit -m "finished example of chemical reactor"
+[main ff35162] finished example of chemical reactor
+ 2 files changed, 292 insertions(+)
+ delete mode 100644 control_toolbox_review/ControlSystemDesignAndTuning/053024_classical_control_design
+ create mode 100644 control_toolbox_review/ControlSystemDesignAndTuning/060124_classical_control_design
+!git push origin main
+Enumerating objects: 8, done.
+Counting objects:  12% (1/8)Counting objects:  25% (2/8)Counting objects:  37% (3/8)Counting objects:  50% (4/8)Counting objects:  62% (5/8)Counting objects:  75% (6/8)Counting objects:  87% (7/8)Counting objects: 100% (8/8)Counting objects: 100% (8/8), done.
+Delta compression using up to 10 threads
+Compressing objects:  20% (1/5)Compressing objects:  40% (2/5)Compressing objects:  60% (3/5)Compressing objects:  80% (4/5)Compressing objects: 100% (5/5)Compressing objects: 100% (5/5), done.
+Writing objects:  20% (1/5)Writing objects:  40% (2/5)Writing objects:  60% (3/5)Writing objects:  80% (4/5)Writing objects: 100% (5/5)Writing objects: 100% (5/5), 5.12 KiB | 5.12 MiB/s, done.
+Total 5 (delta 3), reused 0 (delta 0), pack-reused 0
+remote: Resolving deltas:   0% (0/3)        remote: Resolving deltas:  33% (1/3)        remote: Resolving deltas:  66% (2/3)        remote: Resolving deltas: 100% (3/3)        remote: Resolving deltas: 100% (3/3), completed with 3 local objects.        
+To https://github.com/sachin80/matlab_review.git
+   fc37d41..ff35162  main -> main
+1/.005
+
+ans =
+
+   200
+
+diary off

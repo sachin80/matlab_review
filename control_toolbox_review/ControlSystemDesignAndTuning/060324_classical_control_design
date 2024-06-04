@@ -1,0 +1,645 @@
+movefile 060324_classical_control_desing 050324_classical_control_design
+ls
+050324_classical_control_design
+052424_pid_control_tuning
+052624_pid_control_tuning
+052924_classical_control_design
+060124_classical_control_design
+
+movefile 050324_classical_control_desing 050324_classical_control_design
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('movefile')" style="font-weight:bold">movefile</a>
+Destination
+/Users/sachinagrawal/Working/matlab_review/control_toolbox_review/ControlSystemDesignAndTuning/050324_classical_control_design
+is not a folder.
+When moving a source folder, the destination must
+also be a folder.
+} 
+movefile 050324_classical_control_desing 060324_classical_control_design
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('movefile')" style="font-weight:bold">movefile</a>
+No matching files named
+'/Users/sachinagrawal/Working/matlab_review/control_toolbox_review/ControlSystemDesignAndTuning/050324_classical_control_desing'
+were found.
+} 
+ls
+050324_classical_control_design
+052424_pid_control_tuning
+052624_pid_control_tuning
+052924_classical_control_design
+060124_classical_control_design
+
+movefile 050324_classical_control_design 060324_classical_control_design
+ls
+052424_pid_control_tuning
+052624_pid_control_tuning
+052924_classical_control_design
+060124_classical_control_design
+060324_classical_control_design
+
+diary off
+%% Example - Design Hard-Disk Read/Write Head Controller
+% Specify the physical constants of the model 
+J = 0.01; 
+C = 0.004;
+K = 10;
+Ki = 0.05;
+% Define the transfer function
+num = Ki; 
+den = [J, C, K];
+H = tf(num, den)
+
+H =
+ 
+           0.05
+  -----------------------
+  0.01 s^2 + 0.004 s + 10
+ 
+Continuous-time transfer function.
+
+% Let's design a digital controller that provide accurate positioning of the read/write head, so let's discretize the continuous-time plant
+Ts = 0.005;
+% Since the controller will have a digital-to-analog converte (with zero-order hold) connected to its input, let's use c2d with 'zoh' discretization method
+Hd = c2d(H, Ts, 'zoh')
+
+Hd =
+ 
+  6.233e-05 z + 6.229e-05
+  -----------------------
+   z^2 - 1.973 z + 0.998
+ 
+Sample time: 0.005 seconds
+Discrete-time transfer function.
+
+% Let's compare the Bode of the continuous-time and discrete-time models
+bodeplot(H, '-', Hd '--'), legend('Continuous-time', 'Discrete-time')
+ bodeplot(H, '-', Hd '--'), legend('Continuous-time', 'Discrete-time')
+                     ↑
+{Invalid expression. Check for missing
+multiplication operator, missing or unbalanced
+delimiters, or other syntax error. To construct
+matrices, use brackets instead of parentheses.
+} 
+bodeplot(H, '-', Hd, '--'), legend('Continuous-time', 'Discrete-time')
+% Let's analyze the discretized system, and plot its step response
+stepplot(Hd)
+% The step response has significant oscillation, due most likely to light damping
+% Let's check for the open-loop poles of the system
+damp(Hd)
+                                                                                    
+         Pole             Magnitude     Damping       Frequency      Time Constant  
+                                                    (rad/seconds)      (seconds)    
+                                                                                    
+  9.87e-01 + 1.57e-01i     9.99e-01     6.32e-03       3.16e+01         5.00e+00    
+  9.87e-01 - 1.57e-01i     9.99e-01     6.32e-03       3.16e+01         5.00e+00    
+% The poles have light equivalent damping and near the unit circle
+% Therefore, you must design a compensator that increases the damping in the system
+% The simplest compensator is a gain factor with no poles or zeros.
+% Let's select an appropiate feedback gain using the root locus technique. The root locus plots the closed-loop trajectories as a function of feedback gain.
+rlocus(Hd)
+% The poles quickly leave the unit circle and go unstable, therefore, you must introduce some lead to the system
+% Let's add a lead network with a zero, alpha = -0.85, and a pole at b=0.
+% D(z) = (z + alpha)/(z + b)
+D = zpk(0.85, 0, 1, Ts);
+% The corresponding open-loop model is the series connection of the compensator and plant
+oloop = Hd * D;
+oloop
+
+oloop =
+ 
+  6.2328e-05 (z+0.9993) (z-0.85)
+  ------------------------------
+     z (z^2 - 1.973z + 0.998)
+ 
+Sample time: 0.005 seconds
+Discrete-time zero/pole/gain model.
+
+% The lead compensator affects the open-loop frequency response, let's compare the Bode plots of Hd and oloop
+bodeplot(Hd, '--', oloop, '-')
+legend('Plant', 'Plant plus lead compensator')
+% The compensator adds lead to the system, which shifts the phase response upward in freqency w>10.
+% Let's look at the behvaior of the closed-loop system poles using rlocus plot, let's set limits on the x-axis and y-axis
+rlocus(oloop), zgrid, xlim([-1, 1]), ylim([-1, 1])
+% Here we can see that the closed-loop poles now remain within the unit circle for some time
+% To create a data marker for the plot, click the root locus curve and find the point on the curve where the damping is greates by dragging marker
+% The max damping when we drag the marker is 0.782, which corresponds to a feedback gain of 4.07e+03
+% Let's analyze the this design and define the closed-loop system which has a open-loop feedback gain of 4.07e+03
+% Meaning let's define a closed-loop system, with a open-loop system with feedback gain of 4.07e+03
+k = 4.07e+03;
+cloop = feedback(oloop, k);
+stepplot(cloop)
+% The response depends on your closed-loop stepoint
+% The one shown in this step plot is fast and settles in about 0.06 seconds 
+% Therefroe, the closed-loop disk drive system has a seek time of 0.0 seconds
+% Therefroe, the closed-loop disk drive system has a seek time of 0.06 seconds
+% While this might seem slow by modern standards, we started with a lightly damped system
+% It's good to examine the robustness of your design using gain and phase margins
+% First, form unity feedback open-loop system connecting the compensator, plant, and feedback gain in series
+olk = k*oloop;
+% Compute the margins for open-loop model
+[Gm, Pm, Wcg, Wcp] = margin(olk)
+
+Gm =
+
+    3.8360
+
+
+Pm =
+
+   43.3069
+
+
+Wcg =
+
+  296.7989
+
+
+Wcp =
+
+  105.4679
+
+% Let's convert the gain margin to dB
+20*log10(Gm)
+
+ans =
+
+   11.6776
+
+% Let's display it graphically
+margin(olk)
+% The design is robust and can tolerate an 11-db gain increase or a 40 degree phase lag in the open-loop system without going unstable
+% You can further the design process and find a compensator that stabilizes the open-loop system and reduces the seek time further
+
+%% Example - Reference Tracking of DC Motor with Parameter Variations
+% This example shows how to generate an array of LTI models that represent the plant variation of a control system from a Simulink model 
+mdl = 'scdDCMotor';
+open_system(mdl)
+% For parameters R and J, use their nominal, minimum, and max values 
+R = [2, 1.8, 2.2];
+J = [.02, .03, .01];
+% To create an LTI array of plant models, batch linearize the DC motor plant
+% For each combination of sample values of R and J, linearize the Simulink model 
+% Do specify a linearization input point at the output of the controller block and linearization output point with a loop opening at the output of the load block 
+% Get the linearization analysis points specified in the model
+io = getlinio(mdl);
+io
+
+2x1 vector of Linearization IOs: 
+--------------------------
+1. Linearization input perturbation located at the following signal:
+- Block: <a href="matlab:hilite_system('scdDCMotor/Compensator','find');pause(1);hilite_system('scdDCMotor/Compensator','none');">scdDCMotor/Compensator</a>
+- Port: 1
+2. Linearization open-loop output located at the following signal:
+- Block: <a href="matlab:hilite_system('scdDCMotor/Gain','find');pause(1);hilite_system('scdDCMotor/Gain','none');">scdDCMotor/Gain</a>
+- Port: 1
+% Vary the plant paramters R and J 
+[R_grid, J_grid] = ndgrid(R, J);
+params(1).Name = 'R'
+
+params = 
+
+  <a href="matlab:helpPopup struct" style="font-weight:bold">struct</a> with fields:
+
+    Name: 'R'
+
+params(1).Value = R_grid
+
+params = 
+
+  <a href="matlab:helpPopup struct" style="font-weight:bold">struct</a> with fields:
+
+     Name: 'R'
+    Value: [3×3 double]
+
+params(2).Name = 'J'
+
+params = 
+
+  1×2 <a href="matlab:helpPopup struct" style="font-weight:bold">struct</a> array with fields:
+
+    Name
+    Value
+
+params(2).Value = J_grid
+
+params = 
+
+  1×2 <a href="matlab:helpPopup struct" style="font-weight:bold">struct</a> array with fields:
+
+    Name
+    Value
+
+% Linearize the model for each parameter value combination
+sys = linearize(mdl, io, params)
+
+sys(:,:,1,1) [R=2, J=0.02] =
+ 
+  A = 
+                 Load  Armature
+   Load            -5       0.4
+   Armature         5        -4
+ 
+  B = 
+             Compensator
+   Load                0
+   Armature            1
+ 
+  C = 
+             Load  Armature
+   Gain        50         0
+ 
+  D = 
+         Compensator
+   Gain            0
+ 
+
+sys(:,:,2,1) [R=1.8, J=0.02] =
+ 
+  A = 
+                 Load  Armature
+   Load            -5       0.4
+   Armature         5      -3.6
+ 
+  B = 
+             Compensator
+   Load                0
+   Armature            1
+ 
+  C = 
+             Load  Armature
+   Gain        50         0
+ 
+  D = 
+         Compensator
+   Gain            0
+ 
+
+sys(:,:,3,1) [R=2.2, J=0.02] =
+ 
+  A = 
+                 Load  Armature
+   Load            -5       0.4
+   Armature         5      -4.4
+ 
+  B = 
+             Compensator
+   Load                0
+   Armature            1
+ 
+  C = 
+             Load  Armature
+   Gain        50         0
+ 
+  D = 
+         Compensator
+   Gain            0
+ 
+
+sys(:,:,1,2) [R=2, J=0.03] =
+ 
+  A = 
+                 Load  Armature
+   Load        -3.333       0.4
+   Armature     3.333        -4
+ 
+  B = 
+             Compensator
+   Load                0
+   Armature            1
+ 
+  C = 
+             Load  Armature
+   Gain     33.33         0
+ 
+  D = 
+         Compensator
+   Gain            0
+ 
+
+sys(:,:,2,2) [R=1.8, J=0.03] =
+ 
+  A = 
+                 Load  Armature
+   Load        -3.333       0.4
+   Armature     3.333      -3.6
+ 
+  B = 
+             Compensator
+   Load                0
+   Armature            1
+ 
+  C = 
+             Load  Armature
+   Gain     33.33         0
+ 
+  D = 
+         Compensator
+   Gain            0
+ 
+
+sys(:,:,3,2) [R=2.2, J=0.03] =
+ 
+  A = 
+                 Load  Armature
+   Load        -3.333       0.4
+   Armature     3.333      -4.4
+ 
+  B = 
+             Compensator
+   Load                0
+   Armature            1
+ 
+  C = 
+             Load  Armature
+   Gain     33.33         0
+ 
+  D = 
+         Compensator
+   Gain            0
+ 
+
+sys(:,:,1,3) [R=2, J=0.01] =
+ 
+  A = 
+                 Load  Armature
+   Load           -10       0.4
+   Armature        10        -4
+ 
+  B = 
+             Compensator
+   Load                0
+   Armature            1
+ 
+  C = 
+             Load  Armature
+   Gain       100         0
+ 
+  D = 
+         Compensator
+   Gain            0
+ 
+
+sys(:,:,2,3) [R=1.8, J=0.01] =
+ 
+  A = 
+                 Load  Armature
+   Load           -10       0.4
+   Armature        10      -3.6
+ 
+  B = 
+             Compensator
+   Load                0
+   Armature            1
+ 
+  C = 
+             Load  Armature
+   Gain       100         0
+ 
+  D = 
+         Compensator
+   Gain            0
+ 
+
+sys(:,:,3,3) [R=2.2, J=0.01] =
+ 
+  A = 
+                 Load  Armature
+   Load           -10       0.4
+   Armature        10      -4.4
+ 
+  B = 
+             Compensator
+   Load                0
+   Armature            1
+ 
+  C = 
+             Load  Armature
+   Gain       100         0
+ 
+  D = 
+         Compensator
+   Gain            0
+ 
+3x3 array of continuous-time state-space models.
+
+% Let's open Control System Designer and import the array of plant models
+controlSystemDesigner(sys)
+% We can design a controller for the nominal plant model while visualizing the effect on the other plant models 
+% The rlocus editor displays the root locus for the nominal model and closed-loop pole locations with other plant models 
+% Bode editor displays both nominal model responses and responses of other plant models 
+% The step responses show that reference tracking is not acheived for any of the plant models 
+% Design the following compensator for reference tracking: C(s) = 1.19*(s + 2.1)/s
+% The closed-loop step response shows the goal of reference tracking is acheived with zero steady-state error for all models defines in the plant set
+% But, if zero percent overshoot req is necessary, not all responses would satisfy this req
+% Let's export design and validate in Simulink Model
+% Do this from the Control System Designer
+% Now write the controller parameters to the Simulink model
+[Cnum, Cden] = tfdata(C, 'v');
+hws = get_param(mdl, 'modelworkspace');
+assignin(hws, 'Cnum', Cnum);
+assignin(hws, 'Cden', Cden);
+bdclose('scdDCMotor')
+ls
+052424_pid_control_tuning	060324_classical_control_design
+052624_pid_control_tuning	scdDCMotor.slxc
+052924_classical_control_design	slprj
+060124_classical_control_design
+
+
+
+%% Example - Digital Servo Control of a Hard-Disk Drive:
+% The head-disk assembly (HDA) and actuators are modeled by a 10th-order transfer function including 2 rigid body models and the first four resonances
+% The model input is the current ic driving the voice coil motor and output is the position error signal (PES, in % of track width)
+% The model also includes a small delay
+% The disk drive model is G(s) = Gr(s)Gf(s) where Gr is the transfer function for the rigid body modes and Gf is the transfer function for flexible body modes
+% We also have the coupling coefficient, damping, and natural frequencies (in Hz) for dominant flexible modes
+load diskdemo
+Gr = tf([1e6, [1, 12.5, 0], 'outputdelay', 1e-5); 
+ Gr = tf([1e6, [1, 12.5, 0], 'outputdelay', 1e-5); 
+                                                ↑
+{Invalid expression. When calling a function or indexing a variable, use
+parentheses. Otherwise, check for mismatched delimiters.
+} 
+Gr = tf([1e6, [1, 12.5, 0], 'outputdelay', 1e-5]);
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('tf')" style="font-weight:bold">tf</a>
+Invalid syntax. The first input argument of the "tf" command cannot be a
+string.
+} 
+Gr = tf(1e6, [1, 12.5, 0], 'outputdelay', 1e-5]);
+ Gr = tf(1e6, [1, 12.5, 0], 'outputdelay', 1e-5]);
+                                               ↑
+{Invalid expression. When calling a function or indexing a variable, use
+parentheses. Otherwise, check for mismatched delimiters.
+} 
+Gr = tf(1e6, [1, 12.5, 0], 'outputdelay', 1e-5);
+Gf1 = tf(w1*[a1, b1*w1], [1, 2*z1*w1, w1^2]); % first resonance
+Gf2 = tf(w2*[a2, b2*w2], [1, 2*z2*w2, w2^2]); % first resonance
+Gf2 = tf(w2*[a2, b2*w2], [1, 2*z2*w2, w2^2]); % second resonance
+Gf3 = tf(w3*[a3, b3*w3], [1, 2*z3*w3, w3^2]); % third resonance
+Gf4 = tf(w4*[a4, b4*w4], [1, 2*z4*w4, w4^2]); % fourth resonance
+% Convert to state space form for accuracy
+G = Gr * (ss(Gf1) + Gf2 + Gf3 + Gf4);
+G
+
+G =
+ 
+  A = 
+                x1          x2          x3          x4          x5
+   x1        -12.5           0        2.59       -1112           0
+   x2            1           0           0           0           0
+   x3            0           0      -43.98      -377.8           0
+   x4            0           0         512           0           0
+   x5            0           0           0           0      -138.2
+   x6            0           0           0           0   1.638e+04
+   x7            0           0           0           0           0
+   x8            0           0           0           0           0
+   x9            0           0           0           0           0
+   x10           0           0           0           0           0
+ 
+                x6          x7          x8          x9         x10
+   x1    1.717e+04           0   1.262e+05   1.235e+04    6.41e+04
+   x2            0           0           0           0           0
+   x3            0           0           0           0           0
+   x4            0           0           0           0           0
+   x5   -1.166e+04           0           0           0           0
+   x6            0           0           0           0           0
+   x7            0       -2513  -1.928e+04           0           0
+   x8            0   3.277e+04           0           0           0
+   x9            0           0           0      -565.5  -4.879e+04
+   x10           0           0           0   6.554e+04           0
+ 
+  B = 
+         u1
+   x1     0
+   x2     0
+   x3     2
+   x4     0
+   x5    16
+   x6     0
+   x7   128
+   x8     0
+   x9   128
+   x10    0
+ 
+  C = 
+          x1     x2     x3     x4     x5     x6     x7     x8     x9
+   y1      0  976.6      0      0      0      0      0      0      0
+ 
+         x10
+   y1      0
+ 
+  D = 
+       u1
+   y1   0
+ 
+  Output delays (seconds): 1e-05 
+ 
+Continuous-time state-space model.
+
+% Plot the Bode response of the head assembly model: 
+cla reset
+
+G.InputName = 'ic';
+G.OutputName = 'PES';
+h = bodeplot(G);
+title('Bode diagram of the head assembly model');
+setoptions(h, 'Frequnits', 'Hz', 'XLimMode', 'manual', 'XLim', {[1, 1e5]});
+% Servo control is used to keep the read/write head "on track"
+% The servo controller C(z) is digital and designed to maintain PES (offset from track center) close to zero. 
+% The distrubance considered here is a step variation d in the input current ic
+% Task is to design a digital compensator C(z) with adequate disturbance rejection performance
+% The sample time for digital servo is Ts = 7e-5 (14.2 kHz)
+% Here are realistic design specs: 
+% - Open-loop gain > 20dB at 100 Hz
+% - Bandwidth > 800 Hz
+% - Gain margin > 10 dB
+% - Phase margin > 45 mdeg 
+% - Peak closed-loop gain < 4dB
+% Since the servoi controller is digital we can perform the design in the discrete domain
+% Let's discretize the HDA model using c2d and the zoh
+cla reset
+Ts = 7e-5;
+Gd = c2d(G, Ts);
+h = bodeplot(G, 'b', Gd, 'r') % compare the continuous-time model 
+
+h =
+
+	resppack.bodeplot
+
+title('Continuous (blue) and discretized (red) HDA models');
+setoptions(h, 'Frequnits', 'Hz', 'XLimMode', 'manual', 'XLim', {[1, 1e5]});
+% Now we can design the compensator by starting with a pure integrator 1/(z-1) to ensure 
+% ... zero steady-state error and plot the root locus of the open-loop model Gd*C and zoom around z=1 using the 'Zoom In' option under the 'Tools' menu
+C = tf(1, [1, -1], Ts);
+h = rlocusplot(Gd*C);
+setoptions(h, 'Grid', 'on', 'XLimMode', 'Manual', 'XLim', {[-1.5, 1.5]}, 'YLimMode', 'Manual', 'YLim', {[-1, 1]});
+% Because of the two poles at z = 1, the servo loop is unstable for all positive gains, to stabilize the feedback loop, ad a pair of zero near z = 1
+C = C * zpk([.963, .963], -0.706, 1, Ts);
+h = rlocusplot(Gd*C);
+setoptions(h, 'Grid', 'on', 'XLimMode', 'Manual', 'XLim', {[-1.25, 1.25]}, 'YLimMode', 'Manual', 'YLim', {[-1.2, 1.2]});
+% Adjust the loop gain by clicking on the locus and dragging the black square inside the unit circle, the loop gain is displayed in the data marker
+% A gain of approximately 50 stabilized the loop (C1 = 50*C)
+C1 = 50 * C;
+% Let's now simulate the closed-loop response to step disturbance in current. The disturbance is smoothly rejected but the PES is too large (head deviates from track center by 45% of track width)
+cl_step = feedback(Gd, C1);
+h = stepplot(c1_step);
+{Unrecognized function or variable 'c1_step'.
+} 
+h = stepplot(cl_step);
+title('Rejection of a step disturbance (PES = position error)')
+setoptions(h, 'Xlimmode', 'auto', 'Ylimmode', 'auto', 'Grid', 'off');
+% Let's look at the open-loop Bode response and the stability margins, the gain at 100 Hz is only 15 dB versus the spec of 20 dB and the gain margin is only 7dB so increasing the loop gain is not an option
+margin(Gd *C)
+diskdemo_aux1(1);
+% To make room for higher low-frequency gain, add a notch filter near the 4000 Hz resonance
+% Let's first convert the notch frequency to rad/sec
+w0 = 4e3 * 2 * pi;
+% Continuous-time notch 
+notch = tf([1, 2*0.06*w0, w0^2], [1, 2*w0, w0^2]);
+% Discrete-time notch 
+noded = c2d(notch, Ts, 'matched');
+C2 = C1 * notchd;
+{Unrecognized function or variable 'notchd'.
+} 
+C2 = C1 * notch;
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('InputOutputModel/mtimes')" style="font-weight:bold"> * </a>
+Sampling times must agree.
+} 
+C2 = C1 * notchd;
+{Unrecognized function or variable 'notchd'.
+} 
+notchd = noded;
+C2 = C1 * notchd;
+h = bodeplot(notchd), title('Discrete-time notch filter'), setoptions(h, 'FreqUnits', 'Hz', 'Grid', 'on');
+
+h =
+
+	resppack.bodeplot
+
+% We can now safely double the loop gain, the resulting stability margins and gain at 100 Hz are within spec
+C2 = 2 * C2;
+margin(Gd * C2)
+diskdemo_aux1(2);
+% Let's look at the step distrubance rejection of the new controller
+cl_step1 = feedback(Gd, C1); 
+cl_step2 = feedback(Gd, C2);
+stepplot(cl_step1, 'r--', cl_step2, 'b'), title('2nd-order compensator C1 (red) cs. 4th-order compensator C2 (blue)')
+% Shows that the step distrubance rejection has greatly improved, the PES stays below 20% of the track width
+% Let's check if the 3dB peak gain spec on closed-loop sensitivity T = Gd*C/(1 + Gd*C)
+Gd = c2d(G, Ts);
+Ts = 7e-5
+
+Ts =
+
+   7.0000e-05
+
+T = feedback(Gd * C2, 1);
+h = bodeplot(T);
+title('Peak response of closed-loop sensitivy T(s)')
+setoptions(h,'PhaseVisible','off','FreqUnits','Hz','Grid','on', ...
+            'XLimMode','Manual','XLim',{[1e2 1e4]});
+% We can see the peak response is 3dB by right-clicking on the axis and choose "Peak Response" option under the Characteristics menu and hold mouse over the blue marker
+% Let's now perform robustness analysis to variations in damping and natural frequencies of the 2nd and 3rd flexible modes
+% Generate an array of 16 models corresponding to all combos of the extremal values of zeta2, w2, zeta3, w3
+[z2, w2, z3, w3] = ngrid([.5*z2, 1.5*z2], [.9*w2, 1.1*w2], [.9*w2, 1.1*w2], [.5*z3, 1.5*z3],[.8*w3, 1.2*w3]); 
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('ngrid')" style="font-weight:bold">ngrid</a>
+Too many output arguments.
+} 

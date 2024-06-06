@@ -983,3 +983,1415 @@ Nothing specified, nothing added.
 hint: Maybe you wanted to say 'git add .'?
 hint: Turn this message off by running
 hint: "git config advice.addEmptyPathspec false"
+type 060324_classical_control_design
+
+movefile 060324_classical_control_desing 050324_classical_control_design
+ls
+050324_classical_control_design
+052424_pid_control_tuning
+052624_pid_control_tuning
+052924_classical_control_design
+060124_classical_control_design
+
+movefile 050324_classical_control_desing 050324_classical_control_design
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('movefile')" style="font-weight:bold">movefile</a>
+Destination
+/Users/sachinagrawal/Working/matlab_review/control_toolbox_review/ControlSystemDesignAndTuning/050324_classical_control_design
+is not a folder.
+When moving a source folder, the destination must
+also be a folder.
+} 
+movefile 050324_classical_control_desing 060324_classical_control_design
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('movefile')" style="font-weight:bold">movefile</a>
+No matching files named
+'/Users/sachinagrawal/Working/matlab_review/control_toolbox_review/ControlSystemDesignAndTuning/050324_classical_control_desing'
+were found.
+} 
+ls
+050324_classical_control_design
+052424_pid_control_tuning
+052624_pid_control_tuning
+052924_classical_control_design
+060124_classical_control_design
+
+movefile 050324_classical_control_design 060324_classical_control_design
+ls
+052424_pid_control_tuning
+052624_pid_control_tuning
+052924_classical_control_design
+060124_classical_control_design
+060324_classical_control_design
+
+diary off
+%% Example - Design Hard-Disk Read/Write Head Controller
+% Specify the physical constants of the model 
+J = 0.01; 
+C = 0.004;
+K = 10;
+Ki = 0.05;
+% Define the transfer function
+num = Ki; 
+den = [J, C, K];
+H = tf(num, den)
+
+H =
+ 
+           0.05
+  -----------------------
+  0.01 s^2 + 0.004 s + 10
+ 
+Continuous-time transfer function.
+
+% Let's design a digital controller that provide accurate positioning of the read/write head, so let's discretize the continuous-time plant
+Ts = 0.005;
+% Since the controller will have a digital-to-analog converte (with zero-order hold) connected to its input, let's use c2d with 'zoh' discretization method
+Hd = c2d(H, Ts, 'zoh')
+
+Hd =
+ 
+  6.233e-05 z + 6.229e-05
+  -----------------------
+   z^2 - 1.973 z + 0.998
+ 
+Sample time: 0.005 seconds
+Discrete-time transfer function.
+
+% Let's compare the Bode of the continuous-time and discrete-time models
+bodeplot(H, '-', Hd '--'), legend('Continuous-time', 'Discrete-time')
+ bodeplot(H, '-', Hd '--'), legend('Continuous-time', 'Discrete-time')
+                     ↑
+{Invalid expression. Check for missing
+multiplication operator, missing or unbalanced
+delimiters, or other syntax error. To construct
+matrices, use brackets instead of parentheses.
+} 
+bodeplot(H, '-', Hd, '--'), legend('Continuous-time', 'Discrete-time')
+% Let's analyze the discretized system, and plot its step response
+stepplot(Hd)
+% The step response has significant oscillation, due most likely to light damping
+% Let's check for the open-loop poles of the system
+damp(Hd)
+                                                                                    
+         Pole             Magnitude     Damping       Frequency      Time Constant  
+                                                    (rad/seconds)      (seconds)    
+                                                                                    
+  9.87e-01 + 1.57e-01i     9.99e-01     6.32e-03       3.16e+01         5.00e+00    
+  9.87e-01 - 1.57e-01i     9.99e-01     6.32e-03       3.16e+01         5.00e+00    
+% The poles have light equivalent damping and near the unit circle
+% Therefore, you must design a compensator that increases the damping in the system
+% The simplest compensator is a gain factor with no poles or zeros.
+% Let's select an appropiate feedback gain using the root locus technique. The root locus plots the closed-loop trajectories as a function of feedback gain.
+rlocus(Hd)
+% The poles quickly leave the unit circle and go unstable, therefore, you must introduce some lead to the system
+% Let's add a lead network with a zero, alpha = -0.85, and a pole at b=0.
+% D(z) = (z + alpha)/(z + b)
+D = zpk(0.85, 0, 1, Ts);
+% The corresponding open-loop model is the series connection of the compensator and plant
+oloop = Hd * D;
+oloop
+
+oloop =
+ 
+  6.2328e-05 (z+0.9993) (z-0.85)
+  ------------------------------
+     z (z^2 - 1.973z + 0.998)
+ 
+Sample time: 0.005 seconds
+Discrete-time zero/pole/gain model.
+
+% The lead compensator affects the open-loop frequency response, let's compare the Bode plots of Hd and oloop
+bodeplot(Hd, '--', oloop, '-')
+legend('Plant', 'Plant plus lead compensator')
+% The compensator adds lead to the system, which shifts the phase response upward in freqency w>10.
+% Let's look at the behvaior of the closed-loop system poles using rlocus plot, let's set limits on the x-axis and y-axis
+rlocus(oloop), zgrid, xlim([-1, 1]), ylim([-1, 1])
+% Here we can see that the closed-loop poles now remain within the unit circle for some time
+% To create a data marker for the plot, click the root locus curve and find the point on the curve where the damping is greates by dragging marker
+% The max damping when we drag the marker is 0.782, which corresponds to a feedback gain of 4.07e+03
+% Let's analyze the this design and define the closed-loop system which has a open-loop feedback gain of 4.07e+03
+% Meaning let's define a closed-loop system, with a open-loop system with feedback gain of 4.07e+03
+k = 4.07e+03;
+cloop = feedback(oloop, k);
+stepplot(cloop)
+% The response depends on your closed-loop stepoint
+% The one shown in this step plot is fast and settles in about 0.06 seconds 
+% Therefroe, the closed-loop disk drive system has a seek time of 0.0 seconds
+% Therefroe, the closed-loop disk drive system has a seek time of 0.06 seconds
+% While this might seem slow by modern standards, we started with a lightly damped system
+% It's good to examine the robustness of your design using gain and phase margins
+% First, form unity feedback open-loop system connecting the compensator, plant, and feedback gain in series
+olk = k*oloop;
+% Compute the margins for open-loop model
+[Gm, Pm, Wcg, Wcp] = margin(olk)
+
+Gm =
+
+    3.8360
+
+
+Pm =
+
+   43.3069
+
+
+Wcg =
+
+  296.7989
+
+
+Wcp =
+
+  105.4679
+
+% Let's convert the gain margin to dB
+20*log10(Gm)
+
+ans =
+
+   11.6776
+
+% Let's display it graphically
+margin(olk)
+% The design is robust and can tolerate an 11-db gain increase or a 40 degree phase lag in the open-loop system without going unstable
+% You can further the design process and find a compensator that stabilizes the open-loop system and reduces the seek time further
+
+%% Example - Reference Tracking of DC Motor with Parameter Variations
+% This example shows how to generate an array of LTI models that represent the plant variation of a control system from a Simulink model 
+mdl = 'scdDCMotor';
+open_system(mdl)
+% For parameters R and J, use their nominal, minimum, and max values 
+R = [2, 1.8, 2.2];
+J = [.02, .03, .01];
+% To create an LTI array of plant models, batch linearize the DC motor plant
+% For each combination of sample values of R and J, linearize the Simulink model 
+% Do specify a linearization input point at the output of the controller block and linearization output point with a loop opening at the output of the load block 
+% Get the linearization analysis points specified in the model
+io = getlinio(mdl);
+io
+
+2x1 vector of Linearization IOs: 
+--------------------------
+1. Linearization input perturbation located at the following signal:
+- Block: <a href="matlab:hilite_system('scdDCMotor/Compensator','find');pause(1);hilite_system('scdDCMotor/Compensator','none');">scdDCMotor/Compensator</a>
+- Port: 1
+2. Linearization open-loop output located at the following signal:
+- Block: <a href="matlab:hilite_system('scdDCMotor/Gain','find');pause(1);hilite_system('scdDCMotor/Gain','none');">scdDCMotor/Gain</a>
+- Port: 1
+% Vary the plant paramters R and J 
+[R_grid, J_grid] = ndgrid(R, J);
+params(1).Name = 'R'
+
+params = 
+
+  <a href="matlab:helpPopup struct" style="font-weight:bold">struct</a> with fields:
+
+    Name: 'R'
+
+params(1).Value = R_grid
+
+params = 
+
+  <a href="matlab:helpPopup struct" style="font-weight:bold">struct</a> with fields:
+
+     Name: 'R'
+    Value: [3×3 double]
+
+params(2).Name = 'J'
+
+params = 
+
+  1×2 <a href="matlab:helpPopup struct" style="font-weight:bold">struct</a> array with fields:
+
+    Name
+    Value
+
+params(2).Value = J_grid
+
+params = 
+
+  1×2 <a href="matlab:helpPopup struct" style="font-weight:bold">struct</a> array with fields:
+
+    Name
+    Value
+
+% Linearize the model for each parameter value combination
+sys = linearize(mdl, io, params)
+
+sys(:,:,1,1) [R=2, J=0.02] =
+ 
+  A = 
+                 Load  Armature
+   Load            -5       0.4
+   Armature         5        -4
+ 
+  B = 
+             Compensator
+   Load                0
+   Armature            1
+ 
+  C = 
+             Load  Armature
+   Gain        50         0
+ 
+  D = 
+         Compensator
+   Gain            0
+ 
+
+sys(:,:,2,1) [R=1.8, J=0.02] =
+ 
+  A = 
+                 Load  Armature
+   Load            -5       0.4
+   Armature         5      -3.6
+ 
+  B = 
+             Compensator
+   Load                0
+   Armature            1
+ 
+  C = 
+             Load  Armature
+   Gain        50         0
+ 
+  D = 
+         Compensator
+   Gain            0
+ 
+
+sys(:,:,3,1) [R=2.2, J=0.02] =
+ 
+  A = 
+                 Load  Armature
+   Load            -5       0.4
+   Armature         5      -4.4
+ 
+  B = 
+             Compensator
+   Load                0
+   Armature            1
+ 
+  C = 
+             Load  Armature
+   Gain        50         0
+ 
+  D = 
+         Compensator
+   Gain            0
+ 
+
+sys(:,:,1,2) [R=2, J=0.03] =
+ 
+  A = 
+                 Load  Armature
+   Load        -3.333       0.4
+   Armature     3.333        -4
+ 
+  B = 
+             Compensator
+   Load                0
+   Armature            1
+ 
+  C = 
+             Load  Armature
+   Gain     33.33         0
+ 
+  D = 
+         Compensator
+   Gain            0
+ 
+
+sys(:,:,2,2) [R=1.8, J=0.03] =
+ 
+  A = 
+                 Load  Armature
+   Load        -3.333       0.4
+   Armature     3.333      -3.6
+ 
+  B = 
+             Compensator
+   Load                0
+   Armature            1
+ 
+  C = 
+             Load  Armature
+   Gain     33.33         0
+ 
+  D = 
+         Compensator
+   Gain            0
+ 
+
+sys(:,:,3,2) [R=2.2, J=0.03] =
+ 
+  A = 
+                 Load  Armature
+   Load        -3.333       0.4
+   Armature     3.333      -4.4
+ 
+  B = 
+             Compensator
+   Load                0
+   Armature            1
+ 
+  C = 
+             Load  Armature
+   Gain     33.33         0
+ 
+  D = 
+         Compensator
+   Gain            0
+ 
+
+sys(:,:,1,3) [R=2, J=0.01] =
+ 
+  A = 
+                 Load  Armature
+   Load           -10       0.4
+   Armature        10        -4
+ 
+  B = 
+             Compensator
+   Load                0
+   Armature            1
+ 
+  C = 
+             Load  Armature
+   Gain       100         0
+ 
+  D = 
+         Compensator
+   Gain            0
+ 
+
+sys(:,:,2,3) [R=1.8, J=0.01] =
+ 
+  A = 
+                 Load  Armature
+   Load           -10       0.4
+   Armature        10      -3.6
+ 
+  B = 
+             Compensator
+   Load                0
+   Armature            1
+ 
+  C = 
+             Load  Armature
+   Gain       100         0
+ 
+  D = 
+         Compensator
+   Gain            0
+ 
+
+sys(:,:,3,3) [R=2.2, J=0.01] =
+ 
+  A = 
+                 Load  Armature
+   Load           -10       0.4
+   Armature        10      -4.4
+ 
+  B = 
+             Compensator
+   Load                0
+   Armature            1
+ 
+  C = 
+             Load  Armature
+   Gain       100         0
+ 
+  D = 
+         Compensator
+   Gain            0
+ 
+3x3 array of continuous-time state-space models.
+
+% Let's open Control System Designer and import the array of plant models
+controlSystemDesigner(sys)
+% We can design a controller for the nominal plant model while visualizing the effect on the other plant models 
+% The rlocus editor displays the root locus for the nominal model and closed-loop pole locations with other plant models 
+% Bode editor displays both nominal model responses and responses of other plant models 
+% The step responses show that reference tracking is not acheived for any of the plant models 
+% Design the following compensator for reference tracking: C(s) = 1.19*(s + 2.1)/s
+% The closed-loop step response shows the goal of reference tracking is acheived with zero steady-state error for all models defines in the plant set
+% But, if zero percent overshoot req is necessary, not all responses would satisfy this req
+% Let's export design and validate in Simulink Model
+% Do this from the Control System Designer
+% Now write the controller parameters to the Simulink model
+[Cnum, Cden] = tfdata(C, 'v');
+hws = get_param(mdl, 'modelworkspace');
+assignin(hws, 'Cnum', Cnum);
+assignin(hws, 'Cden', Cden);
+bdclose('scdDCMotor')
+ls
+052424_pid_control_tuning	060324_classical_control_design
+052624_pid_control_tuning	scdDCMotor.slxc
+052924_classical_control_design	slprj
+060124_classical_control_design
+
+
+
+%% Example - Digital Servo Control of a Hard-Disk Drive:
+% The head-disk assembly (HDA) and actuators are modeled by a 10th-order transfer function including 2 rigid body models and the first four resonances
+% The model input is the current ic driving the voice coil motor and output is the position error signal (PES, in % of track width)
+% The model also includes a small delay
+% The disk drive model is G(s) = Gr(s)Gf(s) where Gr is the transfer function for the rigid body modes and Gf is the transfer function for flexible body modes
+% We also have the coupling coefficient, damping, and natural frequencies (in Hz) for dominant flexible modes
+load diskdemo
+Gr = tf([1e6, [1, 12.5, 0], 'outputdelay', 1e-5); 
+ Gr = tf([1e6, [1, 12.5, 0], 'outputdelay', 1e-5); 
+                                                ↑
+{Invalid expression. When calling a function or indexing a variable, use
+parentheses. Otherwise, check for mismatched delimiters.
+} 
+Gr = tf([1e6, [1, 12.5, 0], 'outputdelay', 1e-5]);
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('tf')" style="font-weight:bold">tf</a>
+Invalid syntax. The first input argument of the "tf" command cannot be a
+string.
+} 
+Gr = tf(1e6, [1, 12.5, 0], 'outputdelay', 1e-5]);
+ Gr = tf(1e6, [1, 12.5, 0], 'outputdelay', 1e-5]);
+                                               ↑
+{Invalid expression. When calling a function or indexing a variable, use
+parentheses. Otherwise, check for mismatched delimiters.
+} 
+Gr = tf(1e6, [1, 12.5, 0], 'outputdelay', 1e-5);
+Gf1 = tf(w1*[a1, b1*w1], [1, 2*z1*w1, w1^2]); % first resonance
+Gf2 = tf(w2*[a2, b2*w2], [1, 2*z2*w2, w2^2]); % first resonance
+Gf2 = tf(w2*[a2, b2*w2], [1, 2*z2*w2, w2^2]); % second resonance
+Gf3 = tf(w3*[a3, b3*w3], [1, 2*z3*w3, w3^2]); % third resonance
+Gf4 = tf(w4*[a4, b4*w4], [1, 2*z4*w4, w4^2]); % fourth resonance
+% Convert to state space form for accuracy
+G = Gr * (ss(Gf1) + Gf2 + Gf3 + Gf4);
+G
+
+G =
+ 
+  A = 
+                x1          x2          x3          x4          x5
+   x1        -12.5           0        2.59       -1112           0
+   x2            1           0           0           0           0
+   x3            0           0      -43.98      -377.8           0
+   x4            0           0         512           0           0
+   x5            0           0           0           0      -138.2
+   x6            0           0           0           0   1.638e+04
+   x7            0           0           0           0           0
+   x8            0           0           0           0           0
+   x9            0           0           0           0           0
+   x10           0           0           0           0           0
+ 
+                x6          x7          x8          x9         x10
+   x1    1.717e+04           0   1.262e+05   1.235e+04    6.41e+04
+   x2            0           0           0           0           0
+   x3            0           0           0           0           0
+   x4            0           0           0           0           0
+   x5   -1.166e+04           0           0           0           0
+   x6            0           0           0           0           0
+   x7            0       -2513  -1.928e+04           0           0
+   x8            0   3.277e+04           0           0           0
+   x9            0           0           0      -565.5  -4.879e+04
+   x10           0           0           0   6.554e+04           0
+ 
+  B = 
+         u1
+   x1     0
+   x2     0
+   x3     2
+   x4     0
+   x5    16
+   x6     0
+   x7   128
+   x8     0
+   x9   128
+   x10    0
+ 
+  C = 
+          x1     x2     x3     x4     x5     x6     x7     x8     x9
+   y1      0  976.6      0      0      0      0      0      0      0
+ 
+         x10
+   y1      0
+ 
+  D = 
+       u1
+   y1   0
+ 
+  Output delays (seconds): 1e-05 
+ 
+Continuous-time state-space model.
+
+% Plot the Bode response of the head assembly model: 
+cla reset
+
+G.InputName = 'ic';
+G.OutputName = 'PES';
+h = bodeplot(G);
+title('Bode diagram of the head assembly model');
+setoptions(h, 'Frequnits', 'Hz', 'XLimMode', 'manual', 'XLim', {[1, 1e5]});
+% Servo control is used to keep the read/write head "on track"
+% The servo controller C(z) is digital and designed to maintain PES (offset from track center) close to zero. 
+% The distrubance considered here is a step variation d in the input current ic
+% Task is to design a digital compensator C(z) with adequate disturbance rejection performance
+% The sample time for digital servo is Ts = 7e-5 (14.2 kHz)
+% Here are realistic design specs: 
+% - Open-loop gain > 20dB at 100 Hz
+% - Bandwidth > 800 Hz
+% - Gain margin > 10 dB
+% - Phase margin > 45 mdeg 
+% - Peak closed-loop gain < 4dB
+% Since the servoi controller is digital we can perform the design in the discrete domain
+% Let's discretize the HDA model using c2d and the zoh
+cla reset
+Ts = 7e-5;
+Gd = c2d(G, Ts);
+h = bodeplot(G, 'b', Gd, 'r') % compare the continuous-time model 
+
+h =
+
+	resppack.bodeplot
+
+title('Continuous (blue) and discretized (red) HDA models');
+setoptions(h, 'Frequnits', 'Hz', 'XLimMode', 'manual', 'XLim', {[1, 1e5]});
+% Now we can design the compensator by starting with a pure integrator 1/(z-1) to ensure 
+% ... zero steady-state error and plot the root locus of the open-loop model Gd*C and zoom around z=1 using the 'Zoom In' option under the 'Tools' menu
+C = tf(1, [1, -1], Ts);
+h = rlocusplot(Gd*C);
+setoptions(h, 'Grid', 'on', 'XLimMode', 'Manual', 'XLim', {[-1.5, 1.5]}, 'YLimMode', 'Manual', 'YLim', {[-1, 1]});
+% Because of the two poles at z = 1, the servo loop is unstable for all positive gains, to stabilize the feedback loop, ad a pair of zero near z = 1
+C = C * zpk([.963, .963], -0.706, 1, Ts);
+h = rlocusplot(Gd*C);
+setoptions(h, 'Grid', 'on', 'XLimMode', 'Manual', 'XLim', {[-1.25, 1.25]}, 'YLimMode', 'Manual', 'YLim', {[-1.2, 1.2]});
+% Adjust the loop gain by clicking on the locus and dragging the black square inside the unit circle, the loop gain is displayed in the data marker
+% A gain of approximately 50 stabilized the loop (C1 = 50*C)
+C1 = 50 * C;
+% Let's now simulate the closed-loop response to step disturbance in current. The disturbance is smoothly rejected but the PES is too large (head deviates from track center by 45% of track width)
+cl_step = feedback(Gd, C1);
+h = stepplot(c1_step);
+{Unrecognized function or variable 'c1_step'.
+} 
+h = stepplot(cl_step);
+title('Rejection of a step disturbance (PES = position error)')
+setoptions(h, 'Xlimmode', 'auto', 'Ylimmode', 'auto', 'Grid', 'off');
+% Let's look at the open-loop Bode response and the stability margins, the gain at 100 Hz is only 15 dB versus the spec of 20 dB and the gain margin is only 7dB so increasing the loop gain is not an option
+margin(Gd *C)
+diskdemo_aux1(1);
+% To make room for higher low-frequency gain, add a notch filter near the 4000 Hz resonance
+% Let's first convert the notch frequency to rad/sec
+w0 = 4e3 * 2 * pi;
+% Continuous-time notch 
+notch = tf([1, 2*0.06*w0, w0^2], [1, 2*w0, w0^2]);
+% Discrete-time notch 
+noded = c2d(notch, Ts, 'matched');
+C2 = C1 * notchd;
+{Unrecognized function or variable 'notchd'.
+} 
+C2 = C1 * notch;
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('InputOutputModel/mtimes')" style="font-weight:bold"> * </a>
+Sampling times must agree.
+} 
+C2 = C1 * notchd;
+{Unrecognized function or variable 'notchd'.
+} 
+notchd = noded;
+C2 = C1 * notchd;
+h = bodeplot(notchd), title('Discrete-time notch filter'), setoptions(h, 'FreqUnits', 'Hz', 'Grid', 'on');
+
+h =
+
+	resppack.bodeplot
+
+% We can now safely double the loop gain, the resulting stability margins and gain at 100 Hz are within spec
+C2 = 2 * C2;
+margin(Gd * C2)
+diskdemo_aux1(2);
+% Let's look at the step distrubance rejection of the new controller
+cl_step1 = feedback(Gd, C1); 
+cl_step2 = feedback(Gd, C2);
+stepplot(cl_step1, 'r--', cl_step2, 'b'), title('2nd-order compensator C1 (red) cs. 4th-order compensator C2 (blue)')
+% Shows that the step distrubance rejection has greatly improved, the PES stays below 20% of the track width
+% Let's check if the 3dB peak gain spec on closed-loop sensitivity T = Gd*C/(1 + Gd*C)
+Gd = c2d(G, Ts);
+Ts = 7e-5
+
+Ts =
+
+   7.0000e-05
+
+T = feedback(Gd * C2, 1);
+h = bodeplot(T);
+title('Peak response of closed-loop sensitivy T(s)')
+setoptions(h,'PhaseVisible','off','FreqUnits','Hz','Grid','on', ...
+            'XLimMode','Manual','XLim',{[1e2 1e4]});
+% We can see the peak response is 3dB by right-clicking on the axis and choose "Peak Response" option under the Characteristics menu and hold mouse over the blue marker
+% Let's now perform robustness analysis to variations in damping and natural frequencies of the 2nd and 3rd flexible modes
+% Generate an array of 16 models corresponding to all combos of the extremal values of zeta2, w2, zeta3, w3
+[z2, w2, z3, w3] = ngrid([.5*z2, 1.5*z2], [.9*w2, 1.1*w2], [.9*w2, 1.1*w2], [.5*z3, 1.5*z3],[.8*w3, 1.2*w3]); 
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('ngrid')" style="font-weight:bold">ngrid</a>
+Too many output arguments.
+} 
+[z2,w2,z3,w3] = ndgrid([.5*z2,1.5*z2],[.9*w2,1.1*w2],[.5*z3,1.5*z3],[.8*w3,1.2*w3]);
+for j=1:16, 
+Gf21(:, :, j) = tf(w2(j)*[a2, b2*w2(j)], [1, 2*z2(j)*w2(j), w2(j)^2]);
+Gf31(:, :, j) = tf(w3(j)*[a3, b3*w3(j)], [1, 2*z3(j)*w3(j), w3(j)^2]);
+end
+G1 = Gr * (ss(Gf1) + Gf21 + Gf31 + Gf4);
+% Let's discretize these 16 models at onces and see how the parameter variations affect the open-loop response, you can click on any curve to id the underlying model 
+Gd = c2d(G1, Ts);
+h = bodeplot(Gd * C2);
+title('Open-loop response - Monte Carlo analysis')
+setoptions(h,'XLimMode','manual','XLim',{[8e2 8e3]},'YLimMode','auto',...
+    'FreqUnits','Hz','MagUnits','dB','PhaseUnits','deg','Grid','on');
+% Let's plot the step disturbance rejection performance of these 16 models
+stepplot(feedback(Gd, C2))
+title('Step dist. rejection - Monte Carlo analysis')
+% We see that all 16 responses are nearly identical so our servo design is robust!
+
+%% Example - Yaw Damper Design for a 747 Jet Aircraft
+!git add .
+!git commit -m "added new example designs for classical control section"
+[main a3d38dc] added new example designs for classical control section
+ 6 files changed, 713 insertions(+)
+ create mode 100644 control_toolbox_review/ControlSystemDesignAndTuning/060324_classical_control_design
+ create mode 100644 control_toolbox_review/ControlSystemDesignAndTuning/scdDCMotor.slxc
+ create mode 100644 control_toolbox_review/ControlSystemDesignAndTuning/slprj/sim/varcache/scdDCMotor/checksumOfCache.mat
+ create mode 100644 control_toolbox_review/ControlSystemDesignAndTuning/slprj/sim/varcache/scdDCMotor/tmwinternal/simulink_cache.xml
+ create mode 100644 control_toolbox_review/ControlSystemDesignAndTuning/slprj/sim/varcache/scdDCMotor/varInfo.mat
+!git push origin main
+Enumerating objects: 19, done.
+Counting objects:   5% (1/19)
+Counting objects:  10% (2/19)
+Counting objects:  15% (3/19)
+Counting objects:  21% (4/19)
+Counting objects:  26% (5/19)
+Counting objects:  31% (6/19)
+Counting objects:  36% (7/19)
+Counting objects:  42% (8/19)
+Counting objects:  47% (9/19)
+Counting objects:  52% (10/19)
+Counting objects:  57% (11/19)
+Counting objects:  63% (12/19)
+Counting objects:  68% (13/19)
+Counting objects:  73% (14/19)
+Counting objects:  78% (15/19)
+Counting objects:  84% (16/19)
+Counting objects:  89% (17/19)
+Counting objects:  94% (18/19)
+Counting objects: 100% (19/19)
+Counting objects: 100% (19/19), done.
+Delta compression using up to 10 threads
+Compressing objects:   9% (1/11)
+Compressing objects:  18% (2/11)
+Compressing objects:  27% (3/11)
+Compressing objects:  36% (4/11)
+Compressing objects:  45% (5/11)
+Compressing objects:  54% (6/11)
+Compressing objects:  63% (7/11)
+Compressing objects:  72% (8/11)
+Compressing objects:  81% (9/11)
+Compressing objects:  90% (10/11)
+Compressing objects: 100% (11/11)
+Compressing objects: 100% (11/11), done.
+Writing objects:   6% (1/15)
+Writing objects:  13% (2/15)
+Writing objects:  20% (3/15)
+Writing objects:  26% (4/15)
+Writing objects:  33% (5/15)
+Writing objects:  40% (6/15)
+Writing objects:  46% (7/15)
+Writing objects:  53% (8/15)
+Writing objects:  60% (9/15)
+Writing objects:  66% (10/15)
+Writing objects:  73% (11/15)
+Writing objects:  80% (12/15)
+Writing objects:  86% (13/15)
+Writing objects:  93% (14/15)
+Writing objects: 100% (15/15)
+Writing objects: 100% (15/15), 13.04 KiB | 13.04 MiB/s, done.
+Total 15 (delta 4), reused 0 (delta 0), pack-reused 0
+remote: Resolving deltas:   0% (0/4)        
+remote: Resolving deltas:  25% (1/4)        
+remote: Resolving deltas:  50% (2/4)        
+remote: Resolving deltas:  75% (3/4)        
+remote: Resolving deltas: 100% (4/4)        
+remote: Resolving deltas: 100% (4/4), completed with 4 local objects.        
+To https://github.com/sachin80/matlab_review.git
+   ff35162..a3d38dc  main -> main
+clc
+%% Example - Yaw Damper Design for a 747 Jet Aircraft
+% Simplest trim model of the aircraft during cruise flight
+% xdot = Ax + Du, y = Cx + Du
+% Has 4 states: beta (sideslip angle), phi (bank angle), yaw rate, roll rate
+% has 2 inputs: rudder and aileraon deflections 
+% All angles and angular velocities in radiana and radians/sec
+% Let's create the state-space model given A, B, C, D from the trim model 
+A=[-.0558 -.9968 .0802 .0415;
+     .598 -.115 -.0318 0;
+    -3.05 .388 -.4650 0;
+        0 0.0805 1 0];
+
+B=[ .00729  0;
+   -0.475   0.00775;
+    0.153   0.143;
+     0      0];
+
+C=[0 1 0 0;
+   0 0 0 1];
+
+D=[0 0;
+   0 0];
+sys = ss(A, B, C, D);
+% Let's label the inputs, outputs, and states: 
+set(sys, 'inputname', {'rudder' 'aileron'},...
+         'outputname', {'yaw rate' 'bank angle'},...
+         'statename', {'beta' 'yaw' 'roll' 'phi'});
+axis(gca, 'normal')
+h = pzplot(sys);
+setoptions(h, 'FreqUnits', 'rad/s', 'Grid', 'off');
+% Here the model has a pair of lightly damped poles which correspond to the Dutch roll model
+% We need to design a compensator that increases the damping of these two poles 
+% Let's start with some open loop analysis to determine possible control strategis
+% We can confirm the presence of lightly damped modes by looking at the impulse response
+impulseplot(sys)
+% Let's inspect over a smaller time-frame of 20 seconds 
+impulseplot(sys, 20)
+% Let's look at the plot from aileron to bank angle phi, to show this plot only, right click and choose "I/O selector" then click (2,2) entry 
+% Typically yaw dampers are designed using yaw rate as the sensed output and rudder as the input inspect the frequency response for this I/) pair 
+sys11 = sys('yaw', 'rudder')
+
+sys11 =
+ 
+  A = 
+            beta      yaw     roll      phi
+   beta  -0.0558  -0.9968   0.0802   0.0415
+   yaw     0.598   -0.115  -0.0318        0
+   roll    -3.05    0.388   -0.465        0
+   phi         0   0.0805        1        0
+ 
+  B = 
+          rudder
+   beta  0.00729
+   yaw    -0.475
+   roll    0.153
+   phi         0
+ 
+  C = 
+             beta   yaw  roll   phi
+   yaw rate     0     1     0     0
+ 
+  D = 
+             rudder
+   yaw rate       0
+ 
+Continuous-time state-space model.
+
+h = bodeplot(sys11);
+% We have selected I/O pair abouve from rudder to yaw
+setoptiions(h, 'FreqUnits', 'rad/s', 'MagUnits', 'dB', 'PhaseUnits', 'deg');
+{Unrecognized function or variable 'setoptiions'.
+} 
+setoptions(h, 'FreqUnits', 'rad/s', 'MagUnits', 'dB', 'PhaseUnits', 'deg');
+% The plot of the Bode shows that the rudder has a lot of authority around lightly dampled Dutch roll mode (1 rad/s)
+% A reasonable design objective is to provide a damping ratio zeta > 0.35 with natural frequency wn < 0.1 rad/s
+% The simplest compensator is a gain, use root locus technique to select an adequate feedback gain value 
+h = rlocus(sys11)
+
+h =
+
+   1.0e+02 *
+
+  Columns 1 through 3
+
+  -0.0003 + 0.0095i  -0.0003 + 0.0095i  -0.0003 + 0.0095i
+  -0.0003 - 0.0095i  -0.0003 - 0.0095i  -0.0003 - 0.0095i
+  -0.0056 + 0.0000i  -0.0056 + 0.0000i  -0.0056 + 0.0000i
+  -0.0001 + 0.0000i  -0.0001 + 0.0000i  -0.0001 + 0.0000i
+
+  Columns 4 through 6
+
+  -0.0003 + 0.0095i  -0.0003 + 0.0095i  -0.0003 + 0.0095i
+  -0.0003 - 0.0095i  -0.0003 - 0.0095i  -0.0003 - 0.0095i
+  -0.0056 + 0.0000i  -0.0056 + 0.0000i  -0.0056 + 0.0000i
+  -0.0001 + 0.0000i  -0.0001 + 0.0000i  -0.0001 + 0.0000i
+
+  Columns 7 through 9
+
+  -0.0003 + 0.0095i  -0.0003 + 0.0095i  -0.0003 + 0.0095i
+  -0.0003 - 0.0095i  -0.0003 - 0.0095i  -0.0003 - 0.0095i
+  -0.0056 + 0.0000i  -0.0056 + 0.0000i  -0.0056 + 0.0000i
+  -0.0001 + 0.0000i  -0.0001 + 0.0000i  -0.0001 + 0.0000i
+
+  Columns 10 through 12
+
+  -0.0003 + 0.0095i  -0.0003 + 0.0095i  -0.0003 + 0.0095i
+  -0.0003 - 0.0095i  -0.0003 - 0.0095i  -0.0003 - 0.0095i
+  -0.0056 + 0.0000i  -0.0056 + 0.0000i  -0.0056 + 0.0000i
+  -0.0000 + 0.0000i  -0.0000 + 0.0000i  -0.0000 + 0.0000i
+
+  Columns 13 through 15
+
+  -0.0003 + 0.0095i  -0.0003 + 0.0095i  -0.0002 + 0.0095i
+  -0.0003 - 0.0095i  -0.0003 - 0.0095i  -0.0002 - 0.0095i
+  -0.0056 + 0.0000i  -0.0056 + 0.0000i  -0.0056 + 0.0000i
+  -0.0000 + 0.0000i  -0.0000 + 0.0000i  -0.0000 + 0.0000i
+
+  Columns 16 through 18
+
+  -0.0002 + 0.0095i  -0.0002 + 0.0095i  -0.0002 + 0.0095i
+  -0.0002 - 0.0095i  -0.0002 - 0.0095i  -0.0002 - 0.0095i
+  -0.0056 + 0.0000i  -0.0056 + 0.0000i  -0.0056 + 0.0000i
+  -0.0000 + 0.0000i   0.0000 + 0.0000i   0.0000 + 0.0000i
+
+  Columns 19 through 21
+
+  -0.0002 + 0.0095i  -0.0001 + 0.0095i  -0.0001 + 0.0095i
+  -0.0002 - 0.0095i  -0.0001 - 0.0095i  -0.0001 - 0.0095i
+  -0.0056 + 0.0000i  -0.0056 + 0.0000i  -0.0056 + 0.0000i
+   0.0000 + 0.0000i   0.0001 + 0.0000i   0.0001 + 0.0000i
+
+  Columns 22 through 24
+
+  -0.0001 + 0.0095i  -0.0000 + 0.0095i   0.0000 + 0.0095i
+  -0.0001 - 0.0095i  -0.0000 - 0.0095i   0.0000 - 0.0095i
+  -0.0056 + 0.0000i  -0.0056 + 0.0000i  -0.0056 + 0.0000i
+   0.0001 + 0.0000i   0.0001 + 0.0000i   0.0002 + 0.0000i
+
+  Columns 25 through 27
+
+   0.0001 + 0.0095i   0.0002 + 0.0095i   0.0002 + 0.0095i
+   0.0001 - 0.0095i   0.0002 - 0.0095i   0.0002 - 0.0095i
+  -0.0056 + 0.0000i  -0.0056 + 0.0000i  -0.0056 + 0.0000i
+   0.0002 + 0.0000i   0.0003 + 0.0000i   0.0003 + 0.0000i
+
+  Columns 28 through 30
+
+   0.0003 + 0.0095i   0.0005 + 0.0095i   0.0006 + 0.0094i
+   0.0003 - 0.0095i   0.0005 - 0.0095i   0.0006 - 0.0094i
+  -0.0055 + 0.0000i  -0.0055 + 0.0000i  -0.0055 + 0.0000i
+   0.0004 + 0.0000i   0.0005 + 0.0000i   0.0005 + 0.0000i
+
+  Columns 31 through 33
+
+   0.0007 + 0.0094i   0.0009 + 0.0094i   0.0011 + 0.0093i
+   0.0007 - 0.0094i   0.0009 - 0.0094i   0.0011 - 0.0093i
+  -0.0055 + 0.0000i  -0.0055 + 0.0000i  -0.0055 + 0.0000i
+   0.0007 + 0.0000i   0.0008 + 0.0000i   0.0009 + 0.0000i
+
+  Columns 34 through 36
+
+   0.0014 + 0.0092i   0.0017 + 0.0091i   0.0020 + 0.0089i
+   0.0014 - 0.0092i   0.0017 - 0.0091i   0.0020 - 0.0089i
+  -0.0054 + 0.0000i  -0.0054 + 0.0000i  -0.0054 + 0.0000i
+   0.0011 + 0.0000i   0.0014 + 0.0000i   0.0017 + 0.0000i
+
+  Columns 37 through 39
+
+   0.0024 + 0.0086i   0.0027 + 0.0082i   0.0029 + 0.0080i
+   0.0024 - 0.0086i   0.0027 - 0.0082i   0.0029 - 0.0080i
+  -0.0054 + 0.0000i  -0.0053 + 0.0000i  -0.0053 + 0.0000i
+   0.0021 + 0.0000i   0.0026 + 0.0000i   0.0029 + 0.0000i
+
+  Columns 40 through 42
+
+   0.0031 + 0.0077i   0.0033 + 0.0073i   0.0033 + 0.0070i
+   0.0031 - 0.0077i   0.0033 - 0.0073i   0.0033 - 0.0070i
+  -0.0053 + 0.0000i  -0.0053 + 0.0000i  -0.0053 + 0.0000i
+   0.0034 + 0.0000i   0.0040 + 0.0000i   0.0043 + 0.0000i
+
+  Columns 43 through 45
+
+   0.0033 + 0.0068i   0.0033 + 0.0066i   0.0033 + 0.0063i
+   0.0033 - 0.0068i   0.0033 - 0.0066i   0.0033 - 0.0063i
+  -0.0053 + 0.0000i  -0.0053 + 0.0000i  -0.0053 + 0.0000i
+   0.0047 + 0.0000i   0.0053 + 0.0000i   0.0059 + 0.0000i
+
+  Columns 46 through 48
+
+   0.0032 + 0.0061i   0.0031 + 0.0059i   0.0029 + 0.0057i
+   0.0032 - 0.0061i   0.0031 - 0.0059i   0.0029 - 0.0057i
+  -0.0053 + 0.0000i  -0.0053 + 0.0000i  -0.0053 + 0.0000i
+   0.0066 + 0.0000i   0.0074 + 0.0000i   0.0083 + 0.0000i
+
+  Columns 49 through 51
+
+   0.0027 + 0.0055i   0.0024 + 0.0053i   0.0022 + 0.0052i
+   0.0027 - 0.0055i   0.0024 - 0.0053i   0.0022 - 0.0052i
+  -0.0053 + 0.0000i  -0.0052 + 0.0000i  -0.0052 + 0.0000i
+   0.0092 + 0.0000i   0.0111 + 0.0000i   0.0131 + 0.0000i
+
+  Columns 52 through 54
+
+   0.0019 + 0.0051i   0.0016 + 0.0050i   0.0013 + 0.0050i
+   0.0019 - 0.0051i   0.0016 - 0.0050i   0.0013 - 0.0050i
+  -0.0052 + 0.0000i  -0.0052 + 0.0000i  -0.0052 + 0.0000i
+   0.0150 + 0.0000i   0.0191 + 0.0000i   0.0237 + 0.0000i
+
+  Columns 55 through 57
+
+   0.0010 + 0.0049i   0.0009 + 0.0049i   0.0007 + 0.0049i
+   0.0010 - 0.0049i   0.0009 - 0.0049i   0.0007 - 0.0049i
+  -0.0052 + 0.0000i  -0.0051 + 0.0000i  -0.0051 + 0.0000i
+   0.0288 + 0.0000i   0.0347 + 0.0000i   0.0414 + 0.0000i
+
+  Columns 58 through 60
+
+   0.0006 + 0.0049i   0.0005 + 0.0049i   0.0004 + 0.0049i
+   0.0006 - 0.0049i   0.0005 - 0.0049i   0.0004 - 0.0049i
+  -0.0051 + 0.0000i  -0.0051 + 0.0000i  -0.0051 + 0.0000i
+   0.0491 + 0.0000i   0.0581 + 0.0000i   0.0686 + 0.0000i
+
+  Columns 61 through 62
+
+  -0.0001 + 0.0049i  -0.0001 + 0.0049i
+  -0.0001 - 0.0049i  -0.0001 - 0.0049i
+  -0.0050 + 0.0000i  -0.0050 + 0.0000i
+   1.3710 + 0.0000i      Inf + 0.0000i
+
+h = rlocusplot(sys11)
+
+h =
+
+	resppack.rlplot
+
+setoptions(h, 'FreqUnits', 'rad/s')
+% Oops! Looks like we need positive feedback! 
+h = rlocusplot(-sys11);
+setoptions(h, 'FreqUnits', 'rad/s')
+% Looks better, clic on the blue curvve and move the black square to track the gain and dampling values 
+% The best achievable closed-loop damping is about 0.45 for a gain of K = 2.85
+k = 2.85
+
+k =
+
+    2.8500
+
+cl11 = feedback(sys11, -k);
+% Note: feedback assumes negative feedback by default 
+impulseplot(sys11, 'b--', cl11, 'r')
+legend('open loop', 'closed loop', 'Location', 'SouthEast')
+% The response looks pretty good
+% Let's now close the loop around the full MIMO model and see how the response from the airelon looks
+% The feedback involves input 1 and output 1 of the plant
+cloop = feedback(sys, -k, 1, 1);
+impulseplot(sys, 'b-', cloop, 'r', 20)
+% The yaw rate is now well damped!
+% However, the system no longer continues to bank like a normal aircraft 
+impulseplot(cloop('bank angle', 'airelon'), 'r', 18)
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('InputOutputModel/subsref')" style="font-weight:bold">indexing</a>
+The name "airelon" does not match any channel or group.
+} 
+impulseplot(cloop('bank angle', 'aileron'), 'r', 18)
+% We have over-stabilized the spiral model. The spiral model is typically a very slow mode that allows the aircraft to bank and turn without constant aileron input
+% Pilots are used to the spiral mode and will not like a design that does not fly normally 
+% Therefore we need to make sure that the spiral mode does not move farther into the left-half plan when we close the loop 
+% One way that control designers have fixed this problem is using a washout filter 
+% Washout filter is H(s) = ks/(s + a)
+% Using the SISO design tool you can graphically tune the parameters k and a to find the best combination
+% In this exmaple we choose a = 0.2 and time constant of 5 seconds 
+% Let's form the washout filter for a = 0.2, k = 1
+H = zpk(0, -0.2, 1);
+% Connect to your model in series and use the root locus to determine the filter gain k
+oloop = H * (-sys11);
+h = rlocusplot(oloop);
+setoptions(h, 'FreqUnits', 'rad/s')
+sgrid
+% The best damping is now about zeta = 0.305 and k = 2.34
+k = 2.34
+
+k =
+
+    2.3400
+
+% washout compensator 
+wof = -k * H;
+cloop = feedback(sys, wod, 1, 1);
+{Unrecognized function or variable 'wod'.
+} 
+cloop = feedback(sys, wof, 1, 1);
+impulseplot(sys, 'b--', cloop, 'r', 20)
+% Here the washout filter has restored the normal bank and turn behavior as seen by looking at the impulse response from airelon to bank angle 
+impulseplot(sys(2, 2), 'b--', cloop(2,2), 'r', 20)
+legend('open loop', 'closed loop', 'Location', 'SouthEast')
+% Although it doesn't quite meet the requirements, this design substantially increases the damping while allowing the pilot to fly the aircraft normally
+
+%% Example - Feedback Amplifier
+!git add 
+Nothing specified, nothing added.
+hint: Maybe you wanted to say 'git add .'?
+hint: Turn this message off by running
+hint: "git config advice.addEmptyPathspec false"
+clc
+% This example shows the design of an non-inverting feedback amplifier circuit 
+% The design is built around the operational amplifier
+% This example assumes the use of an uncompensated op amp with 2 poles (at freq w1, w2) and high dc gain (a0)
+% Assuming this op amp is operated in its linear mode (not saturated) then it's open-loop transfer function can be represented as a linear-time invariatn system
+% High-order polees will exist in physical op amp, it's been assumed that these poles lie i a freq. range when magnitude dropped below unity
+% Open-loop transfer function: a(s) = a0/((1 + s/w1)(1 + s/w2))
+% The system parameters are: 
+a0 = 1e5; 
+w1 = 1e4; 
+ws = 1e6;
+delete ws
+[Warning: File 'ws' not found.] 
+del ws
+{Undefined function or variable 'del'.
+} 
+clear ws
+w2 = 1e6;
+s = tf('s');
+a = a0/(1 + s/w1)/(1 + s/w2)
+
+a =
+ 
+           1e15
+  ----------------------
+  s^2 + 1.01e06 s + 1e10
+ 
+Continuous-time transfer function.
+
+% Let's view the frequency response of a(s)
+h = bodeplot(a, 'r');
+setoptions(h,'FreqUnits','rad/s','MagUnits','dB','PhaseUnits','deg',...
+    'YLimMode','Manual','YLim',{[0,110],[-180,0]});
+% We can view the normalized step response of a(s) using stepplot and dcgain
+a_norm = a/dcgain(a);
+stepplot(a_norm, 'r')
+title('Normalized Open-Loop Step Response');
+ylabel('Normalized Amplitude');
+% Right-click the step response plot to show Characteristics->Settling Time
+% Let's add a resistive feedback network and wire the system as a non-inverting amp
+% The feedback network b(s) is simply a voltage divider with input Vo and output Vn and solving for ratio Vn/Vo yields transfer function b = Vn/Vo = R1/(R1 + R2)
+% Solving for the ratio Vo/Vp yields closed-loop gain A(s), where A = Vo/Vp = a/(1 + ab)
+% If the product 'ab' is sufficiently large (>>1) and then A(s) may be approximated as A = 1/b
+% Assume that you need to design an amplifier of dc gain (Vo/Vp) 10 and that R1 is fixed at 10 kOhm. Solving for R2 yields the following:
+A0 = 10; 
+b = 1/A0;  % approximation for ab >> 1
+R1 = 10000; 
+R2 = R1 * (1/b - 1)
+
+R2 =
+
+       90000
+
+% Construct the closed-loop system using feedback command
+A = feedback(a, b);
+% Next plot the frequency response of a(s) and A(s) together
+bodema(a, 'r', A, 'b'), legend('Open-Loop Gain (a)', 'Closed-Loop Gain (A)'), ylim([0, 110]);
+{Undefined function or variable 'bodema'.
+} 
+bodemag(a, 'r', A, 'b'), legend('Open-Loop Gain (a)', 'Closed-Loop Gain (A)'), ylim([0, 110]);
+% Annotations
+opampdemo_annotate(1)
+type opamdemo_annotate
+{Error using <a href="matlab:matlab.internal.language.introspective.errorDocCallback('type')" style="font-weight:bold">type</a>
+File 'opamdemo_annotate' not found.
+} 
+type opampdemo_annotate
+
+function opampdemo_annotate(flag)
+% Annotations for opampdemo
+
+%  Copyright 1986-2005 The MathWorks, Inc.
+switch flag
+    case 1
+        CC = [1 0 1];
+        line('Parent',gca,'LineWidth',2,'Color',CC,'XData',[2e3 2e3],'YData',[25 95]);
+        patch('Parent',gca,'EdgeColor',CC,'FaceColor',CC,'XData',[1.6e3 2e3 2.5e3],'YData',[40 25 40]);
+        line('Parent',gca,'LineWidth',2,'Color',CC,'XData',[2e3 1e7],'YData',[10 10]);
+        patch('Parent',gca,'EdgeColor',CC,'FaceColor',CC,'XData',[7e6 1e7 7e6],'YData',[2 10 18]);
+        text('Parent',gca,'Position',[2e3 82],'String',' Reduced LF gain',...
+            'Hor','left','Ver','top');
+        text('Parent',gca,'Position',[1.3e5 24],'String','Increased system bandwidth',...
+            'Hor','center','Ver','bottom');
+        
+    case 2
+        text('Parent',gca,'Position',[2.4e-6 15],'String','Excessive ringing  \rightarrow  poor phase margin',...
+            'Hor','left','Ver','middle');
+    case 3
+        CC = [1 0 1];
+        ln = line('LineStyle','-','Color',CC,...
+            'XData',[.25e-6 .32e-6],'YData',[12 5]);
+        patch('EdgeColor',CC,'FaceColor',CC,...
+            'XData',[.32e-6 .29e-6 .34e-6],'YData',[5 5.6 5.8]);
+        text('Position',[.32e-6 4.9], 'String','   Increasing C',...
+            'Color',CC,'Hor','center','Ver','top');
+        text('Position',[.20e-6 13.2],'String','0 pF',...
+            'Color',CC,'Hor','right','Ver','middle');
+        text('Position',[.34e-6 12],  'String','1 pF',...
+            'Color',CC,'Hor','center','Ver','bottom');
+        text('Position',[.38e-6 7.8], 'String','3 pF',...
+            'Color',CC,'Hor','left','Ver','top');
+        set(gca,'Ylim',[0 14]);
+        
+    case 4
+        text('Position',[2.2 58],'String','\leftarrow Peak Phase Margin @ C = 2pF',...
+            'Hor','left','Ver','middle');
+        
+end
+% The use of negative feedback to reduce the low-frequency (LF) gain has led to corresponding increase in system bandwidth (defined the freq where the gain drops 3dB below its max value)
+% This gain/bandwidth tradeoff is powerful tool in the design of feedback amp circuits
+% Please see the block diagram for the non-inverting amplifier
+% Since the gain is now dominated by the feedback network, a useful relationship is to consider the sensitivity of this gain to variation in the op amps' natural (open-loop) gain
+% The loop gain is defined as L(s) = a(s)*b(s) which is the total gain a signal experiences traveling around the loop
+L = a * b;
+% We will use this quantity, L, to evaluate the system sensitivity and stability margins 
+% The system sensitivity, S(s), represents the sensitivity of A(s) to variations in a(s)
+% S = (delA/A)/(dela/a) = 1/(1 + a(s)b(s)) = 1/(1 + L(s))
+% The inverse relationship between S(s) and L(s) is another benefit of negative feedback called 'gain desensitivity'
+S = 1/(1 + L);
+% S(s) has the same form as the feedback equation and can be constructed using the more-robust 'feedback' command
+S = feedback(1, L);
+% Let's plot the magnitudes of S(s) and A(s) using 'bodemag'
+bodemag(A, 'b', S, 'g'), legend('Closed-Loop Gain(A)', 'System Sensitivity(S)', 'Location', 'SouthEast')
+% We can see the very small low-frequency sensitiviy (about -80 dB) indicates a design whose closed-loop gain suffers minimally from open-loop gain variation
+% Such a variation in a(s) is common due to manufacturing variability, temp change, etc. 
+stepplot(A), opampdemo_annotate(2)
+% Note the use of feedback has greatly reduced the settling time (by about 98%) but the step response has a large amount of ringing, indicates poor stability margin
+% Let's analyze the stability margin by plotting the loop gain, L(s), with 'margin'
+margin(L)
+% The resulting plot indicate a phase margin of less than 6 degrees, we need to compensate this amplifier to raise the phase margin to an acceptable level (45 degrees or more), reducing the excessive overshoot and ringing
+% Let's use compensation called 'feedback lead compensation' by modifying b(s) by adding a capacitor C, in parallel with feedback resistor R2.
+% Please see diagram in documents 
+% The new feedback network is K*(1 + tauz*s)/(1 + taup*s), where K = R1/(R1 + R2), tauz = R2 * C, taup = K * tauz
+% Can approximate a value for C by placing the zero of b(s) at the 0db crossover frequency of L(s): 
+[Gm. Pm. Wcg, Wcp] = margin(L);
+C = 1/(R2*Wcp)
+
+C =
+
+   1.9215e-06
+
+% To study the effect of C on amplifier response, let's create an LTI model array of b(s) for several values of C around your initial guess
+[Gm, Pm, Wcg, Wcp] = margin(L);
+C = 1/(R2*Wcp)
+
+C =
+
+   1.1139e-12
+
+K = R1/(R1 + R2);
+C = [1:.2:3]*1e-12;
+for n = 1:length(C)
+b_array(:, :, n) = tf([K*R2*C(n), K], [K*R2*C(n), 1]); 
+end
+% Let's create the LTI array for A(s) and L(s)
+A_array = feedback(a, b_array)
+
+A_array(:,:,1,1) =
+ 
+                9e06 s + 1e15
+  -----------------------------------------
+  9e-09 s^3 + 1.009 s^2 + 1.001e07 s + 1e14
+ 
+
+A_array(:,:,2,1) =
+ 
+                1.08e07 s + 1e15
+  --------------------------------------------
+  1.08e-08 s^3 + 1.011 s^2 + 1.181e07 s + 1e14
+ 
+
+A_array(:,:,3,1) =
+ 
+                1.26e07 s + 1e15
+  --------------------------------------------
+  1.26e-08 s^3 + 1.013 s^2 + 1.361e07 s + 1e14
+ 
+
+A_array(:,:,4,1) =
+ 
+                1.44e07 s + 1e15
+  --------------------------------------------
+  1.44e-08 s^3 + 1.015 s^2 + 1.541e07 s + 1e14
+ 
+
+A_array(:,:,5,1) =
+ 
+                1.62e07 s + 1e15
+  --------------------------------------------
+  1.62e-08 s^3 + 1.016 s^2 + 1.721e07 s + 1e14
+ 
+
+A_array(:,:,6,1) =
+ 
+                1.8e07 s + 1e15
+  -------------------------------------------
+  1.8e-08 s^3 + 1.018 s^2 + 1.901e07 s + 1e14
+ 
+
+A_array(:,:,7,1) =
+ 
+               1.98e07 s + 1e15
+  -------------------------------------------
+  1.98e-08 s^3 + 1.02 s^2 + 2.081e07 s + 1e14
+ 
+
+A_array(:,:,8,1) =
+ 
+                2.16e07 s + 1e15
+  --------------------------------------------
+  2.16e-08 s^3 + 1.022 s^2 + 2.261e07 s + 1e14
+ 
+
+A_array(:,:,9,1) =
+ 
+                2.34e07 s + 1e15
+  --------------------------------------------
+  2.34e-08 s^3 + 1.024 s^2 + 2.441e07 s + 1e14
+ 
+
+A_array(:,:,10,1) =
+ 
+                2.52e07 s + 1e15
+  --------------------------------------------
+  2.52e-08 s^3 + 1.025 s^2 + 2.621e07 s + 1e14
+ 
+
+A_array(:,:,11,1) =
+ 
+                2.7e07 s + 1e15
+  -------------------------------------------
+  2.7e-08 s^3 + 1.027 s^2 + 2.801e07 s + 1e14
+ 
+11x1 array of continuous-time transfer functions.
+
+L_array = a * b_array;
+% Can plot the step responses of all models in the LTI array, A_array(s) with A(s)
+stepplot(A, 'b:', A_array, 'b')
+stepplot(A, 'b:', A_array, 'b', [0:.005:1]*1.5e-6)
+help stepplot
+--- help for <strong>DynamicSystem/stepplot</strong> ---
+
+ <strong>stepplot</strong>  Plot step response of linear systems.
+ 
+    <strong>stepplot</strong>, an extension of STEP, provides a command line interface for   
+    customizing the plot appearance.
+ 
+    <strong>stepplot</strong>(SYS) plots the step response of the dynamic system SYS. For systems 
+    with more than one input, independent step commands are applied to each 
+    input channel. The time range and number of points are chosen automatically.
+ 
+    <strong>stepplot</strong>(SYS,TFINAL) simulates the step response from t=0 to the final time 
+    t=TFINAL (expressed in the time units specified in SYS.TimeUnit). For 
+    discrete-time models with unspecified sample time, TFINAL is interpreted 
+    as the number of sampling periods.
+ 
+    <strong>stepplot</strong>(SYS,T) uses the time vector T for simulation (expressed in the 
+    time units of SYS). For discrete-time models, T should be of the form
+    Ti:Ts:Tf where Ts is the sample time. For continuous-time models, T should  
+    be of the form  Ti:dt:Tf  where dt will become the sample time for the 
+    discrete approximation to the continuous system. The step input is always 
+    assumed to start at t=0 (regardless of Ti).
+ 
+    <strong>stepplot</strong>(SYS1,SYS2,...,T) plots the step response of multiple models
+    SYS1,SYS2,... on a single plot. The time vector T is optional. You can 
+    also specify a color, line style, and marker for each system, as in 
+       stepplot(sys1,'r',sys2,'y--',sys3,'gx').
+ 
+    <strong>stepplot</strong>(AX,...) plots into the axes with handle AX.
+ 
+    <strong>stepplot</strong>(...,PLOTOPTIONS) plots the step response with the options
+    specified in PLOTOPTIONS. See TIMEOPTIONS for more detail.
+ 
+    H = <strong>stepplot</strong>(...) returns the handle to the step response plot. You can
+    use this handle to customize the plot with the GETOPTIONS and
+    SETOPTIONS commands.  See TIMEOPTIONS for a list of available plot
+    options.
+ 
+    Example:
+        sys = rss(3);
+        h = stepplot(sys);
+        % Normalize responses
+        setoptions(h,'Normalize','on');
+ 	
+    See also <a href="matlab:help DynamicSystem/step">step</a>, <a href="matlab:help timeoptions">timeoptions</a>, <a href="matlab:help wrfc.setoptions">wrfc.setoptions</a>, <a href="matlab:help wrfc.getoptions">wrfc.getoptions</a>, <a href="matlab:help DynamicSystem">DynamicSystem</a>.
+
+opampdemo_annotate(3)
+% The phase margin for our loop gain array, L_array(s) are found using 'margin'
+[Gm, Pm, Wcg, Wcp] = margin(L_array);
+% We can plot the phase margins as a function of C
+plot(C*1e12, Pm, 'g')
+ax = gca, xlim([0.8, 3.6]), ylim([45, 60]), ax.Box = 'on', xlabel('Compensator Capacitor, C (pF)'), ylabel('Phase Margin (deg)')
+
+ax = 
+
+  <a href="matlab:helpPopup matlab.graphics.axis.Axes" style="font-weight:bold">Axes</a> with properties:
+
+             XLim: [1 3]
+             YLim: [46 60]
+           XScale: 'linear'
+           YScale: 'linear'
+    GridLineStyle: '-'
+         Position: [0.1300 0.1100 0.7750 0.8150]
+            Units: 'normalized'
+
+  Show <a href="matlab:if exist('ax', 'var'), matlab.graphics.internal.getForDisplay('ax', ax, 'matlab.graphics.axis.Axes'), else, matlab.graphics.internal.getForDisplay('ax'), end">all properties</a>
+
+
+ax = 
+
+  <a href="matlab:helpPopup matlab.graphics.axis.Axes" style="font-weight:bold">Axes</a> with properties:
+
+             XLim: [0.8000 3.6000]
+             YLim: [45 60]
+           XScale: 'linear'
+           YScale: 'linear'
+    GridLineStyle: '-'
+         Position: [0.1300 0.1100 0.7750 0.8150]
+            Units: 'normalized'
+
+  Show <a href="matlab:if exist('ax', 'var'), matlab.graphics.internal.getForDisplay('ax', ax, 'matlab.graphics.axis.Axes'), else, matlab.graphics.internal.getForDisplay('ax'), end">all properties</a>
+
+opampdemo_annotate(4)
+% A maximum phase margin of 58 deg is obtained when C=2pF (2e-12)
+% The model corresponding to C = 2pF is the sixth model in the LTI array, b_array(s), can plot the step response of the closed-loop system for this model by selecting index 6 of the LTI array A_array(s)
+A_comp = A_array(:, :, 6);
+stepplot(A, 'b:', A_comp, 'b'), legend('Uncompensated (0 pF)', 'Compensated (2 pF)')
+% Notice that the settling time has been further reduced by an additional 85%
+% Let's overlay the freq. response of all three models (open-loop, closed-loop, compensated closed-loop)
+bodeplot(a, 'r', A, 'b:', A_comp, 'b'), legend('a(s)', 'A(s)', 'A\_comp(s)');
+bodeplot(a, 'r', A, 'b:', A_comp, 'b'), legend('a(s)', 'A(s)', 'A_{comp(s)}');
+bodeplot(a, 'r', A, 'b:', A_comp, 'b'), legend('a(s)', 'A(s)', 'A_comp(s)');
+bodeplot(a, 'r', A, 'b:', A_comp, 'b'), legend('a(s)', 'A(s)', 'A\{_comp(s)}');
+[Warning: Error updating Legend.
+
+ String scalar or character vector must have valid interpreter syntax:
+A\{\_comp(s)}
+] 
+bodeplot(a, 'r', A, 'b:', A_comp, 'b'), legend('a(s)', 'A(s)', 'A\_comp(s)');
+bodeplot(a, 'r', A, 'b:', A_comp, 'b'), legend('a(s)', 'A(s)', 'A\_comp(s)\');
+[Warning: Error updating Legend.
+
+ String scalar or character vector must have valid interpreter syntax:
+A\\_comp(s)\
+] 
+bodeplot(a, 'r', A, 'b:', A_comp, 'b'), legend('a(s)', 'A(s)', 'A\_comp(s)');
+% Latex in plots?
+% We can see the additional of the compensation capacitor has eliminated peaking in the closed-loop gain and greatly extended the phase margin 
+
+
+% Summary: 
+% 1. Final component values R1 = 10 KOhm, R2 = 90 KOhm, C = 2 pF
+% 2. Resistive feedback network (R1, R2) selected to yield broadband amplifier gain of 10 (20 dB)
+% 3. Feedback lead compensation was used to tune the loop gain near the crossover freq. The value of the compensation capacitor, C, optimized to provide a maximum phase margin of about 50 deg. 
+help loopview
+--- help for <strong>DynamicSystem/loopview</strong> ---
+
+ <strong>loopview</strong>  Graphically analyze MIMO feedback loops.
+ 
+    <strong>loopview</strong> shows key characteristics of MIMO feedback loops such as 
+    open-loop response and MIMO stability margins. It can be used in
+    conjunction with LOOPTUNE to validate the tuned control system.
+ 
+    <strong>loopview</strong>(G,C) shows the open-loop response of the positive feedback 
+    loop with plant G and controller C:
+ 
+                   +-------+
+             +---->|   G   |-----+
+             |     +-------+     |
+          u  |                   | y
+             |     +-------+     |
+             +-----|   C   |<----+
+                   +-------+
+ 
+    <strong>loopview</strong>(G,C,INFO) takes the INFO structure returned by LOOP

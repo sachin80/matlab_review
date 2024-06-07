@@ -4821,4 +4821,80 @@ ax =
 
 opampdemo_annotate(4)
 % A maximum phase margin of 58 deg is obtained when C=2pF (2e-12)
-% The model corresponding to C = 2pF is the sixth model in the LTI array, b_array(s), can plot the step response of the closed-loop system for this model by selecting inde
+% The model corresponding to C = 2pF is the sixth model in the LTI array, b_array(s), can plot the step response of the closed-loop system for this model by selecting index 6 of the LTI array A_array(s)
+A_comp = A_array(:, :, 6);
+stepplot(A, 'b:', A_comp, 'b'), legend('Uncompensated (0 pF)', 'Compensated (2 pF)')
+% Notice that the settling time has been further reduced by an additional 85%
+% Let's overlay the freq. response of all three models (open-loop, closed-loop, compensated closed-loop)
+bodeplot(a, 'r', A, 'b:', A_comp, 'b'), legend('a(s)', 'A(s)', 'A\_comp(s)');
+bodeplot(a, 'r', A, 'b:', A_comp, 'b'), legend('a(s)', 'A(s)', 'A_{comp(s)}');
+bodeplot(a, 'r', A, 'b:', A_comp, 'b'), legend('a(s)', 'A(s)', 'A_comp(s)');
+bodeplot(a, 'r', A, 'b:', A_comp, 'b'), legend('a(s)', 'A(s)', 'A\{_comp(s)}');
+[Warning: Error updating Legend.
+
+ String scalar or character vector must have valid interpreter syntax:
+A\{\_comp(s)}
+] 
+bodeplot(a, 'r', A, 'b:', A_comp, 'b'), legend('a(s)', 'A(s)', 'A\_comp(s)');
+bodeplot(a, 'r', A, 'b:', A_comp, 'b'), legend('a(s)', 'A(s)', 'A\_comp(s)\');
+[Warning: Error updating Legend.
+
+ String scalar or character vector must have valid interpreter syntax:
+A\\_comp(s)\
+] 
+bodeplot(a, 'r', A, 'b:', A_comp, 'b'), legend('a(s)', 'A(s)', 'A\_comp(s)');
+% Latex in plots?
+% We can see the additional of the compensation capacitor has eliminated peaking in the closed-loop gain and greatly extended the phase margin 
+
+
+% Summary: 
+% 1. Final component values R1 = 10 KOhm, R2 = 90 KOhm, C = 2 pF
+% 2. Resistive feedback network (R1, R2) selected to yield broadband amplifier gain of 10 (20 dB)
+% 3. Feedback lead compensation was used to tune the loop gain near the crossover freq. The value of the compensation capacitor, C, optimized to provide a maximum phase margin of about 50 deg. 
+help loopview
+--- help for <strong>DynamicSystem/loopview</strong> ---
+
+ <strong>loopview</strong>  Graphically analyze MIMO feedback loops.
+ 
+    <strong>loopview</strong> shows key characteristics of MIMO feedback loops such as 
+    open-loop response and MIMO stability margins. It can be used in
+    conjunction with LOOPTUNE to validate the tuned control system.
+ 
+    <strong>loopview</strong>(G,C) shows the open-loop response of the positive feedback 
+    loop with plant G and controller C:
+ 
+                   +-------+
+             +---->|   G   |-----+
+             |     +-------+     |
+          u  |                   | y
+             |     +-------+     |
+             +-----|   C   |<----+
+                   +-------+
+ 
+    <strong>loopview</strong>(G,C,INFO) takes the INFO structure returned by LOOP
+!git add .
+!git commit -m "added changes"
+[main 71ed094] added changes
+ 1 file changed, 2428 insertions(+), 1 deletion(-)
+!git push origin main
+Enumerating objects: 9, done.
+Counting objects:  11% (1/9)Counting objects:  22% (2/9)Counting objects:  33% (3/9)Counting objects:  44% (4/9)Counting objects:  55% (5/9)Counting objects:  66% (6/9)Counting objects:  77% (7/9)Counting objects:  88% (8/9)Counting objects: 100% (9/9)Counting objects: 100% (9/9), done.
+Delta compression using up to 8 threads
+Compressing objects:  20% (1/5)Compressing objects:  40% (2/5)Compressing objects:  60% (3/5)Compressing objects:  80% (4/5)Compressing objects: 100% (5/5)Compressing objects: 100% (5/5), done.
+Writing objects:  20% (1/5)Writing objects:  40% (2/5)Writing objects:  60% (3/5)Writing objects:  80% (4/5)Writing objects: 100% (5/5)Writing objects: 100% (5/5), 1.05 KiB | 1.05 MiB/s, done.
+Total 5 (delta 4), reused 0 (delta 0), pack-reused 0
+remote: Resolving deltas:   0% (0/4)        remote: Resolving deltas:  25% (1/4)        remote: Resolving deltas:  50% (2/4)        remote: Resolving deltas:  75% (3/4)        remote: Resolving deltas: 100% (4/4)        remote: Resolving deltas: 100% (4/4), completed with 4 local objects.        
+To https://github.com/sachin80/matlab_review.git
+   b0e6119..71ed094  main -> main
+!git pull origin main
+From https://github.com/sachin80/matlab_review
+ * branch            main       -> FETCH_HEAD
+Already up to date.
+ls
+052424_pid_control_tuning	060324_classical_control_design
+052624_pid_control_tuning	scdDCMotor.slxc
+052924_classical_control_design	slprj
+060124_classical_control_design
+
+clc
+diary 060724_statespace_control_design
